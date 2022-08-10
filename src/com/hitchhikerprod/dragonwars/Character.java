@@ -79,6 +79,11 @@ public class Character {
         advancementPoints = readByte(dataFile);
         spells = new byte[8];
         dataFile.read(spells, 0, 8);
+
+        // Something around here has to track whether you've received the Blessing of the
+        // Universal God and received your +3 attribute bonus. I bet there's also a flag
+        // for the +5 AP Irkalla bonus, although that resets with the game state.
+
         final byte[] unknownBitfields = new byte[8];
         dataFile.read(unknownBitfields, 0, 8);
         final int statusBitfield = readByte(dataFile); // 0 OK 1 dead 2 chained 4 poisoned ...?
@@ -164,3 +169,65 @@ public class Character {
         System.out.println("  Spells: " + translateSpells());
     }
 }
+
+/*
+Equipment:
+  0x3019 PC #2 name
+  ...
+
+
+  0x  05  0x80 (128) equipped
+  0x  06  0x01 (  1) requires STR? (2=DEX, 4=Int, 6=Spr???)
+  0x  07  0x0c ( 12) requires STR 12
+  0x  08  0x10 ( 16)
+  0x  09  0x26 ( 38)
+  0x  0a  0x05 (  5)
+  0x  0b  0x80 (128)
+  0x  0c  0x00
+  0x  0d  0x40 ( 64)
+  0x  0e  0x00
+  0x  0f  0x01 (  1)
+  0x3110-1a Inv. slot #1 name (12? ch)   "Broadsword"
+
+  0x  1c  0x80 (128) equipped
+  0x  1d  0x80 (128) no skill required
+  0x  1e  0x00       no minimum
+  0x  1f  0x13  (19)
+  0x  20  0x25  (37)
+  0x  21  0x11  (17)
+  0x  22  0x80 (128)
+  0x  23  0x00
+  0x  24  0x00
+  0x  25  0x00
+  0x  26  0x00
+  0x3127 Inv. slot #2 name "Leather Arm."
+
+  0x  33  0x00       not equipped
+  0x  34  0xc1 (-63) requires STR -- what's the upper nibble?
+  0x  35  0x11 ( 17) requires STR 17
+  0x  36  0x10 ( 16)
+  0x  37  0x27 ( 39)
+  0x  38  0x03 (  3)
+  0x  39  0x80 (128)
+  0x  3a  0x00
+  0x  3b  0x80 (128)
+  0x  3c  0x00
+  0x  3d  0x01
+  0x313e  "Battle Axe"
+
+
+[0x3333] 0x80 128  equipped
+[0x3334] 0xc1 -63
+[0x3335] 0x11  17
+[0x3336] 0x10  16
+[0x3337] 0x27  39
+[0x3338] 0x03   3
+[0x3339] 0x80 128
+[0x333a] 0x00
+[0x333b] 0x80 128
+[0x333c] 0x00
+[0x333d] 0x01   1
+[0x333e]  "Battle Axe"
+ */
+
+
