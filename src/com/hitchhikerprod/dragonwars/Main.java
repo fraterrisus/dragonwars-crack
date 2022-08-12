@@ -6,8 +6,9 @@ import java.io.RandomAccessFile;
 
 public class Main {
     public static void main(String[] args) {
+        //mainDecodeItem(args);
         mainSearch(args);
-        //mainDecode(args);
+        //mainDecodeParty(args);
     }
 
     private static void mainSearch(String[] args) {
@@ -34,7 +35,23 @@ public class Main {
         }
     }
 
-    private static void mainDecode(String[] args) {
+    private static void mainDecodeItem(String[] args) {
+        try (RandomAccessFile dataFile = new RandomAccessFile(args[0], "r")) {
+            int offset = Integer.valueOf(args[1], 16) - 11;
+            final Item i = new Item(dataFile, offset);
+            System.out.printf("%-12s ", i);
+            for (byte b : i.toBytes()) {
+                final String bin = Integer.toBinaryString(b & 0xff);
+                final String padded = "00000000".substring(bin.length()) + bin;
+                System.out.printf(" %8s", padded);
+            }
+            System.out.println();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void mainDecodeParty(String[] args) {
         final Character pcs[] = new Character[7];
 
         try (RandomAccessFile dataFile = new RandomAccessFile(args[0], "r")) {
