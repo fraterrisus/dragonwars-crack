@@ -3,16 +3,22 @@ package com.hitchhikerprod.dragonwars;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        //mainDecodeItem(args);
-        mainSearch(args);
-        //mainDecodeParty(args);
+        final List<String> myArgs = Arrays.asList(args);
+        final String command = myArgs.get(0);
+        final List<String> yourArgs = myArgs.subList(1, myArgs.size());
+        if (command.equalsIgnoreCase("item")) { mainDecodeItem(yourArgs); }
+        else if (command.equalsIgnoreCase("search")) { mainSearch(yourArgs); }
+        else if (command.equalsIgnoreCase("party")) { mainDecodeParty(yourArgs); }
     }
 
-    private static void mainSearch(String[] args) {
-        try (RandomAccessFile dataFile = new RandomAccessFile(args[0], "r")) {
+    private static void mainSearch(List<String> args) {
+        final String filename = parseFilename(args);
+        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             long offset = 0x0L;
             while (offset < dataFile.length()) {
                 final DataString ds = new DataString(dataFile, offset, 32);
@@ -35,9 +41,11 @@ public class Main {
         }
     }
 
-    private static void mainDecodeItem(String[] args) {
-        try (RandomAccessFile dataFile = new RandomAccessFile(args[0], "r")) {
-            int offset = Integer.valueOf(args[1], 16) - 11;
+    private static void mainDecodeItem(List<String> args) {
+        final String filename = parseFilename(args);
+        final int offset = Integer.valueOf(args.get(1), 16) - 11;
+
+        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             final Item i = new Item(dataFile, offset);
             System.out.printf("%-12s ", i);
             for (byte b : i.toBytes()) {
@@ -51,18 +59,27 @@ public class Main {
         }
     }
 
-    private static void mainDecodeParty(String[] args) {
-        final Character pcs[] = new Character[7];
+    private static void mainDecodeParty(List<String> args) {
+        final Character[] pcs = new Character[7];
+        final String filename = parseFilename(args);
 
-        try (RandomAccessFile dataFile = new RandomAccessFile(args[0], "r")) {
+        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             long offset = 0x2e19;
             for (int i = 0; i < 7; i++) {
-                final Character pc = new Character(dataFile, offset);
-                pc.display();
+                pcs[i] = new Character(dataFile, offset);
+                pcs[i].display();
                 offset += 0x200;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String parseFilename(List<String> args) {
+        final String filename = args.get(0);
+        if (filename.isBlank()) {
+            throw new IllegalArgumentException("You must specify a data filename");
+        }
+        return filename;
     }
 }
