@@ -6,6 +6,8 @@ import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.List;
 
+// 3155 316c 3183
+
 public class Main {
     public static void main(String[] args) {
         final List<String> myArgs = Arrays.asList(args);
@@ -47,13 +49,15 @@ public class Main {
 
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             final Item i = new Item(dataFile, offset);
-            System.out.printf("%-12s ", i);
+            if (i.getName().isBlank()) { return; }
+            System.out.printf("%-12s ", i.getName());
             for (byte b : i.toBytes()) {
                 final String bin = Integer.toBinaryString(b & 0xff);
                 final String padded = "00000000".substring(bin.length()) + bin;
                 System.out.printf(" %8s", padded);
             }
             System.out.println();
+            System.out.println(i);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
