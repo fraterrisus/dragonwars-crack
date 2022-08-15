@@ -48,12 +48,7 @@ public class Item {
 
         this.itemType = Lists.ITEM_TYPES[bytes[5] & 0x1f];
 
-        if ((bytes[6] & 0x80) == 0) {
-            final int spell_index = bytes[6] & 0x3f;
-            this.magicEffect = Lists.SPELL_NAMES[spell_index / 8][spell_index % 8];
-        } else {
-            this.magicEffect = null;
-        }
+        this.magicEffect = parseMagicEffect(bytes[6], bytes[7]);
 
         this.damageDice = new ArrayList<>();
         if (List.of(Lists.WEAPON_TYPES).contains(this.itemType)) {
@@ -72,18 +67,16 @@ public class Item {
         final List<String> attributes = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
 
-/*
-        if (this.unknownFlag) {
-            sb.append("[T] ");
-        } else {
-            sb.append("[F] ");
-        }
-*/
+        sb.append(unknownBytes());
         sb.append(this.name);
-        // if (this.equipped) { sb.append("*"); }
+/*
+        if (this.equipped) { sb.append("*"); }
+*/
+/*
         if (this.uses > 0) {
             sb.append(" [#").append(this.uses).append("]");
         }
+*/
         sb.append(": ");
 
         attributes.add(this.itemType);
@@ -102,7 +95,7 @@ public class Item {
             attributes.add((this.range * 10) + "' range");
         }
         if (this.magicEffect != null) {
-            attributes.add("casts " + this.magicEffect);
+            attributes.add(this.magicEffect);
         }
         if (this.minimumValue > 0) {
             attributes.add("requires " + this.skill + " " + this.minimumValue);
@@ -124,6 +117,62 @@ public class Item {
 
     public String getName() {
         return name;
+    }
+
+    private String parseMagicEffect(byte one, byte two) {
+        final boolean canBeRecharged = (one & 0x80) == 0; // note inverse of usual flag
+        if (canBeRecharged) {
+            if (one == 0) {
+                return "can be Recharged";
+            }
+            final int spellId = (one & 0x3f);
+            final String spellName = Lists.SPELL_NAMES[spellId / 8][spellId % 8];
+            final int power = two;
+            if (power > 0) {
+                return "casts " + spellName + " @" + power;
+            } else {
+                return "casts " + spellName;
+            }
+        } else {
+            final int effect = (one & 0x3f);
+            switch (effect) {
+                case 3 -> {
+                    final int spellId = (two & 0x3f);
+                    final String spellName = Lists.SPELL_NAMES[spellId / 8][spellId % 8];
+                    return "teaches " + spellName;
+                }
+                case 4 -> {
+                    final int power = two;
+                    return "restores " + power + " POW";
+                }
+            }
+            return null;
+        }
+    }
+
+    private String unknownBytes() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append((this.bytes[0] & 0x40) > 0 ? "1" : "0");
+        sb.append((this.bytes[0] & 0x20) > 0 ? "1" : "0");
+        sb.append("-");
+        sb.append((this.bytes[1] & 0x40) > 0 ? "1" : "0");
+        sb.append("-");
+        sb.append((this.bytes[2] & 0x80) > 0 ? "1" : "0");
+        sb.append((this.bytes[2] & 0x40) > 0 ? "1" : "0");
+        sb.append((this.bytes[2] & 0x20) > 0 ? "1" : "0");
+        sb.append("-");
+        sb.append((this.bytes[5] & 0x80) > 0 ? "1" : "0");
+        sb.append((this.bytes[5] & 0x40) > 0 ? "1" : "0");
+        sb.append((this.bytes[5] & 0x20) > 0 ? "1" : "0");
+        sb.append("-");
+        sb.append((this.bytes[10] & 0x80) > 0 ? "1" : "0");
+        sb.append((this.bytes[10] & 0x80) > 0 ? "1" : "0");
+        sb.append((this.bytes[10] & 0x40) > 0 ? "1" : "0");
+        sb.append((this.bytes[10] & 0x20) > 0 ? "1" : "0");
+        sb.append((this.bytes[10] & 0x10) > 0 ? "1" : "0");
+        sb.append((this.bytes[10] & 0x08) > 0 ? "1" : "0");
+        sb.append(" ");
+        return sb.toString();
     }
 }
 
