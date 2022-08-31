@@ -15,7 +15,7 @@ public class Lists {
                     "H:Sense Traps", "H:Air Summon", "H:Earth Summon", "H:Water Summon" },
             { "H:Fire Summon", "D:Death Curse", "D:Fire Blast", "D:Insect Plague",
                     "D:Whirl Wind", "D:Scare", "D:Brambles", "D:Greater Healing" },
-            { "D:Cure All", "D:Create Wall", "D:Soften Stone", "D:Invoke Spssirit",
+            { "D:Cure All", "D:Create Wall", "D:Soften Stone", "D:Invoke Spirit",
                     "D:Beast Call", "D:Wood Spirit", "S:Sun Stroke", "S:Exorcism" },
             { "S:Rage of Mithras", "S:Wrath of Mithras", "S:Fire Storm", "S:Inferno",
                     "S:Holy Aim", "S:Battle Power", "S:Column of Fire", "S:Mithras' Bless" },

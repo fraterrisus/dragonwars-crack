@@ -72,6 +72,7 @@ public class Main {
             for (int i = 0; i < 7; i++) {
                 pcs[i] = new Character(dataFile, offset);
                 pcs[i].display();
+                System.out.println();
                 offset += 0x200;
             }
         } catch (IOException e) {

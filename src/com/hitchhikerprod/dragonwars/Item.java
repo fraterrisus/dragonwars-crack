@@ -50,17 +50,19 @@ public class Item {
 
         this.magicEffect = parseMagicEffect(bytes[6], bytes[7]);
 
+        this.range = bytes[10] & 0x7;
+
         this.damageDice = new ArrayList<>();
         if (List.of(Lists.WEAPON_TYPES).contains(this.itemType)) {
             damageDice.add(new WeaponDamage(bytes[8]));
-            if (this.name.equals("Axe of Kalah")) {
-                damageDice.add(new WeaponDamage(bytes[9]));
-            } else if (this.name.equals("Druids Mace")) {
+            if (this.name.equals("Druids Mace")) {
                 damageDice.set(0, new WeaponDamage(bytes[9]));
+            } else if (this.range > 0 && bytes[9] != 0) {
+            // if (this.name.equals("Axe of Kalah") || this.name.equals("Throw Mace") || this.name.equals("Long Mace")) {
+                damageDice.add(new WeaponDamage(bytes[9]));
             }
         }
 
-        this.range = bytes[10] & 0x7;
     }
 
     public String toString() {
@@ -90,6 +92,8 @@ public class Item {
         }
         if (this.armorClassMod > 0) {
             attributes.add("+" + this.armorClassMod + "AC");
+        } else if (this.armorClassMod < 0) {
+            attributes.add(this.armorClassMod + "AC");
         }
         if (this.range > 0) {
             attributes.add((this.range * 10) + "' range");
@@ -145,8 +149,10 @@ public class Item {
                     final int power = two;
                     return "restores " + power + " POW";
                 }
+                default -> {
+                    return (two == 0) ? null : "flag 0x" + Integer.toHexString(two);
+                }
             }
-            return null;
         }
     }
 

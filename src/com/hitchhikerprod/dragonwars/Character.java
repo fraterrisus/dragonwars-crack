@@ -34,8 +34,9 @@ public class Character {
     final int armorClass;
     final byte[] skills;
     final byte[] spells;
+    final List<Item> inventory;
 
-    public Character(RandomAccessFile dataFile, long offset) throws IOException {
+    public Character(RandomAccessFile dataFile, final long offset) throws IOException {
         name = new DataString(dataFile, offset, 12).toString();
         strength = readByte(dataFile, offset+12);
         strengthTemp = readByte(dataFile);
@@ -73,10 +74,19 @@ public class Character {
         defenseValue = readByte(dataFile);
         armorClass = readByte(dataFile);
         final int unknownValue = readByte(dataFile);
+
+        /*
         final byte[] padding = new byte[143];
         dataFile.read(padding, 0, 143);
-        final byte[] inventory = new byte[276];
-        dataFile.read(inventory, 0, 276);
+         */
+
+        inventory = new ArrayList<>();
+        long inventoryOffset = offset + 236;
+        for (int i = 0; i < 13; i++) {
+            final Item item = new Item(dataFile, inventoryOffset);
+            if (!item.getName().isEmpty()) { inventory.add(item); }
+            inventoryOffset += 23;
+        }
     }
 
     private static int readByte(RandomAccessFile dataFile) throws IOException {
@@ -144,6 +154,8 @@ public class Character {
         System.out.println();
         System.out.println("  Skills: " + translateSkills());
         System.out.println("  Spells: " + translateSpells());
+        System.out.println("  Inventory:");
+        for (Item i : inventory) { System.out.println(i); }
     }
 }
 
