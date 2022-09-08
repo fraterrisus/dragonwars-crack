@@ -45,19 +45,25 @@ public class Main {
 
     private static void mainDecodeItem(List<String> args) {
         final String filename = parseFilename(args);
-        final int offset = Integer.valueOf(args.get(1), 16) - 11;
 
+        int index = 1;
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
-            final Item i = new Item(dataFile, offset);
-            if (i.getName().isBlank()) { return; }
-            System.out.printf("%-12s ", i.getName());
-            for (byte b : i.toBytes()) {
-                final String bin = Integer.toBinaryString(b & 0xff);
-                final String padded = "00000000".substring(bin.length()) + bin;
-                System.out.printf(" %8s", padded);
+            while (index < args.size()) {
+                final int offset = Integer.valueOf(args.get(index), 16) - 11;
+                index++;
+                final Item item = new Item(dataFile, offset);
+                if (item.getName().isBlank()) {
+                    continue;
+                }
+                System.out.printf("%-12s ", item.getName());
+                for (byte b : item.toBytes()) {
+                    final String bin = Integer.toBinaryString(b & 0xff);
+                    final String padded = "00000000".substring(bin.length()) + bin;
+                    System.out.printf(" %8s", padded);
+                }
+                System.out.println();
+                System.out.println(item);
             }
-            System.out.println();
-            System.out.println(i);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
