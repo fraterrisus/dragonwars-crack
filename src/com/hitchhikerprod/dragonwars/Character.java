@@ -32,6 +32,11 @@ public class Character {
     final int attackValue;
     final int defenseValue;
     final int armorClass;
+    final int npcId;
+    final int status;
+    final int gender;
+    final int flags;
+    final byte[] unknown;
     final byte[] skills;
     final byte[] spells;
     final List<Item> inventory;
@@ -62,23 +67,29 @@ public class Character {
         // Universal God and received your +3 attribute bonus. I bet there's also a flag
         // for the +5 AP Irkalla bonus, although that resets with the game state.
 
-        final byte[] unknownBitfields = new byte[8];
-        dataFile.read(unknownBitfields, 0, 8);
-        final int statusBitfield = readByte(dataFile); // 0 OK 1 dead 2 chained 4 poisoned ...?
-        final int unknownBitfield = readByte(dataFile);
-        final int genderBitfield = readByte(dataFile); // 0 male 1 female 2 sometimes 4 never?
+        unknown = new byte[9];
+        dataFile.read(unknown, 0, 8);
+        status = readByte(dataFile); // 0 OK 1 dead 2 chained 4 poisoned ...?
+        npcId = readByte(dataFile); // prevents you from adding the same NPC twice
+        gender = readByte(dataFile);
         level = readBytes(dataFile, 2);
         experience = readBytes(dataFile, 4);
         gold = readBytes(dataFile, 4);
         attackValue = readByte(dataFile);
         defenseValue = readByte(dataFile);
         armorClass = readByte(dataFile);
-        final int unknownValue = readByte(dataFile);
 
-        /*
+        flags = readByte(dataFile);
+
         final byte[] padding = new byte[143];
         dataFile.read(padding, 0, 143);
-         */
+/*
+        for (int i = 0; i < 143; i++) {
+            if (padding[i] != 0) {
+                System.out.println("Padding byte 0x" + Integer.toHexString(i) + " = " + Integer.toHexString(padding[i]));
+            }
+        }
+*/
 
         inventory = new ArrayList<>();
         long inventoryOffset = offset + 236;
@@ -107,6 +118,16 @@ public class Character {
         return result;
     }
 
+    private String translateGender() {
+        switch (gender) {
+            case 0 -> { return "he/him"; }
+            case 1 -> { return "she/her"; }
+            case 2 -> { return "it"; }
+            case 3 -> { return "none"; }
+            default -> { return ""; }
+        }
+    }
+
     private String translateSkills() {
         final List<String> stringList = new ArrayList<>();
         int skillNumber = 0;
@@ -133,12 +154,30 @@ public class Character {
         return String.join(", ", spellNameList);
     }
 
+    private String translateStatus() {
+        List<String> statuses = new ArrayList<>();
+        if ((status & 0x1) > 0) { statuses.add("Dead"); }
+        if ((status & 0x2) > 0) { statuses.add("Chained"); }
+        if ((status & 0x4) > 0) { statuses.add("Poisoned"); }
+        return String.join(", ", statuses);
+    }
+
     public void display() {
-        System.out.print("Name: " + name);
+        System.out.print("Name: " + name + " (" + translateGender() + ")");
+
         System.out.print("  Level: " + level);
         System.out.print("  XP: " + experience);
         System.out.print("  $" + gold);
+        System.out.print("  " + translateStatus());
         System.out.println();
+
+/*
+        for (byte b : unknown) {
+            System.out.print(Integer.toHexString(b & 0xff) + " ");
+        }
+        System.out.println();
+*/
+
         System.out.print("  STR " + strength + "/" + strengthTemp);
         System.out.print(" DEX " + dexterity + "/" + dexterityTemp);
         System.out.print(" INT " + intelligence + "/" + intelligenceTemp);
@@ -151,6 +190,11 @@ public class Character {
         System.out.print("  AV " + attackValue);
         System.out.print("  DV " + defenseValue);
         System.out.print("  AC " + armorClass);
+        System.out.println();
+        System.out.print("  Flags: " + Integer.toBinaryString(flags & 0xff));
+        if (npcId != 0) {
+            System.out.print("  NPC #" + npcId);
+        }
         System.out.println();
         System.out.println("  Skills: " + translateSkills());
         System.out.println("  Spells: " + translateSpells());
