@@ -16,6 +16,7 @@ public class Main {
         if (command.equalsIgnoreCase("item")) { mainDecodeItem(yourArgs); }
         else if (command.equalsIgnoreCase("search")) { mainSearch(yourArgs); }
         else if (command.equalsIgnoreCase("party")) { mainDecodeParty(yourArgs); }
+        else if (command.equalsIgnoreCase("image")) { mainDecodeImage(yourArgs); }
     }
 
     private static void mainSearch(List<String> args) {
@@ -84,6 +85,32 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static final String IMAGE_USAGE = "usage: image /path/to/DATA1 chunkId";
+
+    private static void mainDecodeImage(List<String> args) {
+
+        final String path = args.get(0);
+        final String chunk = args.get(1);
+        final int chunkId;
+
+        if (path.isBlank()) {
+            throw new IllegalArgumentException(IMAGE_USAGE);
+        }
+
+        try {
+            if (chunk.startsWith("0x")) {
+                chunkId = Integer.parseInt(chunk.substring(2), 16);
+            } else {
+                chunkId = Integer.parseInt(chunk, 10);
+            }
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(IMAGE_USAGE);
+        }
+
+        final ImageDecoder decoder = new ImageDecoder(path, chunkId);
+        decoder.parse();
     }
 
     private static String parseFilename(List<String> args) {
