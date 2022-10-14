@@ -1,10 +1,14 @@
 package com.hitchhikerprod.dragonwars;
 
 import javax.imageio.ImageIO;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 public class ImageDecoder {
@@ -27,9 +31,13 @@ public class ImageDecoder {
         final ChunkUnpacker unpacker = new ChunkUnpacker(chunk);
         unpacker.unpack();
         unpacker.applyRollingXor(0x00);
-        final BufferedImage image = convert(unpacker.getRolled());
+        final List<Byte> unpacked = unpacker.getRolled();
+        final BufferedImage image = convert(unpacked);
         try {
-            ImageIO.write(image, "png", new File("image.png"));
+            ImageIO.write(scale(image,4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
+                    "png", new File("image.png.tmp"));
+            Files.move(Path.of("image.png.tmp"), Path.of("image.png"),
+                    StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -39,22 +47,25 @@ public class ImageDecoder {
     private int convertColorIndex(int index) {
         switch(index) {
             case 0 ->  { return 0xff000000; }
-            case 1 ->  { return 0xff880000; }
-            case 2 ->  { return 0xff008800; }
-            case 3 ->  { return 0xff000088; }
-            case 4 ->  { return 0xff888800; }
-            case 5 ->  { return 0xff008888; }
-            case 6 ->  { return 0xff880088; }
-            case 7 ->  { return 0xff555555; }
-            case 8 ->  { return 0xffaaaaaa; }
-            case 9 ->  { return 0xffff0000; }
-            case 10 -> { return 0xff00ff00; }
-            case 11 -> { return 0xff0000ff; }
-            case 12 -> { return 0xffffff00; }
-            case 13 -> { return 0xff00ffff; }
-            case 14 -> { return 0xffff00ff; }
+            //case 1 ->  { return 0xff0000aa; }
+            case 2 ->  { return 0xff00aa00; }
+            case 3 ->  { return 0xff00aaaa; }
+            case 4 ->  { return 0xffaa0000; }
+            case 5 ->  { return 0xffaa00aa; }
+            //case 6 ->  { return 0xffaa00aa; }
+            case 7 ->  { return 0xffaaaaaa; }
+            case 8 ->  { return 0xff4a4a4a; }
+            //case 9 ->  { return 0xffff5555; }
+            case 10 -> { return 0xff55ff55; }
+            case 11 -> { return 0xff55ffff; }
+            case 12 -> { return 0xffff5555; }
+            case 13 -> { return 0xffff55ff; }
+            case 14 -> { return 0xffffff55; }
             case 15 -> { return 0xffffffff; }
-            default -> { return 0x00000000; }
+            default -> {
+                System.out.println("Default: " + index);
+                return 0xff333333;
+            }
         }
     }
 
@@ -74,8 +85,8 @@ public class ImageDecoder {
                 word3 = word3 | TABLE_3280[index];
                 word1 = word1 | TABLE_3480[index];
                 index = words.get(inputCounter+3) & 0xff;
-                word3 = word3 | TABLE_3880[index];
-                word1 = word1 | TABLE_3480[index];
+                word3 = word3 | TABLE_3680[index];
+                word1 = word1 | TABLE_3880[index];
                 inputCounter += 4;
 
                 int word2 = (word3 & 0xff00) >> 8;
@@ -84,18 +95,30 @@ public class ImageDecoder {
                 word1 = word1 & 0x00ff;
 
                 for (int i = 7; i >= 0; i--) {
-                //for (int i = 0; i < 8; i++) {
                     int color = ((word3 >> i) & 0x01) << 3;
                     color |= ((word2 >> i) & 0x01) << 2;
                     color |= ((word1 >> i) & 0x01) << 1;
                     color |= ((word0 >> i) & 0x01);
                     int rx = (8 * x) + (7 - i);
-                    System.out.println("(" + rx + "," + y + ") = " + color);
-                    output.setRGB(rx, y, convertColorIndex(color));
+                    int colorIndex = convertColorIndex(color);
+                    // System.out.printf("(%3d,%3d) = %02d %08x\n", rx, y, color, colorIndex);
+                    output.setRGB(rx, y, colorIndex);
                 }
             }
         }
         return output;
+    }
+
+    private static BufferedImage scale(final BufferedImage before, final double scale, final int type) {
+        int w = before.getWidth();
+        int h = before.getHeight();
+        int w2 = (int) (w * scale);
+        int h2 = (int) (h * scale);
+        BufferedImage after = new BufferedImage(w2, h2, before.getType());
+        AffineTransform scaleInstance = AffineTransform.getScaleInstance(scale, scale);
+        AffineTransformOp scaleOp = new AffineTransformOp(scaleInstance, type);
+        scaleOp.filter(before, after);
+        return after;
     }
 
     private static final int[] TABLE_2A80 = {
