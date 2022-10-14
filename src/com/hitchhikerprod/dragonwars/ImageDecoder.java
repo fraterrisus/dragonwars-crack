@@ -45,23 +45,24 @@ public class ImageDecoder {
     }
 
     private int convertColorIndex(int index) {
+        // default EGA color pallette from the Programmer's Reference p.202
         switch(index) {
-            case 0 ->  { return 0xff000000; }
-            //case 1 ->  { return 0xff0000aa; }
-            case 2 ->  { return 0xff00aa00; }
-            case 3 ->  { return 0xff00aaaa; }
-            case 4 ->  { return 0xffaa0000; }
-            case 5 ->  { return 0xffaa00aa; }
-            //case 6 ->  { return 0xffaa00aa; }
-            case 7 ->  { return 0xffaaaaaa; }
-            case 8 ->  { return 0xff4a4a4a; }
-            //case 9 ->  { return 0xffff5555; }
-            case 10 -> { return 0xff55ff55; }
-            case 11 -> { return 0xff55ffff; }
-            case 12 -> { return 0xffff5555; }
-            case 13 -> { return 0xffff55ff; }
-            case 14 -> { return 0xffffff55; }
-            case 15 -> { return 0xffffffff; }
+            case 0 ->  { return 0xff000000; } // black
+            case 1 ->  { return 0xff0000aa; } // blue
+            case 2 ->  { return 0xff00aa00; } // green
+            case 3 ->  { return 0xff00aaaa; } // cyan
+            case 4 ->  { return 0xffaa0000; } // red
+            case 5 ->  { return 0xffaa00aa; } // magenta
+            case 6 ->  { return 0xffaaff00; } // brown
+            case 7 ->  { return 0xffaaaaaa; } // white
+            case 8 ->  { return 0xff555555; } // dark gray
+            case 9 ->  { return 0xff5555ff; } // light blue
+            case 10 -> { return 0xff55ff55; } // light green
+            case 11 -> { return 0xff55ffff; } // light cyan
+            case 12 -> { return 0xffff5555; } // light red
+            case 13 -> { return 0xffff55ff; } // light magenta
+            case 14 -> { return 0xffffff55; } // yellow
+            case 15 -> { return 0xffffffff; } // bright white
             default -> {
                 System.out.println("Default: " + index);
                 return 0xff333333;
@@ -74,7 +75,7 @@ public class ImageDecoder {
 
         int inputCounter = 0;
         for (int y = 0; y < 200; y++) {
-            for (int x = 0; x < 40; x++) { // 320 div 8 bits/Byte
+            for (int x = 0; x < 320; x += 8) {
                 int index = words.get(inputCounter) & 0xff;
                 int word3 = TABLE_2A80[index];
                 int word1 = TABLE_2C80[index];
@@ -99,7 +100,7 @@ public class ImageDecoder {
                     color |= ((word2 >> i) & 0x01) << 2;
                     color |= ((word1 >> i) & 0x01) << 1;
                     color |= ((word0 >> i) & 0x01);
-                    int rx = (8 * x) + (7 - i);
+                    int rx = x + (7 - i);
                     int colorIndex = convertColorIndex(color);
                     // System.out.printf("(%3d,%3d) = %02d %08x\n", rx, y, color, colorIndex);
                     output.setRGB(rx, y, colorIndex);
