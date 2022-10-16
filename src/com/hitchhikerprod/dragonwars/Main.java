@@ -1,12 +1,20 @@
 package com.hitchhikerprod.dragonwars;
 
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.EOFException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-// 3155 316c 3183
 
 public class Main {
     public static void main(String[] args) {
@@ -17,6 +25,83 @@ public class Main {
         else if (command.equalsIgnoreCase("search")) { mainSearch(yourArgs); }
         else if (command.equalsIgnoreCase("party")) { mainDecodeParty(yourArgs); }
         else if (command.equalsIgnoreCase("image")) { mainDecodeImage(yourArgs); }
+        else if (command.equalsIgnoreCase("regions")) { mainRegions(yourArgs); }
+        else if (command.equalsIgnoreCase("hud")) { mainDecodeHud(yourArgs); }
+    }
+
+    private static void drawRect(Graphics2D gfx, int index, byte[] points) {
+        // x0/x1 are byte addresses, so *8 to get pixel addresses
+        int x0 = ((int)points[0] & 0xff) * 8;
+        int y0 = ((int)points[1] & 0xff);
+        int xd = (((int)points[2] & 0xff) - ((int)points[0] & 0xff)) * 8;
+        int yd = (((int)points[3] & 0xff) - ((int)points[1] & 0xff));
+        final Rectangle r = new Rectangle(x0, y0, xd, yd);
+        gfx.setColor(Color.BLUE);
+        gfx.fill(r);
+        gfx.setColor(Color.GREEN);
+        gfx.draw(r);
+        gfx.setColor(Color.WHITE);
+        gfx.drawString(String.valueOf(index), x0 + 1, y0 + 6);
+    }
+
+    private static void mainRegions(List<String> args) {
+        final String filename = parseFilename(args);
+        final byte[][] coords = new byte[14][4];
+
+        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
+            dataFile.seek(0x2544); // remember the 0x100 offset from debugger addresses
+            for (byte[] coord : coords) {
+                dataFile.read(coord, 0, 4);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        final BufferedImage output = new BufferedImage(1280, 800, BufferedImage.TYPE_INT_RGB);
+        final Graphics2D gfx = output.createGraphics();
+        gfx.scale(4,4);
+        gfx.setFont(new Font("Liberation Sans", Font.PLAIN, 6));
+
+        for (int i = 0; i < coords.length ; i++) {
+            drawRect(gfx, i, coords[i]);
+        }
+
+        try {
+            ImageIO.write(output, "png", new File("regions-2644.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void mainDecodeHud(List<String> args) {
+        final String filename = parseFilename(args);
+
+        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
+            final MemoryImageDecoder decoder = new MemoryImageDecoder(dataFile);
+
+            final List<Integer> regionAddresses = new ArrayList<>();
+            dataFile.seek(0x67c0);
+            for (int i = 0; i <= 42; i++) {
+                int b0 = dataFile.readUnsignedByte();
+                int b1 = dataFile.readUnsignedByte();
+                int adr = ((b1 << 8) | b0) - 0x0100;
+                regionAddresses.add(adr);
+            }
+
+            for (int i = 0; i < regionAddresses.size(); i++) {
+                final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+
+                decoder.setBaseAddress(regionAddresses.get(i));
+                decoder.decode(image);
+
+                String imageName = String.format("hud-%02d.png", i);
+                ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_BILINEAR),
+                    "png", new File(imageName));
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void mainSearch(List<String> args) {
@@ -109,7 +194,7 @@ public class Main {
             throw new IllegalArgumentException(IMAGE_USAGE);
         }
 
-        final ImageDecoder decoder = new ImageDecoder(path, chunkId);
+        final ChunkImageDecoder decoder = new ChunkImageDecoder(path, chunkId);
         decoder.parse();
     }
 
