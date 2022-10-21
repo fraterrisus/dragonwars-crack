@@ -14,7 +14,66 @@ public class ImageDecoder6528 {
         this.dataFile = file;
     }
 
-    public void decode(int[][] buffer, int index, int val100e) throws IOException {
+    public BufferedImage decode() throws IOException {
+        final int[] buffer = new int[0x3e80];
+        for (int i = 0; i < 0x3e80; i++) { buffer[i] = 0x0; }
+
+        for (int i = 3; i >= 0; i--) {
+            decodeHelper(buffer, i, 0);
+        }
+
+        final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+        reorg(buffer, image, 0x10, 0x88, 0x50);
+        return image;
+    }
+
+    private int readUnsignedWord(long offset) throws IOException {
+        dataFile.seek(offset);
+        final int b0 = dataFile.readUnsignedByte();
+        final int b1 = dataFile.readUnsignedByte();
+        return (b1 << 8) | b0;
+    }
+
+    private void reorg(int[] buffer, BufferedImage image, int y0, int height, int widthx4) throws IOException {
+        int inputCounter = 0;
+        final int x0 = 16;
+        final int width = widthx4 / 4;
+        for (int j = 0; j < height; j++) {
+            for (int i = 0; i < width; i++) {
+                int index = buffer[inputCounter] & 0xff;
+                int word3 = readUnsignedWord(0x2980 + (2*index));
+                int word1 = readUnsignedWord(0x2b80 + (2*index));
+                index = buffer[inputCounter+1] & 0xff;
+                word3 = word3 | readUnsignedWord(0x2d80 + (2*index));
+                word1 = word1 | readUnsignedWord(0x2f80 + (2*index));
+                index = buffer[inputCounter+2] & 0xff;
+                word3 = word3 | readUnsignedWord(0x3180 + (2*index));
+                word1 = word1 | readUnsignedWord(0x3380 + (2*index));
+                index = buffer[inputCounter+3] & 0xff;
+                word3 = word3 | readUnsignedWord(0x3580 + (2*index));
+                word1 = word1 | readUnsignedWord(0x3780 + (2*index));
+                inputCounter += 4;
+
+                int word2 = (word3 & 0xff00) >> 8;
+                word3 = word3 & 0x00ff;
+                int word0 = (word1 & 0xff00) >> 8;
+                word1 = word1 & 0x00ff;
+
+                for (int b = 7; b >= 0; b--) {
+                    int color = ((word3 >> b) & 0x01) << 3;
+                    color |= ((word2 >> b) & 0x01) << 2;
+                    color |= ((word1 >> b) & 0x01) << 1;
+                    color |= ((word0 >> b) & 0x01);
+                    int rx = x0 + i + (7 - b);
+                    int colorIndex = Images.convertColorIndex(color);
+                    // System.out.printf("(%3d,%3d) = %02d %08x\n", rx, y, color, colorIndex);
+                    image.setRGB(rx, y0 + j, colorIndex);
+                }
+            }
+        }
+    }
+
+    public void decodeHelper(int[] buffer, int index, int val100e) throws IOException {
         int pos = 0x00006428 + (index * 0x4);
         dataFile.seek(pos);
 
@@ -94,7 +153,7 @@ public class ImageDecoder6528 {
 
     }
 
-    private void decode_d48(int[][] buffer, int width, int height, int factor, int factorCopy,
+    private void decode_d48(int[] buffer, int width, int height, int factor, int factorCopy,
                             int x0t2, int y0) throws IOException {
         final int x0 = x0t2 / 2;
         int val100a = width;
@@ -120,10 +179,11 @@ public class ImageDecoder6528 {
 
                 final int x = x0 + i;
                 final int y = y0 + (j * rowIncrement);
-                int oldValue = buffer[x][y];
+                final int adr = x + (y * 0x50);
+                int oldValue = buffer[adr];
                 int newValue = (oldValue & byteAnd) | byteOr;
-                System.out.printf("(%03d,%03d:%05x)  %02x <- %02x\n", x, y, x + (y * 0x50), oldValue, newValue);
-                buffer[x][y] = newValue;
+                System.out.printf("(%03d,%03d:%05x)  %02x <- %02x\n", x, y, adr, oldValue, newValue);
+                buffer[adr] = newValue;
             }
         }
     }
@@ -131,25 +191,7 @@ public class ImageDecoder6528 {
     public static void main(String[] args) {
         try (RandomAccessFile dataFile = new RandomAccessFile("/home/bcordes/Nextcloud/dragonwars/DRAGON.COM", "r")) {
             final ImageDecoder6528 decoder = new ImageDecoder6528(dataFile);
-
-            final int[][] buffer = new int[80][200]; // x/4, y
-            for (int j = 0; j < 200; j++) {
-                for (int i = 0; i < 80; i++) {
-                    buffer[i][j] = 0x0;
-                }
-            }
-
-            for (int i = 3; i >= 0; i--) {
-                decoder.decode(buffer, i, 0);
-            }
-
-            final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
-            for (int j = 0; j < 200; j++) {
-                for (int i = 0; i < 80; i++) {
-                    //image.setRGB(i, j, Images.convertColorIndex(buffer[i][j]));
-                }
-            }
-
+            final BufferedImage image = decoder.decode();
             ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_BILINEAR),
                 "png", new File("6528.png"));
         } catch (IOException e) {
