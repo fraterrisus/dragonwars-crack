@@ -46,9 +46,9 @@ public class ChunkTable {
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             int next_pointer = 0x300;
             for (int pointer = 0; pointer < 0x300; pointer += 2) {
-                final int b0 = dataFile.read();
-                final int b1 = dataFile.read();
-                final int size = (b1 << 8) | (b0 & 0xff);
+                final int b0 = dataFile.readUnsignedByte();
+                final int b1 = dataFile.readUnsignedByte();
+                final int size = (b1 << 8) | (b0);
                 if ((size == 0) || ((size & 0x8000) > 0)) {
                     chunks.add(null);
                 } else {
