@@ -9,7 +9,6 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -175,7 +174,6 @@ public class Main {
     private static final String IMAGE_USAGE = "usage: image /path/to/DATA1 chunkId";
 
     private static void mainDecodeImage(List<String> args) {
-
         final String path = args.get(0);
         final String chunk = args.get(1);
         final int chunkId;
