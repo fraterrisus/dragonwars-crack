@@ -17,6 +17,11 @@ public class ChunkTable {
         data2Chunks = readFile(Path.of(path, "DATA2").toString());
     }
 
+    public ChunkTable(RandomAccessFile data1, RandomAccessFile data2) {
+        data1Chunks = readFile(data1);
+        data2Chunks = readFile(data2);
+    }
+
     public FilePointer get(int chunkId) {
         final Integer d1Offset = data1Chunks.get(chunkId);
         final Integer d2Offset = data2Chunks.get(chunkId);
@@ -42,8 +47,16 @@ public class ChunkTable {
     }
     
     private static List<Integer> readFile(String filename) {
-        List<Integer> chunks = new ArrayList<>();
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
+            return readFile(dataFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static List<Integer> readFile(RandomAccessFile dataFile) {
+        try {
+            List<Integer> chunks = new ArrayList<>();
             int next_pointer = 0x300;
             for (int pointer = 0; pointer < 0x300; pointer += 2) {
                 final int b0 = dataFile.readUnsignedByte();
@@ -56,9 +69,14 @@ public class ChunkTable {
                     next_pointer += size;
                 }
             }
+            return Collections.unmodifiableList(chunks);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return Collections.unmodifiableList(chunks);
+    }
+
+    public static void main(String[] args) {
+        final ChunkTable table = new ChunkTable("/home/bcordes/Nextcloud/dragonwars/");
+        table.printStartTable();
     }
 }

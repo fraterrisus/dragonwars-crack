@@ -21,6 +21,10 @@ public class StringPrinter {
         this.dataFile = dataFile;
     }
 
+    public int numDecodedBytes() {
+        return rawBytes.size();
+    }
+
     public List<Integer> decodeString(int pointer) {
         try { dataFile.seek(pointer); } catch (IOException e) { throw new RuntimeException(); }
         return decodeString();
@@ -107,8 +111,13 @@ public class StringPrinter {
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
+            // 0x0302: "Interplay"
+            // 0x0321:
+            // 0x0613: "Loading..."
+            // 0x8053 (chunk 0x0061 or maybe 0x0010?) "Depths of Nisir"
+
             final Main m = new Main(exec, data1, data2);
-            m.decodeImage();
+            m.decodeImage(0x8053); // "Depths of Nisir"
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

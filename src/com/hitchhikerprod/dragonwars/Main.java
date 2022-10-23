@@ -14,7 +14,6 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class Main {
     private static String basePath = "/home/bcordes/Nextcloud/dragonwars/";
@@ -38,11 +37,11 @@ public class Main {
         }
     }
 
-    public void decodeImage() {
+    public void decodeImage(int pointer) {
         final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
 
         final StringPrinter sp = new StringPrinter(executable, data1);
-        final List<Integer> chars = sp.decodeString(0x302);
+        final List<Integer> chars = sp.decodeString(pointer);
         sp.print(image, 7, 0, chars);
 
 /*
