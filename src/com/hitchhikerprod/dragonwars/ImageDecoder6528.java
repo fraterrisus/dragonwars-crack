@@ -1,6 +1,9 @@
 package com.hitchhikerprod.dragonwars;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -23,6 +26,10 @@ public class ImageDecoder6528 {
         }
 
         final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+        final Graphics2D gfx = image.createGraphics();
+        gfx.setColor(Color.BLUE);
+        gfx.draw(new Rectangle(0x0f, 0x0f, 0xa1, 0x89));
+
         reorg(buffer, image, 0x10, 0x88, 0x50);
         return image;
     }
@@ -36,11 +43,11 @@ public class ImageDecoder6528 {
 
     private void reorg(int[] buffer, BufferedImage image, int y0, int height, int widthx4) throws IOException {
         int inputCounter = 0;
-        final int x0 = 16;
+        final int x0 = 2;
         final int width = widthx4 / 4;
         for (int j = 0; j < height; j++) {
             for (int i = 0; i < width; i++) {
-                Images.convertEgaData(image, (x) -> buffer[x] & 0xff, inputCounter, x0 + i, y0 + j);
+                Images.convertEgaData(image, (x) -> buffer[x] & 0xff, inputCounter, 8 * (x0 + i), y0 + j);
                 inputCounter += 4;
             }
         }

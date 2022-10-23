@@ -14,8 +14,46 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class Main {
+    private static String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+
+    private final RandomAccessFile executable;
+    private final RandomAccessFile data1;
+    private final RandomAccessFile data2;
+
+    Main(RandomAccessFile executable, RandomAccessFile data1, RandomAccessFile data2) {
+        this.executable = executable;
+        this.data1 = data1;
+        this.data2 = data2;
+    }
+
+    public void saveImage(BufferedImage image, String filename) {
+        try {
+            ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
+                "png", new File(filename));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void decodeImage() {
+        final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+
+        final StringPrinter sp = new StringPrinter(executable, data1);
+        final List<Integer> chars = sp.decodeString(0x302);
+        sp.print(image, 7, 0, chars);
+
+/*
+        final StringPrinter sp2 = new StringPrinter(executable, executable);
+        final List<Integer> chars2 = sp2.decodeString(0x02ead);
+        sp2.print(image, 7, 1, chars2);
+*/
+
+        saveImage(image, "string.png");
+    }
+
     public static void main(String[] args) {
         final List<String> myArgs = Arrays.asList(args);
         final String command = myArgs.get(0);
