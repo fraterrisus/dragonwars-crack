@@ -7,6 +7,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Engine {
@@ -17,12 +18,12 @@ public class Engine {
     private final ChunkTable chunkTable;
 
     private int new_ip_391b;
-    private int segment1_391d;
-    private int segment2_391f;
+    private int segment1_391d; // actually we save the index here
+    private int segment2_391f; // actually we save the index here
     private int segment1_index_3928;
     private int segment2_index_392a;
 
-    private Chunk metaprogram;
+    //private Chunk metaprogram;
     private int ip;
     private int cs;
     private byte r1, r2, r3, r4, r5;
@@ -30,13 +31,12 @@ public class Engine {
 
     private List<ChunkRecord> memStruct;
     private byte[] heap;
+    private Chunk buffer_d1b0;
     private Deque<Integer> stack;
 
     private enum Reload {
         IP, SEGMENT, INSTRUCTION, EXIT;
     }
-
-    private record ChunkRecord(int chunkId, Chunk data, int frob) {}
 
     public Engine(RandomAccessFile executable, RandomAccessFile data1, RandomAccessFile data2) {
         this.executable = executable;
@@ -57,23 +57,27 @@ public class Engine {
     }
 
     public void run(int chunkId, int offset) {
+        // Add a fake chunk at index 0; we should never refer to this
         memStruct.add(new ChunkRecord(0xffff, null, 0xff));
 
-        final byte[] tempSpace = new byte[0xe00]; // hardcoded to segment (cs + 0x0c3b)
+        // Add a chunk at index 1 that points to temp space?
+        // The segment's been hardcoded to CS + 0x0c3b = 0x0e18
+        final byte[] tempSpace = new byte[0xe00];
         final Chunk temp = new ModifiableChunk(tempSpace);
         memStruct.add(new ChunkRecord(0xffff, temp, 0xff));
 
-        final Chunk chunk = chunkTable.get(chunkId).toChunk(data1, data2);
-        jump(chunk, offset);
+        // Load the requested metaprogram chunk into index 2
+        final Chunk initial = chunkTable.get(chunkId).toChunk(data1, data2);
+        memStruct.add(new ChunkRecord(chunkId, initial, 0x01));
+        ip = offset;
+
+        // Set the segment pointers
+        segment1_index_3928 = 2;
+        segment2_index_392a = 2;
+        saveSegmentPointers();
 
         Reload reload = Reload.SEGMENT;
         while(reload != Reload.EXIT) {
-            switch (reload) {
-                case IP:
-                    ip = new_ip_391b;
-                case SEGMENT:
-                    cs = segment1_391d;
-            }
             System.out.printf("ip=%04x", ip);
             final int opcode = getProgramUnsignedByte();
             System.out.printf(" opcode=%02x", opcode & 0xff);
@@ -87,10 +91,7 @@ public class Engine {
             case 0x00 -> writeR1(0xff);
             case 0x01 -> { writeR1(0x00); writeR3(0x00); }
             case 0x02 -> push(segment2_index_392a);
-            case 0x03 -> {
-                segment2_index_392a = pop();
-                saveSegmentPointers();
-            }
+            case 0x03 -> { segment2_index_392a = pop(); saveSegmentPointers(); }
             case 0x04 -> push(segment1_index_3928);
             case 0x05 -> writeR4(readHeapByte(getProgramUnsignedByte()));
             case 0x06 -> writeR4(getProgramByte());
@@ -99,13 +100,55 @@ public class Engine {
             case 0x09 -> movR2xImm();
             case 0x0a -> movR2xHeapImm();
             case 0x0b -> movR2xHeapImmR4x();
+            case 0x0c -> movR2xSegImm();
+            case 0x0d -> movR2xSegImmR4x();
+            case 0x0e -> movR2xSegHeapImmR4x();
             case 0x0f -> movR2xLongptr();
-            case 0x11 -> writeHeapByteOrWord(getProgramUnsignedByte(), () -> (byte)0, () -> (byte)0);
-            case 0x12 -> writeHeapByteOrWord(getProgramUnsignedByte(), this::readR2, this::readR3);
-            case 0x13 -> writeHeapByteOrWord(getProgramUnsignedByte() + readR4x(), this::readR2, this::readR3);
+            case 0x10 -> movR2xSegHeapImmImm();
+            case 0x11 -> conditionalWriteHeap(getProgramUnsignedByte(), () -> (byte)0, () -> (byte)0);
+            case 0x12 -> conditionalWriteHeap(getProgramUnsignedByte(), this::readR2, this::readR3);
+            case 0x13 -> conditionalWriteHeap(getProgramUnsignedByte() + readR4x(), this::readR2, this::readR3);
+            case 0x14 -> movSegImmR2x();
+            case 0x15 -> movSegImmR4xR2x();
+            case 0x16 -> movSegHeapImmR4xR2x();
             case 0x17 -> movLongptrR2x();
-            case 0x1a -> writeHeapByteOrWord(getProgramUnsignedByte(), this::getProgramByte, this::getProgramByte);
-            case 0x23 -> incImmx();
+            case 0x18 -> movSegHeapImmImmR2x();
+            case 0x19 -> movHeapImmHeapImm();
+            case 0x1a -> movHeapImmImm();
+            case 0x1b -> movSegImmSegImm();
+            case 0x1c -> movSegImmImm();
+            case 0x1d -> bufferCopy();
+            case 0x1e -> { return Reload.EXIT; } // immediate JUMP to CS:01b2
+            case 0x1f -> readChunkTable();
+            case 0x20 -> { throw new RuntimeException("Tried to jump to CS:0000"); }
+            case 0x21 -> writeR4(readR2());
+            case 0x22 -> { writeR4(readR2()); writeR5(readR3()); }
+            case 0x23 -> rmwHeapImm((x) -> x + 1);
+            case 0x24 -> conditionalWriteR2x(readR2x() + 1);
+            case 0x25 -> writeR4(readR4() + 1);
+            case 0x26 -> rmwHeapImm((x) -> x - 1);
+            case 0x27 -> conditionalWriteR2x(readR2x() - 1);
+            case 0x28 -> writeR4(readR4() - 1);
+            case 0x29 -> rmwHeapImm((x) -> x << 1);
+            case 0x2a -> conditionalWriteR2x(readR2x() << 1);
+            case 0x2b -> writeR4(readR4() << 1);
+            case 0x2c -> rmwHeapImm((x) -> x >> 1);
+            case 0x2d -> conditionalWriteR2x(readR2x() >> 1);
+            case 0x2e -> writeR4(readR4() >> 1);
+            case 0x2f -> addR2xHeapImm();
+            case 0x30 -> addR2xImm();
+            // case 0x31 -> subR2xHeapImm();
+            // case 0x32 -> subR2xImm();
+            // case 0x33 -> mulHeapImmR2x();
+            // case 0x34 -> mulR2xImm();
+            // case 0x35 -> divHeapImmR2x();
+            // case 0x36 -> divR2xImm();
+            // case 0x37 -> andR2xHeapImm();
+            // case 0x38 -> andR2xImm();
+            // case 0x39 -> orR2xHeapImm();
+            // case 0x3a -> orR2xImm();
+            // case 0x3b -> xorR2xHeapImm();
+            // case 0x3c -> xorR2xImm();
             case 0x3d -> cmpR2HeapImm();
             case 0x3e -> cmpR2Imm();
             case 0x3f -> cmpHelper(readR4() & 0xff, readHeapUnsignedByte(getProgramUnsignedByte()));
@@ -117,31 +160,138 @@ public class Engine {
             case 0x45 -> conditionalJump(!flags.zero()); // JNZ
             case 0x46 -> conditionalJump(flags.sign()); // JS
             case 0x47 -> conditionalJump(!flags.sign()); // JNS
-            case 0x49 -> loopR4();
-            case 0x53 -> jump(metaprogram, getProgramWord());
-            case 0x5a -> { return Reload.EXIT; }
+            case 0x48 -> testHeapImm80();
+            case 0x49 -> loopDownR4();
+            case 0x4a -> loopUpR4();
+            case 0x4b -> flags.carry(true);
+            case 0x4c -> flags.carry(false);
+            // case 0x4d -> read PIT counter!!!
+
+
+            case 0x52 -> shortJump(getProgramWord());
+            case 0x53 -> shortCall(getProgramWord());
+            case 0x54 -> shortReturn();
+            // case 0x55 -> pop r2/x
+            // case 0x56 -> push r2/x
+            case 0x57 -> longJump();
+            case 0x58 -> longCall();
+            case 0x59 -> longReturn();
+
+            case 0x5a -> { return Reload.EXIT; } // this runs a 'shutdown metaprogram' routine first
+
             case 0x66 -> testHelper(readHeapWord(getProgramUnsignedByte()));
+
             case 0x7b -> decodeStringFromMetaprogram(); // this actually overwrites si, but we don't care
+
             case 0x86 -> unpackChunkR2();
+
             case 0x99 -> testHelper(readR2x());
-            case 0x9a -> movHeapImmByte(0xff);
+            case 0x9a -> conditionalWriteHeap(getProgramUnsignedByte(), () -> (byte)0xff, () -> (byte)0xff);
+            /* case 0x9f -> youWin(); */
             default -> {
-                String message = String.format("Unimplemented opcode %02x", opcode);
+                final String message = String.format("Unimplemented opcode %02x", opcode);
                 throw new RuntimeException(message);
             }
         }
         return Reload.INSTRUCTION;
     }
 
-    private void conditionalJump(boolean condition) {
-        System.out.println("  " + flags.toString());
-        // do this so we skip over the immediate, even if we fall through
-        final int address = getProgramWord();
-        if (condition) jump(metaprogram, address);
+    private void testHeapImm80() {
+        flags.zero(false);
+        final int heapIndex = getProgramUnsignedByte();
+        final int value = readHeapByte(heapIndex);
+        if ((value & 0x80) == 0) {
+            writeHeapByte(heapIndex, value | 0x80);
+            flags.zero(true);
+        }
+    }
+
+    private void addR2Helper(int operand2) {
+        final int operand1 = readR2();
+        final int carryIn = (flags.carry() ? 1 : 0);
+        final int result = lowByte(operand1) + lowByte(operand2) + carryIn;
+        writeR2(result);
+        flags.carry((result & 0x100) > 0);
+    }
+
+    private void addR2xHelper(int operand2) {
+        final int operand1 = readR2x();
+        final int carryIn = (flags.carry() ? 1 : 0);
+        final int result = operand1 + operand2 + carryIn;
+        writeR2(lowByte(result));
+        writeR3(highByte(result));
+        flags.carry((result & 0x10000) > 0);
+    }
+
+    private void addR2xHeapImm() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int operand2 = readHeapWord(heapIndex);
+        if (readR1() == 0) {
+            addR2Helper(operand2);
+        } else {
+            addR2xHelper(operand2);
+        }
+    }
+
+    private void addR2xImm() {
+        if (readR1() == 0) {
+            addR2Helper(getProgramUnsignedByte());
+        } else {
+            addR2xHelper(getProgramWord());
+        }
+    }
+
+    private void bufferCopy() {
+        if (buffer_d1b0 == null) {
+            try {
+                final byte[] rawBuffer = new byte[0x380];
+                executable.seek(0xd0b0);
+                executable.read(rawBuffer, 0, 0x380);
+                buffer_d1b0 = new ModifiableChunk(rawBuffer);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        final Chunk seg = segment2();
+
+        final Chunk src;
+        final ModifiableChunk dst;
+        final int srcBase, dstBase;
+
+        if ((0xff & readR4()) == 0x80) {
+            src = buffer_d1b0;
+            srcBase = 0;
+
+            if (seg instanceof ModifiableChunk) {
+                dst = (ModifiableChunk) seg;
+                dstBase = readR2x();
+            } else {
+                final String message = String.format("Segment %02x is not writable", segment2_391f);
+                throw new RuntimeException(message);
+            }
+
+            System.out.printf("  struct[%02x][%04x] <- 01dd[d1b0]\n", segment2_391f, dstBase);
+        } else {
+            src = seg;
+            srcBase = readR2x();
+
+            if (buffer_d1b0 instanceof ModifiableChunk) {
+                dst = (ModifiableChunk) buffer_d1b0;
+                dstBase = 0;
+            } else {
+                throw new RuntimeException("Code segment is not writable?!?!");
+            }
+
+            System.out.printf("  struct[%02x][%04x] -> 01dd[d1b0]\n", segment2_391f, dstBase);
+        }
+
+        for (int i = 0; i < 0x380; i++) {
+            dst.setByte(dstBase + i, src.getByte(srcBase + i));
+        }
     }
 
     // I'm not setting Parity, AlternateCarry, or Overflow...
-
     private void cmpHelper(int me, int them) {
         final int temp = me - them;
         flags.sign((temp & 0x80) > 0);
@@ -177,15 +327,43 @@ public class Engine {
         cmpHelper(me, them);
     }
 
+    private void conditionalJump(boolean condition) {
+        System.out.println("  " + flags.toString());
+        // do this so we skip over the immediate, even if we fall through
+        final int address = getProgramWord();
+        if (condition) shortJump(address);
+    }
+
+    private void conditionalWriteHeap(int heapIndex, Supplier<Byte> b0, Supplier<Byte> b1) {
+        writeHeapByte(heapIndex, b0.get());
+        if (readR1() != 0) writeHeapByte(heapIndex+1, b1.get());
+    }
+
     private void conditionalWriteR2x(int value) {
-        int newR2 = value & 0x00ff;
-        int newR3 = ((value & 0xff00) >> 8) & (readR1() & 0xff);
-        writeR2(newR2);
-        writeR3(newR3);
+        writeR2(lowByte(value));
+        writeR3(highByte(value) & (readR1() & 0xff));
+    }
+
+    private void conditionalWriteLongptr(int structIdx, int address, Supplier<Byte> b0, Supplier<Byte> b1) {
+        final Chunk chunk = segment(structIdx);
+        if (chunk instanceof final ModifiableChunk target) {
+            final int lo = b0.get();
+            target.setByte(address, lo);
+            if (readR1() == 0) {
+                System.out.printf("  struct[%02x][%04x] <- %02x\n", structIdx, address, lo);
+            } else {
+                final int hi = b1.get();
+                target.setByte(address + 1, hi);
+                System.out.printf("  struct[%02x][%04x] <- %02x%02x\n", structIdx, address, hi, lo);
+            }
+        } else {
+            final String message = String.format("Chunk %02x is not modifiable", structIdx);
+            throw new RuntimeException(message);
+        }
     }
 
     private void decodeStringFromMetaprogram() {
-        final StringDecoder sd = new StringDecoder(executable, metaprogram);
+        final StringDecoder sd = new StringDecoder(executable, segment1());
         sd.decodeString(ip);
         List<Integer> decodedString = sd.getDecodedChars();
         ip = sd.getPointer();
@@ -197,8 +375,12 @@ public class Engine {
         System.out.println(builder);
     }
 
+    private void freeSegment(int structIdx) {
+        memStruct.set(structIdx, null);
+    }
+
     private byte getProgramByte() {
-        byte b = this.metaprogram.getByte(this.ip);
+        byte b = segment1().getByte(this.ip);
         ip++;
         return b;
     }
@@ -208,62 +390,106 @@ public class Engine {
     }
 
     private int getProgramWord() {
-        int i = this.metaprogram.getWord(this.ip);
+        int i = segment1().getWord(this.ip);
         ip += 2;
         return i;
     }
 
-    private void incImmx() {
-        final int heapIndex = getProgramUnsignedByte();
-        writeHeapWord(heapIndex, readHeapWord(heapIndex) + 1);
+    private byte highByte(int value) {
+        return (byte)((value & 0xff00) >> 8);
     }
 
-    private void jump(Chunk chunk, int offset) {
-        System.out.printf("  jumping to %04x\n", offset);
-        this.metaprogram = chunk;
-        this.ip = offset;
+    private void longCall() {
+        final int chunkId = getProgramUnsignedByte();
+        final int offset = getProgramWord();
+        push(ip);
+        push(segment1_index_3928);
+
+        final Optional<Integer> structIdx = searchForChunk(chunkId);
+        final int structId;
+
+        if (structIdx.isEmpty() || memStruct.get(structIdx.get()).frob() == 0x02) {
+            structId = unpackChunk(chunkId, 0x01);
+            push(0xff);
+        } else {
+            structId = structIdx.get();
+            push(0x00);
+        }
+
+        longJumpHelper(structId, offset);
     }
 
-    private void loopR4() {
+    private void longJump() {
+        final int chunkId = getProgramUnsignedByte();
+        final int offset = getProgramWord();
+        freeSegment(segment1_index_3928);
+        final int structId = unpackChunk(chunkId, 0x01);
+        longJumpHelper(structId, offset);
+    }
+
+    private void longJumpHelper(int structId, int offset) {
+        System.out.printf("  jmp struct[%02d][%04d]\n", structId, offset);
+        segment1_index_3928 = structId;
+        segment2_index_392a = structId;
+        saveSegmentPointers();
+        // metaprogram = segment(structId);
+        ip = offset;
+    }
+
+    private void longReturn() {
+        final int flag = pop();
+        if (flag != 0) {
+            memStruct.get(segment1_index_3928).setFrob(0x02);
+        }
+        final int oldSegment = pop() & 0xff;
+        segment1_index_3928 = oldSegment;
+        segment2_index_392a = oldSegment;
+        saveSegmentPointers();
+    }
+
+    private void loopDownR4() {
         int counter = readR4();
+        final int target = getProgramWord();
         counter--;
         writeR4(counter);
-        final int target = getProgramWord();
         if ((counter & 0xff) != 0xff) {
-            jump(metaprogram, target);
+            shortJump(target);
         }
     }
 
-    private void movHeapImmByte(int value) {
-        final int heapIndex = getProgramUnsignedByte();
-        writeHeapByte(heapIndex, value);
+    private void loopUpR4() {
+        int counter = readR4();
+        final int max = getProgramUnsignedByte();
+        final int target = getProgramWord();
+        counter++;
+        writeR4(counter);
+        if ((counter & 0xff) != max) {
+            shortJump(target);
+        }
+    }
+
+    private byte lowByte(int value) {
+        return (byte)(value & 0x00ff);
+    }
+
+    private void movHeapImmHeapImm() {
+        int readIndex = getProgramUnsignedByte();
+        int writeIndex = getProgramUnsignedByte();
+        conditionalWriteHeap(writeIndex,
+            () -> readHeapByte(readIndex),
+            () -> readHeapByte(readIndex+1));
+    }
+
+    private void movHeapImmImm() {
+        int heapIndex = getProgramUnsignedByte();
+        conditionalWriteHeap(heapIndex, this::getProgramByte, this::getProgramByte);
     }
 
     private void movLongptrR2x() {
         final int heapIndex = getProgramUnsignedByte();
-        final int structIdx = readHeapUnsignedByte(heapIndex + 2);
-        final ChunkRecord rec = memStruct.get(structIdx);
-        if (rec == null) {
-            String message = String.format("struct idx %02x is not available", structIdx);
-            throw new RuntimeException(message);
-        }
-
         final int address = readHeapWord(heapIndex) + readR4x();
-        final Chunk target = rec.data();
-
-        if (target instanceof final ModifiableChunk modTarget) {
-            final int val2 = readR2() & 0xff;
-            modTarget.setByte(address, val2);
-            if (readR1() == 0) {
-                System.out.printf("  struct[%02x][%04x] <- %02x\n", structIdx, address, val2);
-            } else {
-                final int val3 = readR3() & 0xff;
-                modTarget.setByte(address + 1, val3);
-                System.out.printf("  struct[%02x][%04x] <- %02x%02x\n", structIdx, address, val3, val2);
-            }
-        } else {
-            throw new RuntimeException("Chunk is not modifiable");
-        }
+        final int structIdx = readHeapUnsignedByte(heapIndex + 2);
+        conditionalWriteLongptr(structIdx, address, this::readR2, this::readR3);
     }
 
     private void movR2xHeapImm() {
@@ -293,11 +519,75 @@ public class Engine {
     private void movR2xLongptr() {
         final int heapIndex = getProgramUnsignedByte();
         final int structIdx = readHeapUnsignedByte(heapIndex + 2);
-        final ChunkRecord rec = memStruct.get(structIdx);
         final int address = readHeapWord(heapIndex) + readR4x();
-        final int value = rec.data().getWord(address);
+        final int value = segment2().getWord(address);
         System.out.printf("  struct[%02x][%04x] -> %04x\n", structIdx, address, value);
         conditionalWriteR2x(value);
+    }
+
+    private void movR2xSegImm() {
+        final int address = getProgramWord();
+        final int value = segment2().getWord(address);
+        System.out.printf("  struct[%02x][%04x] -> %04x\n", segment2_391f, address, value);
+        conditionalWriteR2x(value);
+    }
+
+    private void movR2xSegImmR4x() {
+        final int address = getProgramWord() + readR4x();
+        final int value = segment2().getWord(address);
+        System.out.printf("  struct[%02x][%04x] -> %04x\n", segment2_391f, address, value);
+        conditionalWriteR2x(value);
+    }
+
+    private void movR2xSegHeapImmR4x() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int address = readHeapWord(heapIndex) + readR4x();
+        final int value = segment2().getWord(address);
+        System.out.printf("  struct[%02x][%04x] -> %04x\n", segment2_391f, address, value);
+        conditionalWriteR2x(value);
+    }
+
+    private void movR2xSegHeapImmImm() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int address = readHeapWord(heapIndex) + getProgramUnsignedByte();
+        final int value = segment2().getWord(address);
+        System.out.printf("  struct[%02x][%04x] -> %04x\n", segment2_391f, address, value);
+        conditionalWriteR2x(value);
+    }
+
+    private void movSegImmR2x() {
+        final int address = getProgramWord();
+        conditionalWriteLongptr(segment2_391f, address, this::readR2, this::readR3);
+    }
+
+    private void movSegImmR4xR2x() {
+        final int address = getProgramWord() + readR4x();
+        conditionalWriteLongptr(segment2_391f, address, this::readR2, this::readR3);
+    }
+
+    private void movSegHeapImmR4xR2x() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int address = readHeapWord(heapIndex) + readR4x();
+        conditionalWriteLongptr(segment2_391f, address, this::readR2, this::readR3);
+    }
+
+    private void movSegHeapImmImmR2x() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int address = readHeapWord(heapIndex) + getProgramUnsignedByte();
+        conditionalWriteLongptr(segment2_391f, address, this::readR2, this::readR3);
+    }
+
+    private void movSegImmImm() {
+        final int address = getProgramWord();
+        conditionalWriteLongptr(segment2_391f, address, this::getProgramByte, this::getProgramByte);
+    }
+
+    private void movSegImmSegImm() {
+        final int srcAddress = getProgramWord();
+        final int dstAddress = getProgramWord();
+        conditionalWriteLongptr(segment2_391f, dstAddress,
+            () -> segment2().getByte(srcAddress),
+            () -> segment2().getByte(srcAddress + 1));
     }
 
     private void push(int value) {
@@ -306,6 +596,10 @@ public class Engine {
 
     private int pop() {
         return stack.pop();
+    }
+
+    private void readChunkTable() {
+        System.out.printf("  seg 0xb6a2 <- readChunkTable(%02d), no action taken\n", lowByte(readR2()));
     }
 
     private byte readHeapByte(int index) {
@@ -360,16 +654,60 @@ public class Engine {
         return ((b1 & 0xff) << 8) | (b0 & 0xff);
     }
 
+    private void rmwHeapImm(Function<Integer, Integer> modify) {
+        final int heapIndex = getProgramUnsignedByte();
+        final int value = modify.apply(readHeapWord(heapIndex));
+        conditionalWriteHeap(heapIndex, () -> lowByte(value), () -> highByte(value));
+    }
+
+    /* In theory, this should lookup the segment in the memory struct and save the segment address in 0x3928
+     * and 0x392a. Because of our implementation, we actually just copy the struct indices. */
     private void saveSegmentPointers() {
         System.out.printf("  saveSegmentPointers -> 1:%04x 2:%04x\n", segment1_index_3928, segment2_index_392a);
+        segment1_391d = segment1_index_3928;
+        segment2_391f = segment2_index_392a;
     }
 
     private Optional<Integer> searchForChunk(int chunkId) {
         for (int i = 0; i < memStruct.size(); i++) {
-            if (memStruct.get(i).chunkId == chunkId)
+            if (memStruct.get(i).chunkId() == chunkId)
                 return Optional.of(i);
         }
         return Optional.empty();
+    }
+
+    private Chunk segment(int index) {
+        final ChunkRecord rec = memStruct.get(index);
+        if (rec == null) {
+            String message = String.format("struct idx %02x is not available", index);
+            throw new RuntimeException(message);
+        }
+        if (rec.frob() == 0xff) {
+            System.out.printf("  read struct idx %02x but frob = ff", index);
+        }
+        return rec.data();
+    }
+
+    private Chunk segment1() {
+        return segment(segment1_391d);
+    }
+
+    private Chunk segment2() {
+        return segment(segment2_391f);
+    }
+
+    private void shortCall(int offset) {
+        push(ip);
+        shortJump(offset);
+    }
+
+    private void shortJump(int offset) {
+        System.out.printf("  jmp [%04x]\n", offset);
+        this.ip = offset;
+    }
+
+    private void shortReturn() {
+        ip = pop();
     }
 
     private void testHelper(int value) {
@@ -383,21 +721,38 @@ public class Engine {
         System.out.printf("  test %04x -> %s\n", value, flags);
     }
 
-    private int unpackChunk(int chunkId) {
-        return searchForChunk(chunkId).orElseGet(() -> {
-            final FilePointer fp = chunkTable.get(chunkId);
-            final int newIndex = memStruct.size();
-            memStruct.add(new ChunkRecord(chunkId, fp.toModifiableChunk(data1, data2), 1));
-            System.out.printf("  unpacking chunk %02x into struct idx %02x\n", chunkId, newIndex);
-            return newIndex;
-        });
+    private int unpackChunk(int chunkId, int frob) {
+        // [2eca] <- 0xffff
+        final Optional<Integer> segmentIdx = searchForChunk(chunkId);
+        if (segmentIdx.isPresent()) {
+            // [2eca] <- 0x0000
+            memStruct.get(segmentIdx.get()).setFrob(frob);
+            return segmentIdx.get();
+        } else {
+            if (chunkId >= 0x17) {
+                throw new RuntimeException("Don't know how to load chunks >= 0x17");
+            } else {
+                final FilePointer fp = chunkTable.get(chunkId);
+                final ChunkRecord newSegment = new ChunkRecord(chunkId, fp.toModifiableChunk(data1, data2), frob);
+
+                int newIndex = 0;
+                while (newIndex < memStruct.size() && memStruct.get(newIndex) != null) {
+                    newIndex++;
+                }
+                if (newIndex >= memStruct.size()) memStruct.add(newSegment);
+                else memStruct.set(newIndex, newSegment);
+
+                System.out.printf("  unpacking chunk %02x into struct idx %02x\n", chunkId, newIndex);
+                return newIndex;
+            }
+        }
     }
 
     private void unpackChunkR2() {
-        final int chunkId = readR2() & 0xff;
-        final int chunkIndex = unpackChunk(chunkId);
-        writeR2(chunkIndex);
-        writeR3(0); // in theory this could write ah, but when is chunkIndex > 0xff?
+        final int chunkId = readR2x();
+        final int chunkIndex = unpackChunk(chunkId, 1);
+        writeR2(lowByte(chunkIndex));
+        writeR3(highByte(chunkIndex));
     }
 
     private void writeHeapByte(int index, byte val) {
@@ -434,17 +789,6 @@ public class Engine {
     private void writeR2(int val) {
         System.out.printf("  r2 <- %02x\n", val & 0xff);
         this.r2 = (byte)(val & 0x00ff);
-    }
-
-    private void writeHeapByteOrWord(int heapIndex, Supplier<Byte> b0, Supplier<Byte> b1) {
-        writeHeapByte(heapIndex, b0.get());
-        if (readR1() != 0) writeHeapByte(heapIndex+1, b1.get());
-    }
-
-    private void writeHeapByteOrWord(int heapIndex) {
-        writeHeapByte(heapIndex, readR2());
-        if (readR1() != 0)
-            writeHeapByte(heapIndex + 1, readR3());
     }
 
     private void writeR3(byte val) {
