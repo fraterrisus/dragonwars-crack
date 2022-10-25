@@ -24,6 +24,10 @@ public class Chunk {
         return this.raw.get(i);
     }
 
+    public int getSize() {
+        return this.raw.size();
+    }
+
     public int getUnsignedByte(int i) {
         return this.raw.get(i) & 0xff;
     }
