@@ -180,7 +180,7 @@ public class Engine {
 
             case 0x66 -> testHelper(readHeapWord(getProgramUnsignedByte()));
 
-            case 0x74 -> call2490();
+            case 0x74 -> call2490(); // more string-from-metaprogram shenanigans
 
             case 0x78 -> decodeStringFromMetaprogram(); // this DOESN'T try to draw HUD title blocks
             case 0x7b -> decodeStringFromMetaprogram(); // this actually overwrites si, but we don't care
@@ -358,7 +358,12 @@ public class Engine {
     }
 
     private void call2490() {
-
+        // this probably calls a draw routine which at least draws a box and maybe also slurps
+        // opcode 78 and the string that follows it
+        getProgramUnsignedByte();
+        getProgramUnsignedByte();
+        getProgramUnsignedByte();
+        getProgramUnsignedByte();
     }
 
     // I'm not setting Parity, AlternateCarry, or Overflow...
@@ -440,7 +445,12 @@ public class Engine {
 
         StringBuilder builder = new StringBuilder("  Decoded string: ");
         for (int i : decodedString) {
-            builder.appendCodePoint(i & 0x7f);
+            final int codePoint = i & 0x7f;
+            if (codePoint == 0x0a || codePoint == 0x0d) {
+                builder.append("\\n");
+            } else {
+                builder.appendCodePoint(codePoint);
+            }
         }
         System.out.println(builder);
     }
@@ -828,10 +838,8 @@ public class Engine {
             Chunk newChunk = fp.toModifiableChunk(data1, data2);
 
             if (chunkId >= 0x17) {
-                ChunkUnpacker unpacker = new ChunkUnpacker(newChunk);
-                unpacker.unpack();
-                unpacker.repack();
-                newChunk = new ModifiableChunk(unpacker.getRepacked());
+                final List<Byte> decoded = new HuffmanDecoder(newChunk).decode();
+                newChunk = new ModifiableChunk(decoded);
             }
 
             final ChunkRecord newSegment = new ChunkRecord(chunkId, newChunk, frob);

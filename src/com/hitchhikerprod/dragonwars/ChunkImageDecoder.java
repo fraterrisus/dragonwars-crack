@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChunkImageDecoder {
@@ -27,11 +28,8 @@ public class ChunkImageDecoder {
             System.out.println("Chunk " + chunkId + " not found");
         }
         final Chunk chunk = fp.toChunk(basePath);
-        final ChunkUnpacker unpacker = new ChunkUnpacker(chunk);
-        unpacker.unpack();
-        unpacker.repack();
-        unpacker.applyRollingXor(0x00);
-        final List<Byte> unpacked = unpacker.getRolled();
+        final HuffmanDecoder decoder = new HuffmanDecoder(chunk);
+        final List<Byte> unpacked = applyRollingXor(decoder.decode(), 0x00);
         final BufferedImage image = convert(unpacked);
         try {
             ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
@@ -42,6 +40,33 @@ public class ChunkImageDecoder {
             throw new RuntimeException(e);
         }
         System.out.println();
+    }
+
+    private int getWord(List<Byte> table, int index) {
+        byte b0 = table.get(index);
+        byte b1 = table.get(index + 1);
+        return (b1 << 8) | (b0 & 0xff);
+    }
+
+    private void setWord(List<Byte> table, int index, int value) {
+        while (table.size() <= index + 1) table.add((byte) 0);
+        table.set(index, (byte) (value & 0x00ff));
+        table.set(index + 1, (byte) ((value & 0xff00) >> 8));
+    }
+
+    private List<Byte> applyRollingXor(List<Byte> input, int startAddress) {
+        int readAddress = startAddress;
+        int writeAddress = startAddress + 0xa0;
+        final List<Byte> output = new ArrayList<>(input);
+        for (int i = 0; i < 0x3e30; i++) {
+            final int b0 = getWord(output, readAddress);
+            final int b1 = getWord(output, writeAddress);
+            final int result = (b0 ^ b1) & 0xffff;
+            setWord(output, writeAddress, result);
+            readAddress += 2;
+            writeAddress += 2;
+        }
+        return output;
     }
 
     private BufferedImage convert(List<Byte> words) {
