@@ -3,6 +3,9 @@ package com.hitchhikerprod.dragonwars;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 public record FilePointer(int fileNum, int start, int end) {
     public Chunk toChunk(String basePath) {
@@ -53,7 +56,12 @@ public record FilePointer(int fileNum, int start, int end) {
         final byte[] rawBytes = new byte[len];
         dataFile.seek(start);
         dataFile.read(rawBytes, 0, len);
-        return new ModifiableChunk(rawBytes);
+
+        final List<Byte> listOfBytes = new ArrayList<>(len);
+        for (byte b : rawBytes) {
+            listOfBytes.add(b);
+        }
+        return new ModifiableChunk(listOfBytes);
     }
 
     private Chunk getChunk(RandomAccessFile dataFile) throws IOException {
@@ -61,6 +69,10 @@ public record FilePointer(int fileNum, int start, int end) {
         final byte[] rawBytes = new byte[len];
         dataFile.seek(start);
         dataFile.read(rawBytes, 0, len);
-        return new Chunk(rawBytes);
+
+        final List<Byte> listOfBytes = IntStream.range(0, rawBytes.length)
+            .mapToObj(i -> rawBytes[i])
+            .toList();
+        return new Chunk(listOfBytes);
     }
 }

@@ -8,6 +8,7 @@ public class ChunkUnpacker {
 
     private final Chunk chunk;
     private int chunkPointer;
+    private int chunkSize;
     private int di;
 
     private List<Byte> unpacked;
@@ -23,7 +24,7 @@ public class ChunkUnpacker {
 
     public void unpack() {
         this.chunkPointer = 0;
-        final int chunkSize = getChunkWord();
+        this.chunkSize = getChunkWord();
 
         this.unpacked = new ArrayList<>();
         this.repacked = new ArrayList<>();
@@ -34,8 +35,6 @@ public class ChunkUnpacker {
 
         buildTable(0);
         // printArray(this.unpacked, 0x15bb);
-        repackData(chunkSize);
-        // printArray(this.repacked, 0x192c);
     }
 
     private void buildTable(int run) {
@@ -56,8 +55,8 @@ public class ChunkUnpacker {
         buildTable(0);
     }
 
-    private void repackData(int chunkSize) {
-        int count = chunkSize;
+    public void repack() {
+        int count = this.chunkSize;
         int tableIndex = 0;
         while (count > 0) {
             if (getTableWord(this.unpacked, tableIndex) == 0) {

@@ -1,6 +1,7 @@
 package com.hitchhikerprod.dragonwars;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ModifiableChunk extends Chunk {
     public ModifiableChunk(byte[] raw) {
@@ -8,6 +9,10 @@ public class ModifiableChunk extends Chunk {
         for (int i = 0; i < raw.length; i++) {
             this.raw.add(raw[i]);
         }
+    }
+
+    public ModifiableChunk(List<Byte> raw) {
+        this.raw = new ArrayList<>(raw);
     }
 
     public void setByte(int index, byte value) {

@@ -8,16 +8,8 @@ public class Chunk {
 
     Chunk() {}
 
-    public Chunk(byte[] raw) {
-        this.raw = IntStream.range(0, raw.length).mapToObj(i -> raw[i]).toList();
-    }
-
-    public ModifiableChunk modifiable() {
-        byte[] bytes = new byte[raw.size()];
-        for (int i = 0; i < raw.size(); i++) {
-            bytes[i] = raw.get(i);
-        }
-        return new ModifiableChunk(bytes);
+    public Chunk(List<Byte> raw) {
+        this.raw = raw;
     }
 
     public byte getByte(int i) {

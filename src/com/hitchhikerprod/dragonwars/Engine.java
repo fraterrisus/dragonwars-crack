@@ -63,7 +63,7 @@ public class Engine {
         memStruct.add(new ChunkRecord(0xffff, temp, 0xff));
 
         // Load the requested metaprogram chunk into index 2
-        final Chunk initial = chunkTable.get(chunkId).toChunk(data1, data2);
+        final Chunk initial = chunkTable.get(chunkId).toModifiableChunk(data1, data2);
         memStruct.add(new ChunkRecord(chunkId, initial, 0x01));
         ip = offset;
 
@@ -88,14 +88,14 @@ public class Engine {
 
     private Reload decodeAndExecute(int opcode) {
         switch (opcode) {
-            case 0x00 -> writeR1(0xff);
-            case 0x01 -> { writeR1(0x00); writeR3(0x00); }
+            case 0x00 -> writeR1((byte)0xff);
+            case 0x01 -> { writeR1((byte)0x00); writeR3((byte)0x00); }
             case 0x02 -> push(dataseg_index_392a);
             case 0x03 -> { dataseg_index_392a = pop(); saveSegmentPointers(); }
             case 0x04 -> push(codeseg_index_3928);
             case 0x05 -> writeR4(readHeapByte(getProgramUnsignedByte()));
             case 0x06 -> writeR4(getProgramByte());
-            case 0x07 -> writeR4(0x00);
+            case 0x07 -> writeR4((byte)0x00);
             case 0x08 -> writeHeapByte(getProgramUnsignedByte(), readR4());
             case 0x09 -> movR2xImm();
             case 0x0a -> movR2xHeapImm();
@@ -180,6 +180,9 @@ public class Engine {
 
             case 0x66 -> testHelper(readHeapWord(getProgramUnsignedByte()));
 
+            case 0x74 -> call2490();
+
+            case 0x78 -> decodeStringFromMetaprogram(); // this DOESN'T try to draw HUD title blocks
             case 0x7b -> decodeStringFromMetaprogram(); // this actually overwrites si, but we don't care
 
             case 0x85 -> freeSegment(readR2());
@@ -205,7 +208,7 @@ public class Engine {
         final int operand1 = readR2();
         final int carryIn = (flags.carry() ? 1 : 0);
         final int result = lowByte(operand1) + lowByte(operand2) + carryIn;
-        writeR2(result);
+        writeR2(lowByte(result));
         flags.carry((result & 0x100) > 0);
     }
 
@@ -256,12 +259,20 @@ public class Engine {
         }
     }
 
+    private byte byteAnd(byte a, byte b) {
+        return (byte)((a & b) & 0xff);
+    }
+
+    private byte byteOr(byte a, byte b) {
+        return (byte)((a | b) & 0xff);
+    }
+
     private void orR2xHeapImm() {
         final int heapIndex = getProgramUnsignedByte();
         final int operand2 = readHeapWord(heapIndex);
         final int value = readR2x() | operand2;
         writeR2(lowByte(value));
-        writeR3(highByte(value) & readR1());
+        writeR3(byteAnd(highByte(value), readR1()));
     }
 
     private void orR2xImm() {
@@ -281,7 +292,7 @@ public class Engine {
         final int operand2 = readHeapWord(heapIndex);
         final int value = readR2x() ^ operand2;
         writeR2(lowByte(value));
-        writeR3(highByte(value) & readR1());
+        writeR3(byteAnd(highByte(value), readR1()));
     }
 
     private void xorR2xImm() {
@@ -346,6 +357,10 @@ public class Engine {
         }
     }
 
+    private void call2490() {
+
+    }
+
     // I'm not setting Parity, AlternateCarry, or Overflow...
     private void cmpHelper(int me, int them) {
         final int temp = me - them;
@@ -396,7 +411,7 @@ public class Engine {
 
     private void conditionalWriteR2x(int value) {
         writeR2(lowByte(value));
-        writeR3(highByte(value) & (readR1() & 0xff));
+        writeR3(byteAnd(highByte(value), readR1()));
     }
 
     private void conditionalWriteLongptr(int structIdx, int address, Supplier<Byte> b0, Supplier<Byte> b1) {
@@ -576,8 +591,8 @@ public class Engine {
             writeR2(value);
         } else {
             final int value = getProgramWord();
-            writeR2(value & 0x00ff);
-            writeR3((value & 0xff00) >> 8);
+            writeR2(lowByte(value));
+            writeR3(highByte(value));
         }
     }
 
@@ -700,8 +715,8 @@ public class Engine {
 
     private int readR2x() {
         System.out.printf("  r2x -> %02x%02x\n", r3 & 0xff, r2 & 0xff);
-        final byte b0 = this.r2;
-        final byte b1 = this.r3;
+        final int b0 = this.r2 & 0xff;
+        final int b1 = this.r3 & 0xff;
         return (b1 << 8) | b0;
     }
 
@@ -717,9 +732,9 @@ public class Engine {
 
     private int readR4x() {
         System.out.printf("  r4x -> %02x%02x\n", r5 & 0xff, r4 & 0xff);
-        final byte b0 = this.r4;
-        final byte b1 = this.r5;
-        return ((b1 & 0xff) << 8) | (b0 & 0xff);
+        final int b0 = this.r4 & 0xff;
+        final int b1 = this.r5 & 0xff;
+        return (b1 << 8) | b0;
     }
 
     private void rmwHeapImm(Function<Integer, Integer> modify) {
@@ -791,13 +806,14 @@ public class Engine {
 
     private void testHelper(int value) {
         if (readR1() == 0) {
+            System.out.printf("  test %02x -> %s\n", value & 0xff, flags);
             flags.zero((value & 0x00ff) == 0);
             flags.sign((value & 0x0080) > 0);
         } else {
+            System.out.printf("  test %04x -> %s\n", value & 0xffff, flags);
             flags.zero((value & 0xffff) == 0);
             flags.sign((value & 0x8000) > 0);
         }
-        System.out.printf("  test %04x -> %s\n", value, flags);
     }
 
     private int unpackChunk(int chunkId, int frob) {
@@ -808,22 +824,28 @@ public class Engine {
             memStruct.get(segmentIdx.get()).setFrob(frob);
             return segmentIdx.get();
         } else {
+            final FilePointer fp = chunkTable.get(chunkId);
+            Chunk newChunk = fp.toModifiableChunk(data1, data2);
+
             if (chunkId >= 0x17) {
-                throw new RuntimeException("Don't know how to load chunks >= 0x17");
-            } else {
-                final FilePointer fp = chunkTable.get(chunkId);
-                final ChunkRecord newSegment = new ChunkRecord(chunkId, fp.toModifiableChunk(data1, data2), frob);
-
-                int newIndex = 0;
-                while (newIndex < memStruct.size() && memStruct.get(newIndex) != null) {
-                    newIndex++;
-                }
-                if (newIndex >= memStruct.size()) memStruct.add(newSegment);
-                else memStruct.set(newIndex, newSegment);
-
-                System.out.printf("  unpacking chunk %02x into struct idx %02x\n", chunkId, newIndex);
-                return newIndex;
+                ChunkUnpacker unpacker = new ChunkUnpacker(newChunk);
+                unpacker.unpack();
+                unpacker.repack();
+                newChunk = new ModifiableChunk(unpacker.getRepacked());
             }
+
+            final ChunkRecord newSegment = new ChunkRecord(chunkId, newChunk, frob);
+
+            int newIndex = 0;
+            while (newIndex < memStruct.size() && memStruct.get(newIndex) != null) {
+                newIndex++;
+            }
+            if (newIndex >= memStruct.size()) memStruct.add(newSegment);
+            else memStruct.set(newIndex, newSegment);
+
+
+            System.out.printf("  unpacking chunk %02x into struct idx %02x\n", chunkId, newIndex);
+            return newIndex;
         }
     }
 
@@ -855,19 +877,9 @@ public class Engine {
         this.r1 = val;
     }
 
-    private void writeR1(int val) {
-        System.out.printf("  r1 <- %02x\n", val & 0xff);
-        this.r1 = (byte)(val & 0x00ff);
-    }
-
     private void writeR2(byte val) {
         System.out.printf("  r2 <- %02x\n", val & 0xff);
         this.r2 = val;
-    }
-
-    private void writeR2(int val) {
-        System.out.printf("  r2 <- %02x\n", val & 0xff);
-        this.r2 = (byte)(val & 0x00ff);
     }
 
     private void writeR2x(int val) {
@@ -881,11 +893,6 @@ public class Engine {
         this.r3 = val;
     }
 
-    private void writeR3(int val) {
-        System.out.printf("  r3 <- %02x\n", val & 0xff);
-        this.r3 = (byte)(val & 0x00ff);
-    }
-
     private void writeR4(byte val) {
         System.out.printf("  r4 <- %02x\n", val & 0xff);
         this.r4 = val;
@@ -893,17 +900,12 @@ public class Engine {
 
     private void writeR4(int val) {
         System.out.printf("  r4 <- %02x\n", val & 0xff);
-        this.r4 = (byte)(val & 0x00ff);
+        this.r4 = lowByte(val);
     }
 
     private void writeR5(byte val) {
         System.out.printf("  r5 <- %02x\n", val & 0xff);
         this.r5 = val;
-    }
-
-    private void writeR5(int val) {
-        System.out.printf("  r5 <- %02x\n", val & 0xff);
-        this.r5 = (byte)(val & 0x00ff);
     }
 
     public static void main(String[] args) {

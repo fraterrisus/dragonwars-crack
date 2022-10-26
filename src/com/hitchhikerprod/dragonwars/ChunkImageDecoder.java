@@ -29,6 +29,7 @@ public class ChunkImageDecoder {
         final Chunk chunk = fp.toChunk(basePath);
         final ChunkUnpacker unpacker = new ChunkUnpacker(chunk);
         unpacker.unpack();
+        unpacker.repack();
         unpacker.applyRollingXor(0x00);
         final List<Byte> unpacked = unpacker.getRolled();
         final BufferedImage image = convert(unpacked);
