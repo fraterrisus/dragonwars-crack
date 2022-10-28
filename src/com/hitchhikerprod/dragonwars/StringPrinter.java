@@ -69,7 +69,7 @@ public class StringPrinter {
                 executable.seek(0xb8a2 + ((ch & 0x7f) << 3));
                 for (int y = 0; y < 8; y++) {
                     final int mask = executable.readUnsignedByte();
-                    for (int i = 7; i > 0; i--) {
+                    for (int i = 7; i >= 0; i--) {
                         final int rgb = (((mask >> i) & 0x1) > 0) ? 0xffffffff : 0x0;
                         image.setRGB((8 * x) + (7 - i), y0 + y, rgb);
                     }

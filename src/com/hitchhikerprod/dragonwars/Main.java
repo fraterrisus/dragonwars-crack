@@ -127,8 +127,7 @@ public class Main {
             for (int i = 0; i < regionAddresses.size(); i++) {
                 final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
 
-                decoder.setBaseAddress(regionAddresses.get(i));
-                decoder.decode(image);
+                decoder.decode(image, regionAddresses.get(i));
 
                 String imageName = String.format("hud-%02d.png", i);
                 ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_BILINEAR),

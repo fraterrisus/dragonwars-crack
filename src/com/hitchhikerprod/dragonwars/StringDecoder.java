@@ -62,8 +62,21 @@ public class StringDecoder {
         return this.pointer;
     }
 
-    public List<Integer> getDecodedChars () {
+    public List<Integer> getDecodedChars() {
         return this.decodedChars;
+    }
+
+    public String getDecodedString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i : decodedChars) {
+            final int codePoint = i & 0x7f;
+            if (codePoint == 0x0a || codePoint == 0x0d) {
+                builder.append("\\n");
+            } else {
+                builder.appendCodePoint(codePoint);
+            }
+        }
+        return builder.toString();
     }
 
     private void unpackByte() {
@@ -91,5 +104,27 @@ public class StringDecoder {
             x = x >> 1;
         }
         return i;
+    }
+
+    public static void main(String[] args) {
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+
+        try (
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+        ) {
+            final int startPoint = 0x46eb;
+
+            exec.seek(startPoint);
+            final byte[] rawData = new byte[0x10];
+            exec.read(rawData, 0, 0x10);
+            final Chunk chunk = new ModifiableChunk(rawData);
+
+            final StringDecoder decoder = new StringDecoder(exec, chunk);
+            decoder.decodeString(0);
+            System.out.println(decoder.getDecodedString());
+            System.out.printf("New pointer: %06x\n", startPoint + decoder.getPointer());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -1,5 +1,13 @@
 package com.hitchhikerprod.dragonwars;
 
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -7,6 +15,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -15,21 +24,28 @@ public class Engine {
     private final RandomAccessFile data1;
     private final RandomAccessFile data2;
 
-    private final ChunkTable chunkTable;
-
     private int codeseg_391d;
     private int dataseg_391f;
     private int codeseg_index_3928;
     private int dataseg_index_392a;
+    private List<Integer> string_313e;
+    private List<Integer> string_273a;
+    private final BoundingBox rectangle_2547;
 
     private int ip;
     private byte r1, r2, r3, r4, r5;
-    private final Flags flags = new Flags();
+    private Flags flags;
 
+    private final CachingStringPrinter stringPrinter;
+    private MemoryImageDecoder memoryImageDecoder;
+    private List<Integer> hudRegionAddresses;
+    private ChunkTable chunkTable;
     private List<ChunkRecord> memStruct;
     private byte[] heap;
     private Chunk buffer_d1b0;
     private Deque<Integer> stack;
+    private BufferedImage screen;
+    private Graphics2D gfx;
 
     private enum Reload {
         IP, SEGMENT, INSTRUCTION, EXIT;
@@ -40,19 +56,61 @@ public class Engine {
         this.data1 = data1;
         this.data2 = data2;
 
-        this.chunkTable = new ChunkTable(data1, data2);
-        this.stack = new LinkedList<>();
-        this.heap = new byte[0x100];
-        this.memStruct = new ArrayList<>();
+        this.stringPrinter = new CachingStringPrinter(executable);
+        this.rectangle_2547 = new BoundingBox();
+    }
 
+    public void run(int chunkId, int offset) {
+        initializeRegisters();
+        initializeMemory(chunkId);
+        bboxToMessageArea();
+
+        blankScreen();
+        drawHudBorders();
+        drawTitleBars();
+        // call the ImageDecoder6528 to draw the corners of the gameplay area too
+
+        ip = offset;
+
+        Reload reload = Reload.SEGMENT;
+        while(reload != Reload.EXIT) {
+            System.out.printf("ip=%04x", ip);
+            final int opcode = getProgramUnsignedByte();
+            System.out.printf(" opcode=%02x", opcode & 0xff);
+            System.out.println();
+            reload = decodeAndExecute(opcode & 0xff);
+        }
+    }
+
+    private void initializeRegisters() {
         this.r1 = 0;
         this.r2 = 0;
         this.r3 = 0;
         this.r4 = 0;
         this.r5 = 0;
+
+        flags = new Flags();
+        flags.carry(false);
+        flags.zero(false);
+        flags.sign(false);
     }
 
-    public void run(int chunkId, int offset) {
+    private void blankScreen() {
+        screen = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+        gfx = screen.createGraphics();
+        gfx.setFont(new Font("Liberation Sans", Font.PLAIN, 6));
+
+        gfx.setColor(Color.DARK_GRAY);
+        gfx.fill(new Rectangle(0, 0, 320, 200));
+    }
+
+    private void initializeMemory(int chunkId) {
+        this.chunkTable = new ChunkTable(data1, data2);
+        this.stack = new LinkedList<>();
+        this.heap = new byte[0x100];
+        this.memStruct = new ArrayList<>();
+        this.string_313e = new ArrayList<>();
+
         // Add a fake chunk at index 0; we should never refer to this
         memStruct.add(new ChunkRecord(0xffff, null, 0xff));
 
@@ -65,24 +123,25 @@ public class Engine {
         // Load the requested metaprogram chunk into index 2
         final Chunk initial = chunkTable.get(chunkId).toModifiableChunk(data1, data2);
         memStruct.add(new ChunkRecord(chunkId, initial, 0x01));
-        ip = offset;
 
         // Set the segment pointers
         codeseg_index_3928 = 2;
         dataseg_index_392a = 2;
         saveSegmentPointers();
 
-        flags.carry(false);
-        flags.zero(false);
-        flags.sign(false);
-
-        Reload reload = Reload.SEGMENT;
-        while(reload != Reload.EXIT) {
-            System.out.printf("ip=%04x", ip);
-            final int opcode = getProgramUnsignedByte();
-            System.out.printf(" opcode=%02x", opcode & 0xff);
-            System.out.println();
-            reload = decodeAndExecute(opcode & 0xff);
+        // Initialize the HUD section decoder
+        memoryImageDecoder = new MemoryImageDecoder(executable);
+        hudRegionAddresses = new ArrayList<>();
+        try {
+            executable.seek(0x67c0);
+            for (int i = 0; i <= 42; i++) {
+                int b0 = executable.readUnsignedByte();
+                int b1 = executable.readUnsignedByte();
+                int adr = ((b1 << 8) | b0) - 0x0100;
+                hudRegionAddresses.add(adr);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -180,10 +239,15 @@ public class Engine {
 
             case 0x66 -> testHelper(readHeapWord(getProgramUnsignedByte()));
 
-            case 0x74 -> call2490(); // more string-from-metaprogram shenanigans
-
-            case 0x78 -> decodeStringFromMetaprogram(); // this DOESN'T try to draw HUD title blocks
-            case 0x7b -> decodeStringFromMetaprogram(); // this actually overwrites si, but we don't care
+            case 0x74 -> drawModalDialog(); // more string-from-metaprogram shenanigans
+            case 0x75 -> drawStringAndResetBbox();
+            case 0x76 -> fillRectangle();
+            case 0x77 -> { fillRectangle(); decodeStringFromMetaprogram((x) -> {}); }
+            case 0x78 -> decodeStringFromMetaprogram((x) -> {});
+            case 0x79 -> { fillRectangle(); decodeStringFromDsR2x((x) -> {}); }
+            case 0x7a -> decodeStringFromDsR2x((x) -> {});
+            case 0x7b -> decodeTitleStringFromMetaprogram();
+            case 0x7c -> decodeTitleStringFromDsR2x();
 
             case 0x85 -> freeSegment(readR2());
             case 0x86 -> unpackChunkR2();
@@ -259,52 +323,16 @@ public class Engine {
         }
     }
 
+    private void bboxToMessageArea() {
+        rectangle_2547.setBoundingBox(0x01, 0x98, 0x27, 0xb8);
+    }
+
     private byte byteAnd(byte a, byte b) {
         return (byte)((a & b) & 0xff);
     }
 
     private byte byteOr(byte a, byte b) {
         return (byte)((a | b) & 0xff);
-    }
-
-    private void orR2xHeapImm() {
-        final int heapIndex = getProgramUnsignedByte();
-        final int operand2 = readHeapWord(heapIndex);
-        final int value = readR2x() | operand2;
-        writeR2(lowByte(value));
-        writeR3(byteAnd(highByte(value), readR1()));
-    }
-
-    private void orR2xImm() {
-        if (readR1() == 0) {
-            final int operand2 = getProgramUnsignedByte();
-            final int value = readR2() | operand2;
-            writeR2(lowByte(value));
-        } else {
-            final int operand2 = getProgramWord();
-            final int value = readR2x() | operand2;
-            writeR2x(value);
-        }
-    }
-
-    private void xorR2xHeapImm() {
-        final int heapIndex = getProgramUnsignedByte();
-        final int operand2 = readHeapWord(heapIndex);
-        final int value = readR2x() ^ operand2;
-        writeR2(lowByte(value));
-        writeR3(byteAnd(highByte(value), readR1()));
-    }
-
-    private void xorR2xImm() {
-        if (readR1() == 0) {
-            final int operand2 = getProgramUnsignedByte();
-            final int value = readR2() ^ operand2;
-            writeR2(lowByte(value));
-        } else {
-            final int operand2 = getProgramWord();
-            final int value = readR2x() ^ operand2;
-            writeR2x(value);
-        }
     }
 
     private void bufferCopy() {
@@ -319,7 +347,7 @@ public class Engine {
             }
         }
 
-        final Chunk seg = data_segment();
+        final Chunk seg = dataSegment();
 
         final Chunk src;
         final ModifiableChunk dst;
@@ -355,15 +383,6 @@ public class Engine {
         for (int i = 0; i < 0x380; i++) {
             dst.setByte(dstBase + i, src.getByte(srcBase + i));
         }
-    }
-
-    private void call2490() {
-        // this probably calls a draw routine which at least draws a box and maybe also slurps
-        // opcode 78 and the string that follows it
-        getProgramUnsignedByte();
-        getProgramUnsignedByte();
-        getProgramUnsignedByte();
-        getProgramUnsignedByte();
     }
 
     // I'm not setting Parity, AlternateCarry, or Overflow...
@@ -437,22 +456,116 @@ public class Engine {
         }
     }
 
-    private void decodeStringFromMetaprogram() {
-        final StringDecoder sd = new StringDecoder(executable, code_segment());
-        sd.decodeString(ip);
-        List<Integer> decodedString = sd.getDecodedChars();
-        ip = sd.getPointer();
+    private void decodeStringFromDsR2x(Consumer<List<Integer>> fptr_3093) {
+        final StringDecoder sd = new StringDecoder(executable, dataSegment());
+        final int r2x = readR2x();
+        sd.decodeString(r2x);
+        fptr_3093.accept(sd.getDecodedChars());
 
-        StringBuilder builder = new StringBuilder("  Decoded string: ");
-        for (int i : decodedString) {
-            final int codePoint = i & 0x7f;
-            if (codePoint == 0x0a || codePoint == 0x0d) {
-                builder.append("\\n");
-            } else {
-                builder.appendCodePoint(codePoint);
-            }
+        System.out.printf("  ptr <- struct[%02x][%04x]\n", dataseg_391f, r2x);
+        System.out.println("  Decoded string: " + sd.getDecodedString());
+        writeR2x(sd.getPointer());
+    }
+
+    // the second time this gets called (mp.ip = 0x0014), fptr_3093 = 0x30c1
+    // which basically copies decoded charactesr into the string at 313e
+    // but also calls draw_string_313e() every time it runs into a CRLF (0x8d)
+    private void decodeStringFromMetaprogram(Consumer<List<Integer>> fptr_3093) {
+        final StringDecoder sd = new StringDecoder(executable, codeSegment());
+        sd.decodeString(ip);
+        fptr_3093.accept(sd.getDecodedChars());
+        // stringPrinter.print(rectangle_2547.x / 8, rectangle_2547.y, sd.getDecodedChars().subList(0,16))
+        System.out.printf("  ptr <- struct[%02x][%04x]\n", codeseg_391d, ip);
+        System.out.println("  Decoded string: " + sd.getDecodedString());
+        ip = sd.getPointer();
+        System.out.printf("  ip <- %04x\n", ip);
+    }
+
+    private Consumer<List<Integer>> copyString26aa() {
+        return (l) -> string_273a = l;
+    }
+
+    private void decodeTitleStringFromMetaprogram() {
+        decodeStringFromMetaprogram(copyString26aa());
+        drawTitleBars();
+        stringPrinter.setImage(screen);
+        stringPrinter.print(11 - (string_273a.size() / 2), 0, string_273a);
+    }
+
+    private void decodeTitleStringFromDsR2x() {
+        decodeStringFromDsR2x(copyString26aa());
+        drawTitleBars();
+        stringPrinter.setImage(screen);
+        stringPrinter.print(11 - (string_273a.size() / 2), 0, string_273a);
+    }
+
+    private void drawHudBorders() {
+        for (int i = 0; i < 10; i++) {
+            memoryImageDecoder.decode(screen, hudRegionAddresses.get(i));
         }
-        System.out.println(builder);
+    }
+
+    private void drawModalDialog() {
+        final int x0 = getProgramUnsignedByte(); // byte address, as usual
+        final int y0 = getProgramUnsignedByte();
+        final int x1 = getProgramUnsignedByte();
+        final int y1 = getProgramUnsignedByte();
+        rectangle_2547.setBoundingBox(x0, y0, x1, y1);
+
+        stringPrinter.setImage(screen);
+
+        // all of the border symbols are slightly justified towards the center so they aren't perfectly symmetric
+        // top border  0x80 ╔  0x81 ═  0x82 ╗
+        stringPrinter.print(x0, y0, List.of(0x80));
+        final List<Integer> topLine = new ArrayList<>();
+        for (int x = x0 + 1; x < x1; x++) { topLine.add(0x81); }
+        stringPrinter.print(x0+1, y0, topLine);
+        stringPrinter.print(x1, y0, List.of(0x82));
+
+        // side borders  0x83,0x84 ║
+        for (int y = y0 + 8; y < y1; y += 8) {
+            stringPrinter.print(x0, y, List.of(0x83));
+            stringPrinter.print(x1, y, List.of(0x84));
+        }
+
+        // bottom border  0x85 ╚ 0x86 ═ 0x87 ╝
+        stringPrinter.print(x0, y1, List.of(0x85));
+        final List<Integer> bottomLine = new ArrayList<>();
+        for (int x = x0 + 1; x < x1; x++) { bottomLine.add(0x86); }
+        stringPrinter.print(x0+1, y1, bottomLine);
+        stringPrinter.print(x1, y1, List.of(0x87));
+
+        // fill the middle using the shrunk() BoundingBox
+        rectangle_2547.shrink();
+        gfx.setColor(Color.WHITE); // technically this reads 0x3431 for the color
+        gfx.fill(rectangle_2547);
+
+        System.out.println("  Drawing modal dialog, see modal.png");
+        writeScreenToDisk("modal.png");
+    }
+
+    private void drawStringAndResetBbox() {
+        stringPrinter.print(rectangle_2547.x, rectangle_2547.y, string_313e);
+        // draw_hud_borders()
+        bboxToMessageArea();
+        // [0x31ed] <- 0x01
+        // [0x31ef] <- 0x98
+        System.out.println(" Drawing screen, see screen.png");
+        writeScreenToDisk("screen.png");
+    }
+
+    private void drawTitleBars() {
+        for (int i = 27; i <= 42; i++) {
+            memoryImageDecoder.decode(screen, hudRegionAddresses.get(i));
+        }
+    }
+
+    private void fillRectangle() {
+        // clear_buffer_2a47()
+        // push_232d_video_data()
+        gfx.setColor(Color.WHITE); // technically this reads 0x3431 for the color
+        gfx.fill(rectangle_2547);
+        string_313e.clear();
     }
 
     private void freeSegment(int structIdx) {
@@ -460,7 +573,7 @@ public class Engine {
     }
 
     private byte getProgramByte() {
-        byte b = code_segment().getByte(this.ip);
+        byte b = codeSegment().getByte(this.ip);
         ip++;
         return b;
     }
@@ -470,7 +583,7 @@ public class Engine {
     }
 
     private int getProgramWord() {
-        int i = code_segment().getWord(this.ip);
+        int i = codeSegment().getWord(this.ip);
         ip += 2;
         return i;
     }
@@ -617,14 +730,14 @@ public class Engine {
 
     private void movR2xSegImm() {
         final int address = getProgramWord();
-        final int value = data_segment().getWord(address);
+        final int value = dataSegment().getWord(address);
         System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
         conditionalWriteR2x(value);
     }
 
     private void movR2xSegImmR4x() {
         final int address = getProgramWord() + readR4x();
-        final int value = data_segment().getWord(address);
+        final int value = dataSegment().getWord(address);
         System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
         conditionalWriteR2x(value);
     }
@@ -632,7 +745,7 @@ public class Engine {
     private void movR2xSegHeapImmR4x() {
         final int heapIndex = getProgramUnsignedByte();
         final int address = readHeapWord(heapIndex) + readR4x();
-        final int value = data_segment().getWord(address);
+        final int value = dataSegment().getWord(address);
         System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
         conditionalWriteR2x(value);
     }
@@ -640,7 +753,7 @@ public class Engine {
     private void movR2xSegHeapImmImm() {
         final int heapIndex = getProgramUnsignedByte();
         final int address = readHeapWord(heapIndex) + getProgramUnsignedByte();
-        final int value = data_segment().getWord(address);
+        final int value = dataSegment().getWord(address);
         System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
         conditionalWriteR2x(value);
     }
@@ -676,19 +789,39 @@ public class Engine {
         final int srcAddress = getProgramWord();
         final int dstAddress = getProgramWord();
         conditionalWriteLongptr(dataseg_391f, dstAddress,
-            () -> data_segment().getByte(srcAddress),
-            () -> data_segment().getByte(srcAddress + 1));
+            () -> dataSegment().getByte(srcAddress),
+            () -> dataSegment().getByte(srcAddress + 1));
     }
 
-    private void push(int value) {
-        System.out.printf("  push %04x\n", value);
-        stack.push(value);
+    private void orR2xHeapImm() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int operand2 = readHeapWord(heapIndex);
+        final int value = readR2x() | operand2;
+        writeR2(lowByte(value));
+        writeR3(byteAnd(highByte(value), readR1()));
+    }
+
+    private void orR2xImm() {
+        if (readR1() == 0) {
+            final int operand2 = getProgramUnsignedByte();
+            final int value = readR2() | operand2;
+            writeR2(lowByte(value));
+        } else {
+            final int operand2 = getProgramWord();
+            final int value = readR2x() | operand2;
+            writeR2x(value);
+        }
     }
 
     private int pop() {
         final int value = stack.pop();
         System.out.printf("  pop %04x\n", value);
         return value;
+    }
+
+    private void push(int value) {
+        System.out.printf("  push %04x\n", value);
+        stack.push(value);
     }
 
     private void readChunkTable() {
@@ -782,11 +915,11 @@ public class Engine {
         return rec.data();
     }
 
-    private Chunk code_segment() {
+    private Chunk codeSegment() {
         return segment(codeseg_391d);
     }
 
-    private Chunk data_segment() {
+    private Chunk dataSegment() {
         return segment(dataseg_391f);
     }
 
@@ -914,6 +1047,51 @@ public class Engine {
     private void writeR5(byte val) {
         System.out.printf("  r5 <- %02x\n", val & 0xff);
         this.r5 = val;
+    }
+
+    private void writeScreenToDisk(String pathname) {
+        try {
+            ImageIO.write(Images.scale(screen, 4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
+                "png", new File(pathname));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void xorR2xHeapImm() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int operand2 = readHeapWord(heapIndex);
+        final int value = readR2x() ^ operand2;
+        writeR2(lowByte(value));
+        writeR3(byteAnd(highByte(value), readR1()));
+    }
+
+    private void xorR2xImm() {
+        if (readR1() == 0) {
+            final int operand2 = getProgramUnsignedByte();
+            final int value = readR2() ^ operand2;
+            writeR2(lowByte(value));
+        } else {
+            final int operand2 = getProgramWord();
+            final int value = readR2x() ^ operand2;
+            writeR2x(value);
+        }
+    }
+
+    private class BoundingBox extends Rectangle {
+        public void setBoundingBox(int x0, int y0, int x1, int y1) {
+            super.setBounds(x0 * 8, y0, (x1-x0) * 8, (y1-y0));
+        }
+
+        public void shrink() {
+            super.grow(-4, -4);
+            super.translate(4, 4);
+        }
+
+        public void expand() {
+            super.grow(4, 4);
+            super.translate(-4, -4);
+        }
     }
 
     public static void main(String[] args) {
