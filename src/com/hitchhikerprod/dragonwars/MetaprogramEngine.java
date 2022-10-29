@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class Engine {
+public class MetaprogramEngine {
     private final RandomAccessFile executable;
     private final RandomAccessFile data1;
     private final RandomAccessFile data2;
@@ -28,6 +28,7 @@ public class Engine {
     private int dataseg_391f;
     private int codeseg_index_3928;
     private int dataseg_index_392a;
+    private int invert_3431;
     private List<Integer> string_313e;
     private List<Integer> string_273a;
     private final BoundingBox rectangle_2547;
@@ -51,10 +52,17 @@ public class Engine {
         IP, SEGMENT, INSTRUCTION, EXIT;
     }
 
-    public Engine(RandomAccessFile executable, RandomAccessFile data1, RandomAccessFile data2) {
+    public MetaprogramEngine(
+        RandomAccessFile executable,
+        RandomAccessFile data1,
+        RandomAccessFile data2,
+        BufferedImage screen)
+    {
         this.executable = executable;
         this.data1 = data1;
         this.data2 = data2;
+
+        this.screen = screen;
 
         this.stringPrinter = new CachingStringPrinter(executable);
         this.rectangle_2547 = new BoundingBox();
@@ -68,7 +76,7 @@ public class Engine {
         blankScreen();
         drawHudBorders();
         drawTitleBars();
-        // call the ImageDecoder6528 to draw the corners of the gameplay area too
+        fillRectangle();
 
         ip = offset;
 
@@ -96,7 +104,6 @@ public class Engine {
     }
 
     private void blankScreen() {
-        screen = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
         gfx = screen.createGraphics();
         gfx.setFont(new Font("Liberation Sans", Font.PLAIN, 6));
 
@@ -225,6 +232,9 @@ public class Engine {
             case 0x4b -> flags.carry(true);
             case 0x4c -> flags.carry(false);
             // case 0x4d -> read PIT counter!!!
+            case 0x4e -> setHeapR2ImmR2();
+            case 0x4f -> clrHeapR2ImmR2();
+            case 0x50 -> testHeapR2ImmR2();
 
             case 0x52 -> shortJump(getProgramWord());
             case 0x53 -> shortCall(getProgramWord());
@@ -242,15 +252,25 @@ public class Engine {
             case 0x74 -> drawModalDialog(); // more string-from-metaprogram shenanigans
             case 0x75 -> drawStringAndResetBbox();
             case 0x76 -> fillRectangle();
-            case 0x77 -> { fillRectangle(); decodeStringFromMetaprogram((x) -> {}); }
-            case 0x78 -> decodeStringFromMetaprogram((x) -> {});
-            case 0x79 -> { fillRectangle(); decodeStringFromDsR2x((x) -> {}); }
-            case 0x7a -> decodeStringFromDsR2x((x) -> {});
+            case 0x77 -> { fillRectangle(); decodeStringFromMetaprogram(drawString30c1()); }
+            case 0x78 -> decodeStringFromMetaprogram(drawString30c1());
+            case 0x79 -> { fillRectangle(); decodeStringFromDsR2x(drawString30c1()); }
+            case 0x7a -> decodeStringFromDsR2x(drawString30c1());
             case 0x7b -> decodeTitleStringFromMetaprogram();
             case 0x7c -> decodeTitleStringFromDsR2x();
 
             case 0x85 -> freeSegment(readR2());
             case 0x86 -> unpackChunkR2();
+
+            case 0x89 -> readInputAndJump();
+
+            case 0x8c -> {
+                // Needs to append "Yes\nNo" to the already-drawn string in the modal
+                // and then use readInputAndJump, but point the case statement at 01dd:480a
+                writeScreenToDisk("screen.png");
+                final String message = String.format("Unimplemented opcode %02x", opcode);
+                throw new RuntimeException(message);
+            }
 
             case 0x93 -> push(readR4());
             case 0x94 -> writeR4(pop());
@@ -266,6 +286,41 @@ public class Engine {
             }
         }
         return Reload.INSTRUCTION;
+    }
+
+    private void setHeapR2ImmR2() {
+        final int offset = getProgramUnsignedByte();
+        final int currentR2 = readR2() & 0xff;
+        final int heapIndex = (currentR2 >> 3) + offset;
+        final int shiftDistance = currentR2 & 0x7;
+        final int shifted = 0x80 >> shiftDistance;
+        final int value = readHeapUnsignedByte(heapIndex) | shifted;
+        writeHeapByte(heapIndex, value);
+    }
+
+    private void clrHeapR2ImmR2() {
+        final int offset = getProgramUnsignedByte();
+        final int currentR2 = readR2() & 0xff;
+        final int heapIndex = (currentR2 >> 3) + offset;
+        final int shiftDistance = currentR2 & 0x7;
+        final int shifted = 0x80 >> shiftDistance;
+        System.out.printf("  r2[7:3] -> %02x\n", currentR2 >> 3);
+        System.out.printf("  0x80 >> r2[2:0] -> %02x\n", shifted);
+        final int value = readHeapUnsignedByte(heapIndex) & (~shifted);
+        writeHeapByte(heapIndex, value);
+    }
+
+    private void testHeapR2ImmR2() {
+        final int offset = getProgramUnsignedByte();
+        final int currentR2 = readR2() & 0xff;
+        final int heapIndex = (currentR2 >> 3) + offset;
+        final int shiftDistance = currentR2 & 0x7;
+        final int shifted = 0x80 >> shiftDistance;
+        final int operand = readHeapUnsignedByte(heapIndex);
+        final int value = operand & shifted;
+        System.out.printf("  test %02x & %02x -> %s\n", operand, shifted, flags);
+        flags.zero((value & 0x00ff) == 0);
+        flags.sign((value & 0x0080) > 0);
     }
 
     private void addR2Helper(int operand2) {
@@ -467,28 +522,32 @@ public class Engine {
         writeR2x(sd.getPointer());
     }
 
-    // the second time this gets called (mp.ip = 0x0014), fptr_3093 = 0x30c1
-    // which basically copies decoded charactesr into the string at 313e
-    // but also calls draw_string_313e() every time it runs into a CRLF (0x8d)
     private void decodeStringFromMetaprogram(Consumer<List<Integer>> fptr_3093) {
         final StringDecoder sd = new StringDecoder(executable, codeSegment());
         sd.decodeString(ip);
         fptr_3093.accept(sd.getDecodedChars());
-        // stringPrinter.print(rectangle_2547.x / 8, rectangle_2547.y, sd.getDecodedChars().subList(0,16))
         System.out.printf("  ptr <- struct[%02x][%04x]\n", codeseg_391d, ip);
         System.out.println("  Decoded string: " + sd.getDecodedString());
         ip = sd.getPointer();
         System.out.printf("  ip <- %04x\n", ip);
+        writeScreenToDisk("screen.png");
     }
 
     private Consumer<List<Integer>> copyString26aa() {
         return (l) -> string_273a = l;
     }
 
+    private Consumer<List<Integer>> drawString30c1() {
+        return (l) -> {
+            stringPrinter.print(rectangle_2547, l);
+        };
+    }
+
     private void decodeTitleStringFromMetaprogram() {
         decodeStringFromMetaprogram(copyString26aa());
         drawTitleBars();
         stringPrinter.setImage(screen);
+        stringPrinter.setInvert((byte)0x00); // this totally doesn't belong here
         stringPrinter.print(11 - (string_273a.size() / 2), 0, string_273a);
     }
 
@@ -496,6 +555,7 @@ public class Engine {
         decodeStringFromDsR2x(copyString26aa());
         drawTitleBars();
         stringPrinter.setImage(screen);
+        stringPrinter.setInvert((byte)0x00); // this totally doesn't belong here
         stringPrinter.print(11 - (string_273a.size() / 2), 0, string_273a);
     }
 
@@ -503,16 +563,20 @@ public class Engine {
         for (int i = 0; i < 10; i++) {
             memoryImageDecoder.decode(screen, hudRegionAddresses.get(i));
         }
+
+        // draw corners of the gameplay area; maybe doesn't belong here
+        new ImageDecoder6528(executable).decode(screen);
     }
 
     private void drawModalDialog() {
         final int x0 = getProgramUnsignedByte(); // byte address, as usual
         final int y0 = getProgramUnsignedByte();
-        final int x1 = getProgramUnsignedByte();
-        final int y1 = getProgramUnsignedByte();
+        final int x1 = getProgramUnsignedByte() - 1;
+        final int y1 = getProgramUnsignedByte() - 8;
         rectangle_2547.setBoundingBox(x0, y0, x1, y1);
 
         stringPrinter.setImage(screen);
+        stringPrinter.setInvert((byte)0xff); // this totally doesn't belong here
 
         // all of the border symbols are slightly justified towards the center so they aren't perfectly symmetric
         // top border  0x80 ╔  0x81 ═  0x82 ╗
@@ -540,17 +604,17 @@ public class Engine {
         gfx.setColor(Color.WHITE); // technically this reads 0x3431 for the color
         gfx.fill(rectangle_2547);
 
-        System.out.println("  Drawing modal dialog, see modal.png");
-        writeScreenToDisk("modal.png");
+        //System.out.println("  Drawing modal dialog, see modal.png");
+        //writeScreenToDisk("modal.png");
     }
 
     private void drawStringAndResetBbox() {
-        stringPrinter.print(rectangle_2547.x, rectangle_2547.y, string_313e);
+        stringPrinter.print(rectangle_2547, string_313e);
         // draw_hud_borders()
         bboxToMessageArea();
         // [0x31ed] <- 0x01
         // [0x31ef] <- 0x98
-        System.out.println(" Drawing screen, see screen.png");
+        System.out.println("  Drawing screen, see screen.png");
         writeScreenToDisk("screen.png");
     }
 
@@ -846,6 +910,33 @@ public class Engine {
         return value;
     }
 
+    private void readInputAndJump() {
+        try {
+            System.out.println("  Drawing screen, see prompt.png");
+            writeScreenToDisk("prompt.png");
+            final int saveIp = ip;
+            while(true) {
+                System.out.print("  Input: ");
+                final int scancode = (System.in.read() | 0x80) & 0xdf;
+
+                ip = saveIp+2;
+                int compare = 0;
+                int target;
+                while (compare != 0xff) {
+                    compare = getProgramByte() & 0xdf;
+                    target = getProgramWord();
+                    if (scancode == compare) {
+                        ip = target;
+                        return;
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private byte readR1() {
         System.out.printf("  r1 -> %02x\n", r1 & 0xff);
         return this.r1;
@@ -1078,22 +1169,6 @@ public class Engine {
         }
     }
 
-    private class BoundingBox extends Rectangle {
-        public void setBoundingBox(int x0, int y0, int x1, int y1) {
-            super.setBounds(x0 * 8, y0, (x1-x0) * 8, (y1-y0));
-        }
-
-        public void shrink() {
-            super.grow(-4, -4);
-            super.translate(4, 4);
-        }
-
-        public void expand() {
-            super.grow(4, 4);
-            super.translate(-4, -4);
-        }
-    }
-
     public static void main(String[] args) {
         final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
 
@@ -1102,7 +1177,9 @@ public class Engine {
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
-            final Engine engine = new Engine(exec, data1, data2);
+            final BufferedImage screen = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+            final MetaprogramEngine engine = new MetaprogramEngine(exec, data1, data2, screen);
+
             engine.run(0, 0);
         } catch (IOException e) {
             throw new RuntimeException(e);

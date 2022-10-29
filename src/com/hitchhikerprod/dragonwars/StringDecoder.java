@@ -109,22 +109,33 @@ public class StringDecoder {
     public static void main(String[] args) {
         final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
 
+        // final String filename = basePath + "DRAGON.COM";
+        // final int startPoint = 0x463b;
+        final String filename = basePath + "DATA1";
+
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+            final RandomAccessFile data = new RandomAccessFile(basePath + "DATA1", "r");
         ) {
-            final int startPoint = 0x46eb;
-
-            exec.seek(startPoint);
-            final byte[] rawData = new byte[0x10];
-            exec.read(rawData, 0, 0x10);
+            data.seek(0x300);
+            final byte[] rawData = new byte[0x500];
+            data.read(rawData, 0, 0x500);
             final Chunk chunk = new ModifiableChunk(rawData);
-
             final StringDecoder decoder = new StringDecoder(exec, chunk);
-            decoder.decodeString(0);
-            System.out.println(decoder.getDecodedString());
-            System.out.printf("New pointer: %06x\n", startPoint + decoder.getPointer());
+
+            for (int i = 0; i < 0x400; i++) {
+                decoder.decodeString(i);
+                System.out.printf("0x%04x %s\n", i, decoder.getDecodedString());
+                //System.out.printf("New pointer: %06x\n", startPoint + decoder.getPointer());
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 }
+
+/*
+DATA1 chunk 0  (0x300)
+
+
+ */

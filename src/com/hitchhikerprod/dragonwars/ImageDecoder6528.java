@@ -17,28 +17,27 @@ public class ImageDecoder6528 {
         this.dataFile = file;
     }
 
-    public BufferedImage decode() throws IOException {
-        final int[] buffer = new int[0x3e80];
-        for (int i = 0; i < 0x3e80; i++) { buffer[i] = 0x0; }
+    public void decode(BufferedImage image) {
+        try {
+            final int[] buffer = new int[0x3e80];
+            for (int i = 0; i < 0x3e80; i++) {
+                buffer[i] = 0x0;
+            }
 
-        for (int i = 3; i >= 0; i--) {
-            decodeHelper(buffer, i, 0);
+            for (int i = 3; i >= 0; i--) {
+                decodeHelper(buffer, i, 0);
+            }
+
+/*
+            final Graphics2D gfx = image.createGraphics();
+            gfx.setColor(Color.BLUE);
+            gfx.draw(new Rectangle(0x0f, 0x0f, 0xa1, 0x89));
+*/
+
+            reorg(buffer, image, 0x08, 0x88, 0x50);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
-        final Graphics2D gfx = image.createGraphics();
-        gfx.setColor(Color.BLUE);
-        gfx.draw(new Rectangle(0x0f, 0x0f, 0xa1, 0x89));
-
-        reorg(buffer, image, 0x10, 0x88, 0x50);
-        return image;
-    }
-
-    private int readUnsignedWord(long offset) throws IOException {
-        dataFile.seek(offset);
-        final int b0 = dataFile.readUnsignedByte();
-        final int b1 = dataFile.readUnsignedByte();
-        return (b1 << 8) | b0;
     }
 
     private void reorg(int[] buffer, BufferedImage image, int y0, int height, int widthx4) throws IOException {
@@ -108,31 +107,12 @@ public class ImageDecoder6528 {
 
         switch (callIndex) {
             case 0x0 -> decode_d48(buffer, val1008, val100d, factor, val1015, val352e, val3532);
-            case 0x2 -> decode_dab();
-            case 0x4 -> decode_e2d();
-            case 0x6 -> decode_e85();
-            case 0x8 -> decode_efd();
-            case 0xa -> decode_f72();
+            case 0x2 -> throw new UnsupportedOperationException("0x0dab");
+            case 0x4 -> throw new UnsupportedOperationException("0x0e2d");
+            case 0x6 -> throw new UnsupportedOperationException("0x0e85");
+            case 0x8 -> throw new UnsupportedOperationException("0x0efd");
+            case 0xa -> throw new UnsupportedOperationException("0x0f72");
         }
-    }
-
-    private void decode_f72() {
-
-    }
-
-    private void decode_efd() {
-
-    }
-
-    private void decode_e85() {
-
-    }
-
-    private void decode_e2d() {
-    }
-
-    private void decode_dab() {
-
     }
 
     private void decode_d48(int[] buffer, int width, int height, int factor, int factorCopy,
@@ -171,9 +151,11 @@ public class ImageDecoder6528 {
     }
 
     public static void main(String[] args) {
+        final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
+
         try (RandomAccessFile dataFile = new RandomAccessFile("/home/bcordes/Nextcloud/dragonwars/DRAGON.COM", "r")) {
             final ImageDecoder6528 decoder = new ImageDecoder6528(dataFile);
-            final BufferedImage image = decoder.decode();
+            decoder.decode(image);
             ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
                 "png", new File("6528.png"));
         } catch (IOException e) {
