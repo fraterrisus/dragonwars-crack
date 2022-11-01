@@ -115,27 +115,36 @@ public class StringDecoder {
 
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
-            final RandomAccessFile data = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
+/*
             data.seek(0x300);
             final byte[] rawData = new byte[0x500];
             data.read(rawData, 0, 0x500);
             final Chunk chunk = new ModifiableChunk(rawData);
+*/
+
+            /*
+            final ChunkTable chunkTable = new ChunkTable(data1, data2);
+            final Chunk chunk = chunkTable.get(2).toChunk(data1, data2);
             final StringDecoder decoder = new StringDecoder(exec, chunk);
 
-            for (int i = 0; i < 0x400; i++) {
+            for (int i = 0; i < chunk.getSize(); i++) {
                 decoder.decodeString(i);
-                System.out.printf("0x%04x %s\n", i, decoder.getDecodedString());
-                //System.out.printf("New pointer: %06x\n", startPoint + decoder.getPointer());
+                System.out.printf("0x%04x 0x%04x %s\n", i, decoder.getPointer(), decoder.getDecodedString());
             }
+            */
+
+            final ChunkTable chunkTable = new ChunkTable(data1, data2);
+            final Chunk chunk = chunkTable.get(0x10).toChunk(data1, data2);
+            final StringDecoder decoder = new StringDecoder(exec, chunk);
+            decoder.decodeString(0x7f8);
+            System.out.printf("0x%04x 0x%04x %s\n", 0x07f8, decoder.getPointer(), decoder.getDecodedString());
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Stopped because we tried to decode off the end of the array");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 }
-
-/*
-DATA1 chunk 0  (0x300)
-
-
- */

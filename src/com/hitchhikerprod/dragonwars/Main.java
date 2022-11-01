@@ -192,7 +192,7 @@ public class Main {
 
     private static void mainDecodeParty(List<String> args) {
         final Character[] pcs = new Character[7];
-        final String filename = parseFilename(args);
+        final String filename = basePath + "DATA1";
 
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             long offset = 0x2e19;

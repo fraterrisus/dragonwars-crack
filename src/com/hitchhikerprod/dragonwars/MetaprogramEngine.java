@@ -68,7 +68,7 @@ public class MetaprogramEngine {
         this.rectangle_2547 = new BoundingBox();
     }
 
-    public void run(int chunkId, int offset) {
+    public void setup(int chunkId, int offset) {
         initializeRegisters();
         initializeMemory(chunkId);
         bboxToMessageArea();
@@ -78,7 +78,19 @@ public class MetaprogramEngine {
         drawTitleBars();
         fillRectangle();
 
+        run(2, offset);
+    }
+
+    private void run(int segment, int offset) {
+        // Set the segment pointers
+        codeseg_index_3928 = segment;
+        dataseg_index_392a = segment;
+        saveSegmentPointers();
+
         ip = offset;
+
+        r1 = 0;
+        r3 = 0;
 
         Reload reload = Reload.SEGMENT;
         while(reload != Reload.EXIT) {
@@ -121,20 +133,15 @@ public class MetaprogramEngine {
         // Add a fake chunk at index 0; we should never refer to this
         memStruct.add(new ChunkRecord(0xffff, null, 0xff));
 
-        // Add a chunk at index 1 that points to temp space?
-        // The segment's been hardcoded to CS + 0x0c3b = 0x0e18
+        // Add a chunk at index 1 that points to the "meta" space
+        // It's mapped to 01dd:c3b0, i.e. segment 01dd + 0c3b = 0e18
         final byte[] tempSpace = new byte[0xe00];
-        final Chunk temp = new ModifiableChunk(tempSpace);
-        memStruct.add(new ChunkRecord(0xffff, temp, 0xff));
+        final Chunk meta = new ModifiableChunk(tempSpace);
+        memStruct.add(new ChunkRecord(0xffff, meta, 0xff));
 
         // Load the requested metaprogram chunk into index 2
         final Chunk initial = chunkTable.get(chunkId).toModifiableChunk(data1, data2);
         memStruct.add(new ChunkRecord(chunkId, initial, 0x01));
-
-        // Set the segment pointers
-        codeseg_index_3928 = 2;
-        dataseg_index_392a = 2;
-        saveSegmentPointers();
 
         // Initialize the HUD section decoder
         memoryImageDecoder = new MemoryImageDecoder(executable);
@@ -245,7 +252,10 @@ public class MetaprogramEngine {
             case 0x58 -> longCall();
             case 0x59 -> longReturn();
 
-            case 0x5a -> { return Reload.EXIT; } // this runs a 'shutdown metaprogram' routine first
+            case 0x5a -> { System.out.println("  Exiting metaprogram"); return Reload.EXIT; }
+
+            case 0x5c -> recurseOverParty();
+            case 0x5d -> movR2xMetaImm();
 
             case 0x66 -> testHelper(readHeapWord(getProgramUnsignedByte()));
 
@@ -262,15 +272,11 @@ public class MetaprogramEngine {
             case 0x85 -> freeSegment(readR2());
             case 0x86 -> unpackChunkR2();
 
+            case 0x88 -> waitForEscKey();
             case 0x89 -> readInputAndJump();
-
-            case 0x8c -> {
-                // Needs to append "Yes\nNo" to the already-drawn string in the modal
-                // and then use readInputAndJump, but point the case statement at 01dd:480a
-                writeScreenToDisk("screen.png");
-                final String message = String.format("Unimplemented opcode %02x", opcode);
-                throw new RuntimeException(message);
-            }
+            case 0x8a -> call4a80();
+            case 0x8b -> call4f90();
+            case 0x8c -> readYesNoInputAndSetFlags();
 
             case 0x93 -> push(readR4());
             case 0x94 -> writeR4(pop());
@@ -286,41 +292,6 @@ public class MetaprogramEngine {
             }
         }
         return Reload.INSTRUCTION;
-    }
-
-    private void setHeapR2ImmR2() {
-        final int offset = getProgramUnsignedByte();
-        final int currentR2 = readR2() & 0xff;
-        final int heapIndex = (currentR2 >> 3) + offset;
-        final int shiftDistance = currentR2 & 0x7;
-        final int shifted = 0x80 >> shiftDistance;
-        final int value = readHeapUnsignedByte(heapIndex) | shifted;
-        writeHeapByte(heapIndex, value);
-    }
-
-    private void clrHeapR2ImmR2() {
-        final int offset = getProgramUnsignedByte();
-        final int currentR2 = readR2() & 0xff;
-        final int heapIndex = (currentR2 >> 3) + offset;
-        final int shiftDistance = currentR2 & 0x7;
-        final int shifted = 0x80 >> shiftDistance;
-        System.out.printf("  r2[7:3] -> %02x\n", currentR2 >> 3);
-        System.out.printf("  0x80 >> r2[2:0] -> %02x\n", shifted);
-        final int value = readHeapUnsignedByte(heapIndex) & (~shifted);
-        writeHeapByte(heapIndex, value);
-    }
-
-    private void testHeapR2ImmR2() {
-        final int offset = getProgramUnsignedByte();
-        final int currentR2 = readR2() & 0xff;
-        final int heapIndex = (currentR2 >> 3) + offset;
-        final int shiftDistance = currentR2 & 0x7;
-        final int shifted = 0x80 >> shiftDistance;
-        final int operand = readHeapUnsignedByte(heapIndex);
-        final int value = operand & shifted;
-        System.out.printf("  test %02x & %02x -> %s\n", operand, shifted, flags);
-        flags.zero((value & 0x00ff) == 0);
-        flags.sign((value & 0x0080) > 0);
     }
 
     private void addR2Helper(int operand2) {
@@ -438,6 +409,26 @@ public class MetaprogramEngine {
         for (int i = 0; i < 0x380; i++) {
             dst.setByte(dstBase + i, src.getByte(srcBase + i));
         }
+    }
+
+    private void call4a80() {
+        System.out.println("Unimplemented opcode 8a");
+    }
+
+    private void call4f90() {
+        System.out.println("Unimplemented opcode 8b");
+    }
+
+    private void clrHeapR2ImmR2() {
+        final int offset = getProgramUnsignedByte();
+        final int currentR2 = readR2() & 0xff;
+        final int heapIndex = (currentR2 >> 3) + offset;
+        final int shiftDistance = currentR2 & 0x7;
+        final int shifted = 0x80 >> shiftDistance;
+        System.out.printf("  r2[7:3] -> %02x\n", currentR2 >> 3);
+        System.out.printf("  0x80 >> r2[2:0] -> %02x\n", shifted);
+        final int value = readHeapUnsignedByte(heapIndex) & (~shifted);
+        writeHeapByte(heapIndex, value);
     }
 
     // I'm not setting Parity, AlternateCarry, or Overflow...
@@ -633,6 +624,7 @@ public class MetaprogramEngine {
     }
 
     private void freeSegment(int structIdx) {
+        System.out.printf("  freeing segment %02x", structIdx);
         memStruct.set(structIdx, null);
     }
 
@@ -806,17 +798,32 @@ public class MetaprogramEngine {
         conditionalWriteR2x(value);
     }
 
-    private void movR2xSegHeapImmR4x() {
-        final int heapIndex = getProgramUnsignedByte();
-        final int address = readHeapWord(heapIndex) + readR4x();
-        final int value = dataSegment().getWord(address);
-        System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
+    private void movR2xMetaImm() {
+        // 01dd:c3b0 -> (01dd+0c3b):0000 -> 0e18:0000 -> the "temp" segment stored in chunk #1
+
+        // heap[0x06] -> iterative PC ID
+        final int pcid = readHeapByte(0x06);
+        // heap[0x0a-0x10] -> party's marching order
+        // result is a doubled "party chunk" offset (0x0, 0x2, 0x4, etc)
+        final int metaSegment = readHeapByte(0x0a + pcid);
+        final int offset = getProgramUnsignedByte();
+        final int address = (metaSegment << 8) + offset;
+        final int value = segment(1).getWord(address);
+        System.out.printf("  struct[01][%04x] -> %04x\n", address, value);
         conditionalWriteR2x(value);
     }
 
     private void movR2xSegHeapImmImm() {
         final int heapIndex = getProgramUnsignedByte();
         final int address = readHeapWord(heapIndex) + getProgramUnsignedByte();
+        final int value = dataSegment().getWord(address);
+        System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
+        conditionalWriteR2x(value);
+    }
+
+    private void movR2xSegHeapImmR4x() {
+        final int heapIndex = getProgramUnsignedByte();
+        final int address = readHeapWord(heapIndex) + readR4x();
         final int value = dataSegment().getWord(address);
         System.out.printf("  struct[%02x][%04x] -> %04x\n", dataseg_391f, address, value);
         conditionalWriteR2x(value);
@@ -910,6 +917,50 @@ public class MetaprogramEngine {
         return value;
     }
 
+    private void readYesNoInputAndSetFlags() {
+        final List<Byte> raw = new ArrayList<>();
+        final List<Byte> switchData = new ArrayList<>();
+        try {
+            final byte[] rawBytes = new byte[16];
+            executable.seek(0x46eb);
+            executable.read(rawBytes, 0, 16);
+            for (byte b : rawBytes) raw.add(b);
+            executable.seek(0x470a);
+            executable.read(rawBytes, 0, 16);
+            for (byte b : rawBytes) switchData.add(b);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        final Chunk execChunk = new Chunk(raw);
+        final StringDecoder sd = new StringDecoder(executable, execChunk);
+        sd.decodeString(0);
+        System.out.println("  Decoded string: " + sd.getDecodedString());
+
+        try {
+            while (true) {
+                System.out.print("  Input:");
+                final int scancode = (System.in.read() | 0x80) & 0xdf;
+                System.out.println();
+                // What we *should* do here is use the switch bytes read into switchData,
+                // but both results (0xce/N, 0xdf/Y) return the jump target 0x0000.
+                // mfn.8c() applies "if scancode = 0xdf, then set ZF=1" which is what the
+                // metaprogram knows to key on.
+                switch (scancode) {
+                    case 0xce -> {
+                        flags.zero(false);
+                        return;
+                    }
+                    case 0xdf -> {
+                        flags.zero(true);
+                        return;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void readInputAndJump() {
         try {
             System.out.println("  Drawing screen, see prompt.png");
@@ -918,20 +969,18 @@ public class MetaprogramEngine {
             while(true) {
                 System.out.print("  Input: ");
                 final int scancode = (System.in.read() | 0x80) & 0xdf;
-
                 ip = saveIp+2;
                 int compare = 0;
                 int target;
                 while (compare != 0xff) {
-                    compare = getProgramByte() & 0xdf;
+                    compare = getProgramUnsignedByte();
                     target = getProgramWord();
-                    if (scancode == compare) {
+                    if (scancode == (compare & 0xdf)) {
                         ip = target;
                         return;
                     }
                 }
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -969,6 +1018,31 @@ public class MetaprogramEngine {
         final int b0 = this.r4 & 0xff;
         final int b1 = this.r5 & 0xff;
         return (b1 << 8) | b0;
+    }
+
+    private void recurseOverParty() {
+        final int startAddress = getProgramWord();
+        final int saveIp = ip;
+        final int saveHeap06 = readHeapByte(0x06);
+        final int saveCS = codeseg_index_3928;
+        final int saveDS = dataseg_index_392a;
+        final Deque<Integer> saveStack = new LinkedList<>(stack);
+
+        final int numPCs = readHeapUnsignedByte(0x1f);
+        for (int pcid = 0; pcid < numPCs; pcid++) {
+            System.out.printf("Recursing at 0x%04x for PC %d...\n", startAddress, pcid);
+            writeHeapByte(0x06, pcid);
+            writeR1((byte)0x00);
+            writeR3((byte)0x00);
+            run(codeseg_index_3928, startAddress);
+        }
+
+        stack = saveStack; // is this really necessary?
+        dataseg_index_392a = saveDS;
+        codeseg_index_3928 = saveCS;
+        saveSegmentPointers();
+        writeHeapByte(0x06, saveHeap06);
+        ip = saveIp;
     }
 
     private void rmwHeapImm(Function<Integer, Integer> modify) {
@@ -1014,6 +1088,18 @@ public class MetaprogramEngine {
         return segment(dataseg_391f);
     }
 
+    private void setHeapR2ImmR2() {
+        final int offset = getProgramUnsignedByte();
+        final int currentR2 = readR2() & 0xff;
+        final int heapIndex = (currentR2 >> 3) + offset;
+        final int shiftDistance = currentR2 & 0x7;
+        final int shifted = 0x80 >> shiftDistance;
+        System.out.printf("  r2[7:3] -> %02x\n", currentR2 >> 3);
+        System.out.printf("  0x80 >> r2[2:0] -> %02x\n", shifted);
+        final int value = readHeapUnsignedByte(heapIndex) | shifted;
+        writeHeapByte(heapIndex, value);
+    }
+
     private void shortCall(int offset) {
         push(ip);
         shortJump(offset);
@@ -1038,15 +1124,28 @@ public class MetaprogramEngine {
         }
     }
 
+    private void testHeapR2ImmR2() {
+        final int offset = getProgramUnsignedByte();
+        final int currentR2 = readR2() & 0xff;
+        final int heapIndex = (currentR2 >> 3) + offset;
+        final int shiftDistance = currentR2 & 0x7;
+        final int shifted = 0x80 >> shiftDistance;
+        final int operand = readHeapUnsignedByte(heapIndex);
+        final int value = operand & shifted;
+        flags.zero((value & 0x00ff) == 0);
+        flags.sign((value & 0x0080) > 0);
+        System.out.printf("  test %02x & %02x -> %s\n", operand, shifted, flags);
+    }
+
     private void testHelper(int value) {
         if (readR1() == 0) {
-            System.out.printf("  test %02x -> %s\n", value & 0xff, flags);
             flags.zero((value & 0x00ff) == 0);
             flags.sign((value & 0x0080) > 0);
+            System.out.printf("  test %02x -> %s\n", value & 0xff, flags);
         } else {
-            System.out.printf("  test %04x -> %s\n", value & 0xffff, flags);
             flags.zero((value & 0xffff) == 0);
             flags.sign((value & 0x8000) > 0);
+            System.out.printf("  test %04x -> %s\n", value & 0xffff, flags);
         }
     }
 
@@ -1086,6 +1185,11 @@ public class MetaprogramEngine {
         final int chunkIndex = unpackChunk(chunkId, 1);
         writeR2(lowByte(chunkIndex));
         writeR3(highByte(chunkIndex));
+    }
+
+    private void waitForEscKey() {
+        System.out.println("  Wait for ESC key to be pressed (unimplemented)");
+        fillRectangle();
     }
 
     private void writeHeapByte(int index, byte val) {
@@ -1180,7 +1284,7 @@ public class MetaprogramEngine {
             final BufferedImage screen = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
             final MetaprogramEngine engine = new MetaprogramEngine(exec, data1, data2, screen);
 
-            engine.run(0, 0);
+            engine.setup(0, 0);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
