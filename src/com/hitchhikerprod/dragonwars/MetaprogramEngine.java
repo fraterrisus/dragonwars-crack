@@ -253,6 +253,7 @@ public class MetaprogramEngine {
             case 0x59 -> longReturn();
 
             case 0x5a -> { System.out.println("  Exiting metaprogram"); return Reload.EXIT; }
+            case 0x5b -> updateMapSquare();
 
             case 0x5c -> recurseOverParty();
             case 0x5d -> movR2xMetaImm();
@@ -613,6 +614,10 @@ public class MetaprogramEngine {
         for (int i = 27; i <= 42; i++) {
             memoryImageDecoder.decode(screen, hudRegionAddresses.get(i));
         }
+    }
+
+    private void updateMapSquare() {
+        throw new RuntimeException("Unimplemented opcode 5b");
     }
 
     private void fillRectangle() {

@@ -1,7 +1,6 @@
 package com.hitchhikerprod.dragonwars;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class Chunk {
     List<Byte> raw;
@@ -28,5 +27,20 @@ public class Chunk {
         int b0 = getUnsignedByte(i);
         int b1 = getUnsignedByte(i + 1);
         return (b1 << 8) | b0;
+    }
+
+    public void display() {
+        int counter = 0;
+        for (byte b : raw) {
+            if (counter % 16 == 0) {
+                System.out.printf("\n%08x", counter);
+            }
+            if (counter % 4 == 0) {
+                System.out.print(" ");
+            }
+            System.out.printf(" %02x", b & 0xff);
+            counter++;
+        }
+        System.out.println();
     }
 }

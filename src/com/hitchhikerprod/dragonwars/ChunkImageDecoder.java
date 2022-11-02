@@ -5,37 +5,28 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChunkImageDecoder {
-    final String basePath;
     final ChunkTable chunks;
     final int chunkId;
 
-    ChunkImageDecoder(String path, int chunkId) {
-        this.basePath = path;
-        this.chunks = new ChunkTable(path);
+    ChunkImageDecoder(RandomAccessFile data1, RandomAccessFile data2, int chunkId) {
+        this.chunks = new ChunkTable(data1, data2);
         this.chunkId = chunkId;
     }
 
     public void parse() {
-        final FilePointer fp = chunks.get(chunkId);
-        if (fp == null) {
-            System.out.println("Chunk " + chunkId + " not found");
-        }
-        final Chunk chunk = fp.toChunk(basePath);
+        final Chunk chunk = chunks.getChunk(chunkId);
         final HuffmanDecoder decoder = new HuffmanDecoder(chunk);
         final List<Byte> unpacked = applyRollingXor(decoder.decode(), 0x00);
         final BufferedImage image = convert(unpacked);
         try {
             ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
-                    "png", new File("image.png.tmp"));
-            Files.move(Path.of("image.png.tmp"), Path.of("image.png"),
-                    StandardCopyOption.REPLACE_EXISTING);
+                    "png", new File("image.png"));
+            System.out.println("Wrote image.png");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -80,6 +71,35 @@ public class ChunkImageDecoder {
             }
         }
         return output;
+    }
+
+    private static final String IMAGE_USAGE = "usage: image chunkId";
+
+    public static void main(String[] args) {
+        final String chunk = args[0];
+        final int chunkId;
+
+        try {
+            if (chunk.startsWith("0x")) {
+                chunkId = Integer.parseInt(chunk.substring(2), 16);
+            } else {
+                chunkId = Integer.parseInt(chunk, 10);
+            }
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(IMAGE_USAGE);
+        }
+
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        try (
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r")
+        ) {
+            final ChunkImageDecoder decoder = new ChunkImageDecoder(data1, data2, chunkId);
+            decoder.parse();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 }

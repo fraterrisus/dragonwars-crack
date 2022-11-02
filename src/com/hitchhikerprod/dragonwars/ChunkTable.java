@@ -2,24 +2,23 @@ package com.hitchhikerprod.dragonwars;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ChunkTable {
 
+    final RandomAccessFile data1;
+    final RandomAccessFile data2;
+
     final List<Integer> data1Chunks;
     final List<Integer> data2Chunks;
 
-    public ChunkTable(String path) {
-        data1Chunks = readFile(Path.of(path, "DATA1").toString());
-        data2Chunks = readFile(Path.of(path, "DATA2").toString());
-    }
-
     public ChunkTable(RandomAccessFile data1, RandomAccessFile data2) {
-        data1Chunks = readFile(data1);
-        data2Chunks = readFile(data2);
+        this.data1 = data1;
+        this.data2 = data2;
+        this.data1Chunks = readFile(data1);
+        this.data2Chunks = readFile(data2);
     }
 
     public FilePointer get(int chunkId) {
@@ -34,6 +33,11 @@ public class ChunkTable {
         } else {
             return new FilePointer(1, d1Offset, data1Chunks.get(chunkId+1));
         }
+    }
+
+    public Chunk getChunk(int chunkId) {
+        final FilePointer fp = get(chunkId);
+        return fp.toChunk(data1, data2);
     }
 
     public void printStartTable() {
@@ -76,7 +80,15 @@ public class ChunkTable {
     }
 
     public static void main(String[] args) {
-        final ChunkTable table = new ChunkTable("/home/bcordes/Nextcloud/dragonwars/");
-        table.printStartTable();
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        try (
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
+        ) {
+            final ChunkTable table = new ChunkTable(data1, data2);
+            table.printStartTable();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
