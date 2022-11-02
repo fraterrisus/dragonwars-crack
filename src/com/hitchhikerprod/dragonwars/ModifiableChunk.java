@@ -1,18 +1,17 @@
 package com.hitchhikerprod.dragonwars;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class ModifiableChunk extends Chunk {
-    public ModifiableChunk(byte[] raw) {
-        this.raw = new ArrayList<>();
-        for (int i = 0; i < raw.length; i++) {
-            this.raw.add(raw[i]);
-        }
+    public ModifiableChunk(byte[] rawBytes) {
+        super(IntStream.range(0, rawBytes.length)
+            .mapToObj(i -> rawBytes[i])
+            .toList());
     }
 
     public ModifiableChunk(List<Byte> raw) {
-        this.raw = new ArrayList<>(raw);
+        super(raw);
     }
 
     public void setByte(int index, byte value) {

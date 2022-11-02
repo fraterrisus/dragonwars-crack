@@ -1,14 +1,13 @@
 package com.hitchhikerprod.dragonwars;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Chunk {
     List<Byte> raw;
 
-    Chunk() {}
-
     public Chunk(List<Byte> raw) {
-        this.raw = raw;
+        this.raw = new ArrayList<>(raw);
     }
 
     public byte getByte(int i) {

@@ -140,7 +140,7 @@ public class MetaprogramEngine {
         memStruct.add(new ChunkRecord(0xffff, meta, 0xff));
 
         // Load the requested metaprogram chunk into index 2
-        final Chunk initial = chunkTable.get(chunkId).toModifiableChunk(data1, data2);
+        final Chunk initial = chunkTable.getModifiableChunk(chunkId);
         memStruct.add(new ChunkRecord(chunkId, initial, 0x01));
 
         // Initialize the HUD section decoder
@@ -1162,8 +1162,7 @@ public class MetaprogramEngine {
             memStruct.get(segmentIdx.get()).setFrob(frob);
             return segmentIdx.get();
         } else {
-            final FilePointer fp = chunkTable.get(chunkId);
-            Chunk newChunk = fp.toModifiableChunk(data1, data2);
+            Chunk newChunk = chunkTable.getModifiableChunk(chunkId);
 
             if (chunkId >= 0x17) {
                 final List<Byte> decoded = new HuffmanDecoder(newChunk).decode();

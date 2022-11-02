@@ -137,7 +137,7 @@ public class StringDecoder {
             */
 
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
-            final Chunk chunk = chunkTable.get(0x10).toChunk(data1, data2);
+            final Chunk chunk = chunkTable.getChunk(0x10);
             final StringDecoder decoder = new StringDecoder(exec, chunk);
             decoder.decodeString(0x7f8);
             System.out.printf("0x%04x 0x%04x %s\n", 0x07f8, decoder.getPointer(), decoder.getDecodedString());

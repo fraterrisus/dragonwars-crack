@@ -145,12 +145,13 @@ public class MapData {
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
-            final Chunk mapChunk = chunkTable.get(boardIndex + 0x46).toChunk(data1, data2);
+
+            final Chunk mapChunk = chunkTable.getChunk(boardIndex + 0x46);
             final HuffmanDecoder mapDecoder = new HuffmanDecoder(mapChunk);
             final List<Byte> decodedMapData = mapDecoder.decode();
             final Chunk decodedMapChunk = new Chunk(decodedMapData);
 
-            final Chunk otherChunk = chunkTable.get(boardIndex + 0x1e).toChunk(data1, data2);
+            final Chunk otherChunk = chunkTable.getChunk(boardIndex + 0x1e);
             final HuffmanDecoder otherDecoder = new HuffmanDecoder(otherChunk);
             final List<Byte> decodedOtherData = otherDecoder.decode();
             final Chunk decodedOtherChunk = new Chunk(decodedOtherData);

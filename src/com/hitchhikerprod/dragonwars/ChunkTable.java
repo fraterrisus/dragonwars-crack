@@ -5,8 +5,12 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.IntStream;
 
 public class ChunkTable {
+
+    private record FilePointer(int fileNum, int start, int end) { }
 
     final RandomAccessFile data1;
     final RandomAccessFile data2;
@@ -21,23 +25,12 @@ public class ChunkTable {
         this.data2Chunks = readFile(data2);
     }
 
-    public FilePointer get(int chunkId) {
-        final Integer d1Offset = data1Chunks.get(chunkId);
-        final Integer d2Offset = data2Chunks.get(chunkId);
-        if (d1Offset == null || d1Offset == 0x00) {
-            if (d2Offset == null || d2Offset == 0x00) {
-                return null;
-            } else {
-                return new FilePointer(2, d2Offset, data2Chunks.get(chunkId+1));
-            }
-        } else {
-            return new FilePointer(1, d1Offset, data1Chunks.get(chunkId+1));
-        }
+    public Chunk getModifiableChunk(int chunkId){
+        return new ModifiableChunk(getChunkHelper(chunkId, this::readBytes));
     }
 
     public Chunk getChunk(int chunkId) {
-        final FilePointer fp = get(chunkId);
-        return fp.toChunk(data1, data2);
+        return new Chunk(getChunkHelper(chunkId, this::readBytes));
     }
 
     public void printStartTable() {
@@ -49,13 +42,45 @@ public class ChunkTable {
             System.out.printf("%04x %08x %08x\n", i, d1Chunk, d2Chunk);
         }
     }
-    
-    private static List<Integer> readFile(String filename) {
-        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
-            return readFile(dataFile);
+
+    private FilePointer getPointer(int chunkId) {
+        final Integer d1Offset = data1Chunks.get(chunkId);
+        final Integer d2Offset = data2Chunks.get(chunkId);
+        if (d1Offset == null || d1Offset == 0x00) {
+            if (d2Offset == null || d2Offset == 0x00) {
+                throw new RuntimeException("Chunk ID " + chunkId + " not found");
+            } else {
+                return new FilePointer(2, d2Offset, data2Chunks.get(chunkId+1));
+            }
+        } else {
+            return new FilePointer(1, d1Offset, data1Chunks.get(chunkId+1));
+        }
+    }
+
+    private List<Byte> getChunkHelper(int chunkId, BiFunction<RandomAccessFile, FilePointer, List<Byte>> reader) {
+        final RandomAccessFile dataFile;
+        final FilePointer filePointer = getPointer(chunkId);
+        switch (filePointer.fileNum()) {
+            case 1 -> dataFile = data1;
+            case 2 -> dataFile = data2;
+            default -> throw new RuntimeException("Unrecognized data file number " + filePointer.fileNum());
+        }
+        return reader.apply(dataFile, filePointer);
+    }
+
+    private List<Byte> readBytes(RandomAccessFile dataFile, FilePointer fp) {
+        final int len = fp.end() - fp.start();
+        final byte[] rawBytes = new byte[len];
+        try {
+            dataFile.seek(fp.start());
+            dataFile.read(rawBytes, 0, len);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        return IntStream.range(0, rawBytes.length)
+            .mapToObj(i -> rawBytes[i])
+            .toList();
     }
 
     private static List<Integer> readFile(RandomAccessFile dataFile) {
