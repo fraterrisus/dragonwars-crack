@@ -52,6 +52,7 @@ public class ImageDecoder6528 {
         }
     }
 
+    // based on 0x0cb8()
     public void decodeHelper(int[] buffer, int index, int val100e) throws IOException {
         final int factor = 0x50;
 

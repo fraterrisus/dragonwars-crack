@@ -9,9 +9,10 @@ import java.util.function.Consumer;
 
 // Largely based on fcn.55bb
 public class MapData {
+    final int mapId;
     final RandomAccessFile executable;
+    final ChunkTable chunkTable;
     final Chunk mapData;
-    final Chunk otherData;
 
     int chunkPointer;
     int xMax;
@@ -22,19 +23,21 @@ public class MapData {
     String titleString;
 
     final List<Byte> mem54a6 = new ArrayList<>();
-    // 54b5: translates map square [0:4]
+    // 54b5: translates map square bits [0:4]
     final List<Byte> mem54b5 = new ArrayList<>();
+    // 54c5: texture array? maxlen 4, values are indexes into 5677
     final List<Byte> mem54c5 = new ArrayList<>();
     final List<Byte> mem54c9 = new ArrayList<>();
     final List<Byte> mem54cd = new ArrayList<>();
-    // 5677: see 0x5786()
-    final List<Byte> mem5677 = new ArrayList<>();
+    // 5677: list of texture chunks (+0x6e); see 0x5786()
+    final List<Byte> textureChunks5677 = new ArrayList<>();
     final List<Integer> rowPointers57e4 = new ArrayList<>();
 
-    public MapData(RandomAccessFile executable, Chunk mapData, Chunk otherData) {
+    public MapData(RandomAccessFile executable, ChunkTable chunkTable, int mapId) {
+        this.mapId = mapId;
         this.executable = executable;
-        this.mapData = mapData;
-        this.otherData = otherData;
+        this.chunkTable = chunkTable;
+        this.mapData = decompressChunk(mapId + 0x46);
     }
 
     public void parse(int offset) throws IOException {
@@ -46,7 +49,16 @@ public class MapData {
         this.heap24 = mapData.getByte(chunkPointer + 3);
         chunkPointer += 4;
 
-        byteReader(mem5677::add);
+        byteReader(textureChunks5677::add);
+        // Additional Chunk layout:
+        // bytes 0-3: unknown
+        // byte 4: pointer to start of 6528 data (if 0, return immediately)
+        // byte 5?
+        // byte 6: start of 6528decode
+        //   6: max x?
+        //   7: max y?
+        //   8: 00 (don't negate)
+        //   9: 00 (don't negate)
 
         byte f = 0;
         while ((f & 0x80) == 0) {
@@ -102,8 +114,8 @@ public class MapData {
         for (byte b : mem54c9) { System.out.printf(" %02x", b); }
         System.out.print("\n  0x54cd:");
         for (byte b : mem54cd) { System.out.printf(" %02x", b); }
-        System.out.print("\n  0x5677:");
-        for (int w : mem54cd) { System.out.printf(" %04x", w); }
+        System.out.print("\n  0x5677 Additional chunks:");
+        for (byte b : textureChunks5677) { System.out.printf(" %02x", b & 0x7f); }
         System.out.print("\n\nMap squares:\n");
 
         for (int y = yMax-1; y > 0; y--) { // skip the bad pointer
@@ -119,6 +131,17 @@ public class MapData {
         System.out.printf(" [%04x]       ", rowPointers57e4.get(0));
         for (int x = 0; x < xMax; x++) { System.out.printf("  x=%02d ", x); }
         System.out.println();
+
+        final Chunk otherData = decompressChunk(mapId + 0x1e);
+        System.out.printf("\nChunk %02x\n", mapId + 0x1e);
+        otherData.display();
+
+        for (byte id : textureChunks5677) {
+            final int chunkId = (id & 0x7f) + 0x6e;
+            final Chunk moreData = decompressChunk(chunkId);
+            System.out.printf("\nChunk %02x\n", chunkId);
+            moreData.display();
+        }
     }
 
     private void byteReader(Consumer<Byte> consumer) {
@@ -128,6 +151,13 @@ public class MapData {
             chunkPointer++;
             consumer.accept(f);
         }
+    }
+
+    private Chunk decompressChunk(int mapId) {
+        final Chunk mapChunk = this.chunkTable.getChunk(mapId);
+        final HuffmanDecoder mapDecoder = new HuffmanDecoder(mapChunk);
+        final List<Byte> decodedMapData = mapDecoder.decode();
+        return new Chunk(decodedMapData);
     }
 
     public static void main(String[] args) {
@@ -146,20 +176,7 @@ public class MapData {
         ) {
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
 
-            final Chunk mapChunk = chunkTable.getChunk(boardIndex + 0x46);
-            final HuffmanDecoder mapDecoder = new HuffmanDecoder(mapChunk);
-            final List<Byte> decodedMapData = mapDecoder.decode();
-            final Chunk decodedMapChunk = new Chunk(decodedMapData);
-
-            final Chunk otherChunk = chunkTable.getChunk(boardIndex + 0x1e);
-            final HuffmanDecoder otherDecoder = new HuffmanDecoder(otherChunk);
-            final List<Byte> decodedOtherData = otherDecoder.decode();
-            final Chunk decodedOtherChunk = new Chunk(decodedOtherData);
-            System.out.print("Extra data:");
-            decodedOtherChunk.display();
-            System.out.println();
-
-            final MapData mapData = new MapData(exec, decodedMapChunk, decodedOtherChunk);
+            final MapData mapData = new MapData(exec, chunkTable, boardIndex);
             mapData.parse(0);
             mapData.display();
         } catch (IOException e) {

@@ -5,24 +5,25 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 
 public class ChunkTable {
 
-    private record FilePointer(int fileNum, int start, int end) { }
+    private record FilePointer(int fileNum, int start, int size) { }
 
     final RandomAccessFile data1;
     final RandomAccessFile data2;
 
-    final List<Integer> data1Chunks;
-    final List<Integer> data2Chunks;
+    final List<FilePointer> data1Chunks;
+    final List<FilePointer> data2Chunks;
 
     public ChunkTable(RandomAccessFile data1, RandomAccessFile data2) {
         this.data1 = data1;
         this.data2 = data2;
-        this.data1Chunks = readFile(data1);
-        this.data2Chunks = readFile(data2);
+        this.data1Chunks = readFile(data1, 1);
+        this.data2Chunks = readFile(data2, 2);
     }
 
     public Chunk getModifiableChunk(int chunkId){
@@ -35,25 +36,23 @@ public class ChunkTable {
 
     public void printStartTable() {
         for (int i = 0; i < data1Chunks.size(); i++) {
-            Integer d1Chunk = data1Chunks.get(i);
-            if (d1Chunk == null) { d1Chunk = 0x0; }
-            Integer d2Chunk = data2Chunks.get(i);
-            if (d2Chunk == null) { d2Chunk = 0x0; }
-            System.out.printf("%04x %08x %08x\n", i, d1Chunk, d2Chunk);
+            final int d1Offset = Optional.ofNullable(data1Chunks.get(i)).map(FilePointer::start).orElse(0);
+            final int d2Offset = Optional.ofNullable(data2Chunks.get(i)).map(FilePointer::start).orElse(0);
+            System.out.printf("%04x %08x %08x\n", i, d1Offset, d2Offset);
         }
     }
 
     private FilePointer getPointer(int chunkId) {
-        final Integer d1Offset = data1Chunks.get(chunkId);
-        final Integer d2Offset = data2Chunks.get(chunkId);
-        if (d1Offset == null || d1Offset == 0x00) {
-            if (d2Offset == null || d2Offset == 0x00) {
+        final FilePointer fp1 = data1Chunks.get(chunkId);
+        final FilePointer fp2 = data2Chunks.get(chunkId);
+        if (fp1 == null || fp1.start() == 0x00) {
+            if (fp2 == null || fp2.start() == 0x00) {
                 throw new RuntimeException("Chunk ID " + chunkId + " not found");
             } else {
-                return new FilePointer(2, d2Offset, data2Chunks.get(chunkId+1));
+                return fp2;
             }
         } else {
-            return new FilePointer(1, d1Offset, data1Chunks.get(chunkId+1));
+            return fp1;
         }
     }
 
@@ -69,7 +68,7 @@ public class ChunkTable {
     }
 
     private List<Byte> readBytes(RandomAccessFile dataFile, FilePointer fp) {
-        final int len = fp.end() - fp.start();
+        final int len = fp.size();
         final byte[] rawBytes = new byte[len];
         try {
             dataFile.seek(fp.start());
@@ -83,9 +82,9 @@ public class ChunkTable {
             .toList();
     }
 
-    private static List<Integer> readFile(RandomAccessFile dataFile) {
+    private static List<FilePointer> readFile(RandomAccessFile dataFile, int fileNum) {
         try {
-            List<Integer> chunks = new ArrayList<>();
+            List<FilePointer> chunks = new ArrayList<>();
             int next_pointer = 0x300;
             for (int pointer = 0; pointer < 0x300; pointer += 2) {
                 final int b0 = dataFile.readUnsignedByte();
@@ -94,7 +93,7 @@ public class ChunkTable {
                 if ((size == 0) || ((size & 0x8000) > 0)) {
                     chunks.add(null);
                 } else {
-                    chunks.add(next_pointer);
+                    chunks.add(new FilePointer(fileNum, next_pointer, size));
                     next_pointer += size;
                 }
             }
