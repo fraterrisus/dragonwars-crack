@@ -233,7 +233,7 @@ public class MetaprogramEngine {
             case 0x45 -> conditionalJump(!flags.zero()); // JNZ
             case 0x46 -> conditionalJump(flags.sign()); // JS
             case 0x47 -> conditionalJump(!flags.sign()); // JNS
-            case 0x48 -> testHeapImm80();
+            case 0x48 -> testAndSetHeapImm80();
             case 0x49 -> loopDownR4();
             case 0x4a -> loopUpR4();
             case 0x4b -> flags.carry(true);
@@ -260,6 +260,10 @@ public class MetaprogramEngine {
 
             case 0x66 -> testHelper(readHeapWord(getProgramUnsignedByte()));
 
+            case 0x6a -> isPartyInside();
+
+            case 0x71 -> runMapMetaprogram();
+
             case 0x74 -> drawModalDialog(); // more string-from-metaprogram shenanigans
             case 0x75 -> drawStringAndResetBbox();
             case 0x76 -> fillRectangle();
@@ -276,7 +280,7 @@ public class MetaprogramEngine {
             case 0x88 -> waitForEscKey();
             case 0x89 -> readInputAndJump();
             case 0x8a -> call4a80();
-            case 0x8b -> call4f90();
+            case 0x8b -> drawViewport();
             case 0x8c -> readYesNoInputAndSetFlags();
 
             case 0x93 -> push(readR4());
@@ -293,6 +297,14 @@ public class MetaprogramEngine {
             }
         }
         return Reload.INSTRUCTION;
+    }
+
+    private void runMapMetaprogram() {
+        throw new RuntimeException("Unimplemented opcode 71");
+    }
+
+    private void updateMapSquare() {
+        throw new RuntimeException("Unimplemented opcode 5b");
     }
 
     private void addR2Helper(int operand2) {
@@ -414,10 +426,6 @@ public class MetaprogramEngine {
 
     private void call4a80() {
         System.out.println("Unimplemented opcode 8a");
-    }
-
-    private void call4f90() {
-        System.out.println("Unimplemented opcode 8b");
     }
 
     private void clrHeapR2ImmR2() {
@@ -616,8 +624,8 @@ public class MetaprogramEngine {
         }
     }
 
-    private void updateMapSquare() {
-        throw new RuntimeException("Unimplemented opcode 5b");
+    private void drawViewport() {
+        System.out.println("  Drawing viewport (taking no action)");
     }
 
     private void fillRectangle() {
@@ -661,6 +669,15 @@ public class MetaprogramEngine {
 
     private byte highByte(int value) {
         return (byte)((value & 0xff00) >> 8);
+    }
+
+    private void isPartyInside() {
+        // reads y0, x0, y1, x1 from immediate
+        // sets ZF<-1 if party (x,y) is inside range, ZF<-0 if outside
+        final int y = readHeapUnsignedByte(0x00);
+        final int x = readHeapUnsignedByte(0x01);
+        flags.zero((getProgramUnsignedByte() < y) && (getProgramUnsignedByte() < x) &&
+            (y < getProgramUnsignedByte()) && (x < getProgramUnsignedByte()));
     }
 
     private void longCall() {
@@ -1119,7 +1136,7 @@ public class MetaprogramEngine {
         ip = pop();
     }
 
-    private void testHeapImm80() {
+    private void testAndSetHeapImm80() {
         flags.zero(false);
         final int heapIndex = getProgramUnsignedByte();
         final int value = readHeapByte(heapIndex);

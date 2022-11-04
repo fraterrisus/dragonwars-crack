@@ -29,8 +29,13 @@ public class Chunk {
     }
 
     public void display() {
-        int counter = 0;
-        for (byte b : raw) {
+        display(0);
+    }
+
+    public void display(int counter) {
+        counter = counter & 0xfff0;
+        while (counter < raw.size()) {
+            final byte b = raw.get(counter);
             if (counter % 16 == 0) {
                 System.out.printf("\n%08x", counter);
             }

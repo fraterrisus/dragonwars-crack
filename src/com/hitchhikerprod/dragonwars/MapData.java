@@ -22,13 +22,13 @@ public class MapData {
     int titleStringAdr;
     String titleString;
 
-    final List<Byte> mem54a6 = new ArrayList<>();
-    // 54b5: translates map square bits [0:4]
-    final List<Byte> mem54b5 = new ArrayList<>();
+    final List<Byte> mem54a7 = new ArrayList<>();
+    // 54b5: translates map square bits [0:3]
+    final List<Byte> mem54b6 = new ArrayList<>();
     // 54c5: texture array? maxlen 4, values are indexes into 5677
-    final List<Byte> mem54c5 = new ArrayList<>();
-    final List<Byte> mem54c9 = new ArrayList<>();
-    final List<Byte> mem54cd = new ArrayList<>();
+    final List<Byte> roofTextures54c5 = new ArrayList<>();
+    final List<Byte> floorTextures54c9 = new ArrayList<>();
+    final List<Byte> wallTextures54cd = new ArrayList<>();
     // 5677: list of texture chunks (+0x6e); see 0x5786()
     final List<Byte> textureChunks5677 = new ArrayList<>();
     final List<Integer> rowPointers57e4 = new ArrayList<>();
@@ -51,26 +51,25 @@ public class MapData {
 
         byteReader(textureChunks5677::add);
         // Additional Chunk layout:
-        // bytes 0-3: unknown
-        // byte 4: pointer to start of 6528 data (if 0, return immediately)
-        // byte 5?
-        // byte 6: start of 6528decode
-        //   6: max x?
-        //   7: max y?
-        //   8: 00 (don't negate)
-        //   9: 00 (don't negate)
+        // word 0: pointer to start of texture data; if 0, return immediately
+        //   how long does this go on? in some chunks, for a *while*
+        // start byte:
+        //   0: width
+        //   1: height
+        //   2: x offset (add this to x0)
+        //   3: y offset (add this to y0)
 
         byte f = 0;
         while ((f & 0x80) == 0) {
             f = mapData.getByte(chunkPointer);
-            mem54a6.add((byte)(f & 0x7f));
-            mem54b5.add(mapData.getByte(chunkPointer+1));
+            mem54a7.add((byte)(f & 0x7f));
+            mem54b6.add(mapData.getByte(chunkPointer+1));
             chunkPointer += 2;
         }
 
-        byteReader((b) -> mem54c5.add((byte)(b & 0x7f)));
-        byteReader((b) -> mem54c9.add((byte)(b & 0x7f)));
-        byteReader((b) -> mem54cd.add((byte)(b & 0x7f)));
+        byteReader((b) -> roofTextures54c5.add((byte)(b & 0x7f)));
+        byteReader((b) -> floorTextures54c9.add((byte)(b & 0x7f)));
+        byteReader((b) -> wallTextures54cd.add((byte)(b & 0x7f)));
 
         titleStringAdr = mapData.getWord(chunkPointer);
         chunkPointer += 2;
@@ -94,7 +93,7 @@ public class MapData {
         if (rowPointers57e4.isEmpty()) { throw new RuntimeException("parse() hasn't been called"); }
 
         // The list of row pointers has one-too-many, and the "extra" is at the START
-        // So 52b8:fetchMapSquare() starts at 0x57e6 i.e. [0x5734+2] i.e. it skips the bad pointer
+        // So 52b8:fetchMapSquare() starts at 0x57e6 i.e. [0x5734+2] i.e. it skips the extra pointer
         final int offset = rowPointers57e4.get(y + 1) + (3 * x);
         return (mapData.getUnsignedByte(offset) << 16) |
             (mapData.getUnsignedByte(offset+1) << 8) |
@@ -104,18 +103,20 @@ public class MapData {
     public void display() {
         System.out.printf("%s  %02d x %02d  (%02x)  (%02x)\n", titleString, xMax, yMax-1, heap23, heap24);
         System.out.printf("  Title string at: 0x%04x\n", titleStringAdr);
-        System.out.print("  0x54a6:");
-        for (byte b : mem54a6) { System.out.printf(" %02x", b); }
+        System.out.printf("  Metaprogram starting address: 0x%04x\n", mapData.getWord(rowPointers57e4.get(0)));
+        System.out.print("  0x54a6 Wall textures :");
+        for (byte b : mem54a7) { System.out.printf(" %02x", b); }
         System.out.print("\n  0x54b5:");
-        for (byte b : mem54b5) { System.out.printf(" %02x", b); }
-        System.out.print("\n  0x54c5:");
-        for (byte b : mem54c5) { System.out.printf(" %02x", b); }
-        System.out.print("\n  0x54c9:");
-        for (byte b : mem54c9) { System.out.printf(" %02x", b); }
-        System.out.print("\n  0x54cd:");
-        for (byte b : mem54cd) { System.out.printf(" %02x", b); }
-        System.out.print("\n  0x5677 Additional chunks:");
-        for (byte b : textureChunks5677) { System.out.printf(" %02x", b & 0x7f); }
+        for (byte b : mem54b6) { System.out.printf(" %02x", b); }
+        System.out.print("\n  0x54c5 Roof textures :");
+        for (byte b : roofTextures54c5) { System.out.printf(" %02x", b); }
+        System.out.print("\n  0x54c9 Floor textures:");
+        for (byte b : floorTextures54c9) { System.out.printf(" %02x", b); }
+        System.out.print("\n  0x54cd Door? textures:");
+        for (byte b : wallTextures54cd) { System.out.printf(" %02x", b); }
+        System.out.print("\n  0x5677 Texture chunks:");
+        for (byte b : textureChunks5677) { System.out.printf(" %02x", 0x6e + (b & 0x7f)); }
+
         System.out.print("\n\nMap squares:\n");
 
         for (int y = yMax-1; y > 0; y--) { // skip the bad pointer
@@ -130,17 +131,28 @@ public class MapData {
         }
         System.out.printf(" [%04x]       ", rowPointers57e4.get(0));
         for (int x = 0; x < xMax; x++) { System.out.printf("  x=%02d ", x); }
-        System.out.println();
+
+        System.out.print("\n\nMetaprogram:\n");
+        mapData.display(rowPointers57e4.get(0));
+
 
         final Chunk otherData = decompressChunk(mapId + 0x1e);
         System.out.printf("\nChunk %02x\n", mapId + 0x1e);
         otherData.display();
 
+        System.out.println();
         for (byte id : textureChunks5677) {
             final int chunkId = (id & 0x7f) + 0x6e;
             final Chunk moreData = decompressChunk(chunkId);
-            System.out.printf("\nChunk %02x\n", chunkId);
-            moreData.display();
+            if (chunkId == 0x6f) {
+                System.out.printf("Chunk*6f* 0000 0000 %04x", moreData.getWord(0x04));
+            } else {
+                System.out.printf("Chunk %02x:", chunkId);
+                for (int i = 0; i < 0x0f; i += 2) {
+                    System.out.printf(" %04x", moreData.getWord(i));
+                }
+            }
+            System.out.println();
         }
     }
 

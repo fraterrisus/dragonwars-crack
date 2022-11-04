@@ -145,14 +145,52 @@ public class TextureDecoder {
         }
     }
 
-    /* Textures:
-     * Chunk 0x6f Offset 0x0000 -> Blue sky
-     * Chunk 0x70 Offset 0x0000 -> Red ground (-1,0)
-     * Chunk 0x73 Offset 0x0000 -> Door in castle wall (0,0)
-     * Chunk 0x75 -> Water
-     *   Offset 0x00 -> rectangle (sparkly!)
-     *   Offset 0x04 -> left of center floor
-     *   Offset 0x06 -> center floor
+    /* Chunks:
+     * 6e: Stone wall
+     *   00: automap north
+     *   02: automap west
+     *   04: near front
+     *   06: middle front
+     *   08: far front
+     *   0a: --
+     *   0c: near left
+     *   0e: middle left
+     * 6f: Blue sky, only one texture
+     * 70: generic red floor
+     *   00: automap
+     *   02: --
+     *   04: far left
+     *   06: far front
+     *   08: far right
+     *   0a: mid left
+     *   0c: mid front
+     *   0e: mid right
+     *   10: near left
+     *   12: near front
+     *   14: near right
+     * 71: ?
+     *   00: bush
+     * 72: requires 0xdab, OOB error? might not be texture data
+     * 73: Stone wall with door
+     *   00: automap north
+     *   02: automap west
+     *   04: near front
+     *   06: middle front
+     *   08: far front
+     *   0a: --
+     *   0c: near left
+     *   0e: middle left
+     * 74: probably not texture data
+     * 75: water (floor)
+     *   00: automap
+     *   02: --
+     *   04: middle left
+     *   06: middle front
+     *   08: middle right
+     *   0a: near left
+     *   0c: near front
+     *   0e: near right
+     *
      */
 
     public static void main(String[] args) {
@@ -164,7 +202,7 @@ public class TextureDecoder {
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
-            final int chunkId = 0x73;
+            final int chunkId = Integer.parseInt(args[0].substring(2), 16);
 
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             final Chunk rawChunk = chunkTable.getChunk(chunkId);
@@ -173,11 +211,11 @@ public class TextureDecoder {
             final Chunk textureChunk = new Chunk(decodedMapData);
             final TextureDecoder decoder = new TextureDecoder(exec);
 
-            for (int offset = 0; offset < 24; offset += 2) {
+            for (int offset = 0; offset < 0x15; offset += 2) {
                 try {
                     decoder.decode(image, textureChunk, offset);
 
-                    String filename = String.format("texture-%02x-%04x", chunkId, offset);
+                    String filename = String.format("texture-%02x-%02x.png", chunkId, offset);
                     ImageIO.write(Images.scale(image, 4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
                         "png", new File(filename));
 

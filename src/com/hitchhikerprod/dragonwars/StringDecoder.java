@@ -125,22 +125,29 @@ public class StringDecoder {
             final Chunk chunk = new ModifiableChunk(rawData);
 */
 
-            /*
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
-            final Chunk chunk = chunkTable.get(2).toChunk(data1, data2);
+
+            //final Chunk chunk = chunkTable.getChunk(0x02);
+            // map chunks only
+            final Chunk mapChunk = chunkTable.getChunk(0x19 + 0x46);
+            final HuffmanDecoder mapDecoder = new HuffmanDecoder(mapChunk);
+            final List<Byte> decodedMapData = mapDecoder.decode();
+            final Chunk chunk = new Chunk(decodedMapData);
+
             final StringDecoder decoder = new StringDecoder(exec, chunk);
 
             for (int i = 0; i < chunk.getSize(); i++) {
                 decoder.decodeString(i);
                 System.out.printf("0x%04x 0x%04x %s\n", i, decoder.getPointer(), decoder.getDecodedString());
             }
-            */
 
+/*
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             final Chunk chunk = chunkTable.getChunk(0x10);
             final StringDecoder decoder = new StringDecoder(exec, chunk);
             decoder.decodeString(0x7f8);
             System.out.printf("0x%04x 0x%04x %s\n", 0x07f8, decoder.getPointer(), decoder.getDecodedString());
+*/
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("Stopped because we tried to decode off the end of the array");
         } catch (IOException e) {
