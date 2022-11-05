@@ -1,5 +1,16 @@
 package com.hitchhikerprod.dragonwars;
 
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -9,6 +20,8 @@ import java.util.function.Consumer;
 
 // Largely based on fcn.55bb
 public class MapData {
+    public static final Color GRID_BLUE = new Color(0x80, 0xd3, 0xff);
+
     final int mapId;
     final RandomAccessFile executable;
     final ChunkTable chunkTable;
@@ -98,6 +111,116 @@ public class MapData {
         return (mapData.getUnsignedByte(offset) << 16) |
             (mapData.getUnsignedByte(offset+1) << 8) |
             (mapData.getUnsignedByte(offset+2));
+    }
+
+    public void draw() {
+        int imageWidth = 20 * (xMax + 2);
+        int imageHeight = 20 * (yMax + 2);
+        final BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+        final Graphics2D gfx = image.createGraphics();
+        // gfx.scale(4,4);
+        gfx.setFont(new Font("Liberation Sans", Font.PLAIN, 10));
+
+        gfx.setColor(Color.WHITE);
+        gfx.fill(new Rectangle(0, 0, imageWidth, imageHeight));
+
+        gfx.setColor(GRID_BLUE);
+        drawGrid(image);
+
+        for (int y = yMax-1; y > 0; y--) { // skip the end pointer
+            int base = rowPointers57e4.get(y); // actual y coordinate is (y-1)
+            for (int x = 0; x < xMax; x++) {
+                drawSquare(gfx, base, x, y-1);
+                base += 3;
+            }
+        }
+
+        try {
+            final String filename = String.format("map-%02x.png", mapId);
+            ImageIO.write(Images.scale(image, 4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
+                "png", new File(filename));
+            System.out.println("Wrote " + filename);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static final int GRID_SIZE = 20;
+
+    private void drawGrid(BufferedImage image) {
+        final int grid_blue = 0x4093ffff;
+
+        for (int y = GRID_SIZE; y <= (GRID_SIZE * yMax); y += GRID_SIZE) {
+            for (int x = GRID_SIZE; x <= (GRID_SIZE * (xMax + 1)); x += 2) {
+                image.setRGB(x, y, grid_blue);
+            }
+        }
+
+        for (int x = GRID_SIZE; x <= (GRID_SIZE * (xMax + 1)); x += GRID_SIZE) {
+            for (int y = GRID_SIZE; y <= (GRID_SIZE * yMax); y += 2) {
+                image.setRGB(x, y, grid_blue);
+            }
+        }
+    }
+
+    private void drawSquare(Graphics2D gfx, int pointer, int x, int y) {
+        final int byte0 = mapData.getUnsignedByte(pointer);
+        final int byte1 = mapData.getUnsignedByte(pointer+1);
+        final int byte2 = mapData.getUnsignedByte(pointer+2);
+
+        final int wallNorthTexture = (byte0 >> 4) & 0x0f;
+        final int wallWestTexture = byte0 & 0x0f;
+        final int roofTexture = (byte1 >> 6) & 0x03;
+        final int floorTexture = (byte1 >> 4) & 0x03;
+        // final boolean steppedOn = (byte1 & 0x80) > 0;
+        final int wallOtherTexture = byte1 & 0x7;
+
+        final int yRel = yMax - y - 2;
+
+        final Point2D.Double x0y0 = new Point2D.Double(GRID_SIZE * (x+1), GRID_SIZE * (yRel+1));
+        final Point2D.Double x0y1 = new Point2D.Double(GRID_SIZE * (x+1), GRID_SIZE * (yRel+2));
+        final Point2D.Double x1y0 = new Point2D.Double(GRID_SIZE * (x+2), GRID_SIZE * (yRel+1));
+        final Point2D.Double x1y1 = new Point2D.Double(GRID_SIZE * (x+2), GRID_SIZE * (yRel+2));
+
+        if (wallNorthTexture > 0) {
+            final int textureId = mem54a7.get(wallNorthTexture - 1);
+            final int chunkId = textureChunks5677.get(textureId) & 0x7f;
+//            gfx.setColor(Color.RED);
+//            gfx.drawString(String.valueOf(chunkId), GRID_SIZE * (float)(x + 1.5), GRID_SIZE * (float)(yRel + 1));
+            gfx.setColor(Color.DARK_GRAY);
+            gfx.draw(new Line2D.Double(x0y0, x1y0));
+
+            final Rectangle2D door = new Rectangle2D.Double(x0y0.getX() + (GRID_SIZE/2) - 4, x0y0.getY() - 2, 8, 4);
+            drawDoor(gfx, wallNorthTexture, chunkId, door);
+        }
+
+        if (wallWestTexture > 0) {
+            final int textureId = mem54a7.get(wallWestTexture - 1);
+            final int chunkId = textureChunks5677.get(textureId) & 0x7f;
+//            gfx.setColor(Color.RED);
+//            gfx.drawString(String.valueOf(chunkId), GRID_SIZE * (float)(x + 1), GRID_SIZE * (float)(yRel + 1.5));
+            gfx.setColor(Color.DARK_GRAY);
+            gfx.draw(new Line2D.Double(x0y0, x0y1));
+
+            final Rectangle2D door = new Rectangle2D.Double(x0y0.getX() - 2, x0y0.getY() + (GRID_SIZE/2) - 4, 4, 8);
+            drawDoor(gfx, wallWestTexture, chunkId, door);
+        }
+
+    }
+
+    private static void drawDoor(Graphics2D gfx, int wallTexture, int chunkId, Rectangle2D door) {
+        if ((wallTexture & 0x4) > 0) {
+            gfx.setColor(Color.LIGHT_GRAY);
+            gfx.fill(door);
+            gfx.setColor(Color.DARK_GRAY);
+            gfx.draw(door);
+        }
+        if (chunkId == 0x05) {
+            gfx.setColor(Color.WHITE);
+            gfx.fill(door);
+            gfx.setColor(Color.DARK_GRAY);
+            gfx.draw(door);
+        }
     }
 
     public void display() {
@@ -191,6 +314,7 @@ public class MapData {
             final MapData mapData = new MapData(exec, chunkTable, boardIndex);
             mapData.parse(0);
             mapData.display();
+            mapData.draw();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
