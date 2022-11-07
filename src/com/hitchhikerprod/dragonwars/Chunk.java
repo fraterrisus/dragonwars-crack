@@ -29,12 +29,17 @@ public class Chunk {
     }
 
     public void display() {
-        display(0);
+        display(0, raw.size());
     }
 
-    public void display(int counter) {
-        counter = counter & 0xfff0;
-        while (counter < raw.size()) {
+    public void display(int start) {
+        display(start, raw.size());
+    }
+
+    public void display(int start, int end) {
+        int counter = start & 0xfff0;
+        if (raw.size() < end) end = raw.size();
+        while (counter < end) {
             final byte b = raw.get(counter);
             if (counter % 16 == 0) {
                 System.out.printf("\n%08x", counter);

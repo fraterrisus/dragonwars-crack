@@ -6,7 +6,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TextureDecoder {
 
@@ -146,17 +149,20 @@ public class TextureDecoder {
     }
 
     /* Chunks:
-     * 6e: Stone wall
-     *   00: automap north
-     *   02: automap west
-     *   04: near front
-     *   06: middle front
-     *   08: far front
-     *   0a: --
-     *   0c: near left
-     *   0e: middle left
-     * 6f: Blue sky, only one texture
+     * 6e: stone wall
+     * 6f: blue sky, only one texture
      * 70: generic red floor
+     * 71: ?
+     *   00: bush
+     * 72: requires 0xdab, OOB error? might not be texture data
+     * 73: Stone wall with door
+     * 74: probably not texture data
+     * 75: water (floor)
+     * 7c: stone floor
+     * 7d: stone wall
+     * 7e: stone wall with (locked?) red door
+
+     * Floor chunks:
      *   00: automap
      *   02: --
      *   04: far left
@@ -168,10 +174,8 @@ public class TextureDecoder {
      *   10: near left
      *   12: near front
      *   14: near right
-     * 71: ?
-     *   00: bush
-     * 72: requires 0xdab, OOB error? might not be texture data
-     * 73: Stone wall with door
+
+     * Wall chunks:
      *   00: automap north
      *   02: automap west
      *   04: near front
@@ -180,17 +184,6 @@ public class TextureDecoder {
      *   0a: --
      *   0c: near left
      *   0e: middle left
-     * 74: probably not texture data
-     * 75: water (floor)
-     *   00: automap
-     *   02: --
-     *   04: middle left
-     *   06: middle front
-     *   08: middle right
-     *   0a: near left
-     *   0c: near front
-     *   0e: near right
-     *
      */
 
     public static void main(String[] args) {
