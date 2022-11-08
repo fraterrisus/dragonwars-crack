@@ -10,112 +10,138 @@ import java.util.List;
  */
 public class Character {
 
-    final String name;
-    final int strength;
-    final int strengthTemp;
-    final int dexterity;
-    final int dexterityTemp;
-    final int intelligence;
-    final int intelligenceTemp;
-    final int spirit;
-    final int spiritTemp;
-    final int health;
-    final int healthMax;
-    final int stun;
-    final int stunMax;
-    final int power;
-    final int powerMax;
-    final int advancementPoints;
-    final int level;
-    final int experience;
-    final int gold;
-    final int attackValue;
-    final int defenseValue;
-    final int armorClass;
-    final int npcId;
-    final int status;
-    final int gender;
-    final int flags;
-    final byte[] unknown;
-    final byte[] skills;
-    final byte[] spells;
-    final List<Item> inventory;
+    final Chunk chunk;
+
+    String name;
+    int strength;
+    int strengthTemp;
+    int dexterity;
+    int dexterityTemp;
+    int intelligence;
+    int intelligenceTemp;
+    int spirit;
+    int spiritTemp;
+    int health;
+    int healthMax;
+    int stun;
+    int stunMax;
+    int power;
+    int powerMax;
+    int advancementPoints;
+    int level;
+    int experience;
+    int gold;
+    int attackValue;
+    int defenseValue;
+    int armorClass;
+    int npcId;
+    int status;
+    int gender;
+    int flags;
+    List<Byte> unknown;
+    List<Byte> skills;
+    List<Byte> spells;
+    List<Item> inventory;
 
     public Character(RandomAccessFile dataFile, final long offset) throws IOException {
-        name = new DataString(dataFile, offset, 12).toString();
-        strength = readByte(dataFile, offset+12);
-        strengthTemp = readByte(dataFile);
-        dexterity = readByte(dataFile);
-        dexterityTemp = readByte(dataFile);
-        intelligence = readByte(dataFile);
-        intelligenceTemp = readByte(dataFile);
-        spirit = readByte(dataFile);
-        spiritTemp = readByte(dataFile);
-        health = readBytes(dataFile, 2);
-        healthMax = readBytes(dataFile, 2);
-        stun = readBytes(dataFile, 2);
-        stunMax = readBytes(dataFile, 2);
-        power = readBytes(dataFile, 2);
-        powerMax = readBytes(dataFile, 2);
-        skills = new byte[27];
-        dataFile.read(skills, 0, 27);
-        advancementPoints = readByte(dataFile);
-        spells = new byte[8];
-        dataFile.read(spells, 0, 8);
+        final byte[] rawBytes = new byte[0x200];
+        dataFile.seek(offset);
+        dataFile.read(rawBytes, 0, 0x200);
+        this.chunk = new Chunk(rawBytes);
+    }
+
+    public Character(Chunk chunk) {
+        this.chunk = chunk;
+    }
+
+    private int chunkPointer;
+
+    public void decode(int offset) {
+        name = new DataString(chunk, offset, 12).toString();
+        chunkPointer = offset+12;
+
+        strength = getUnsignedByte();
+        strengthTemp = getUnsignedByte();
+        dexterity = getUnsignedByte();
+        dexterityTemp = getUnsignedByte();
+        intelligence = getUnsignedByte();
+        intelligenceTemp = getUnsignedByte();
+        spirit = getUnsignedByte();
+        spiritTemp = getUnsignedByte();
+        health = getWord();
+        healthMax = getWord();
+        stun = getWord();
+        stunMax = getWord();
+        power = getWord();
+        powerMax = getWord();
+        skills = getBytes(27);
+        advancementPoints = getUnsignedByte();
+        spells = getBytes(8);
 
         // Something around here has to track whether you've received the Blessing of the
         // Universal God and received your +3 attribute bonus. I bet there's also a flag
         // for the +5 AP Irkalla bonus, although that resets with the game state.
 
-        unknown = new byte[9];
-        dataFile.read(unknown, 0, 8);
-        status = readByte(dataFile); // 0 OK 1 dead 2 chained 4 poisoned ...?
-        npcId = readByte(dataFile); // prevents you from adding the same NPC twice
-        gender = readByte(dataFile);
-        level = readBytes(dataFile, 2);
-        experience = readBytes(dataFile, 4);
-        gold = readBytes(dataFile, 4);
-        attackValue = readByte(dataFile);
-        defenseValue = readByte(dataFile);
-        armorClass = readByte(dataFile);
+        unknown = getBytes(8);
+        status = getUnsignedByte(); // 0 OK 1 dead 2 chained 4 poisoned ...?
+        npcId = getUnsignedByte(); // prevents you from adding the same NPC twice
+        gender = getUnsignedByte();
+        level = getWord();
+        experience = getQuadWord();
+        gold = getQuadWord();
+        attackValue = getUnsignedByte();
+        defenseValue = getUnsignedByte();
+        armorClass = getUnsignedByte();
 
-        flags = readByte(dataFile);
-
-        final byte[] padding = new byte[143];
-        dataFile.read(padding, 0, 143);
+        flags = getUnsignedByte();
 /*
-        for (int i = 0; i < 143; i++) {
-            if (padding[i] != 0) {
-                System.out.println("Padding byte 0x" + Integer.toHexString(i) + " = " + Integer.toHexString(padding[i]));
+        final List<Byte> padding = getBytes(143);
+        int idx = 0;
+        for (byte b : padding) {
+            if (b != 0) {
+                System.out.printf("Padding byte 0x%03x = %02x\n", idx, b);
             }
+            idx++;
         }
 */
-
         inventory = new ArrayList<>();
-        long inventoryOffset = offset + 236;
-        for (int i = 0; i < 13; i++) {
-            final Item item = new Item(dataFile, inventoryOffset);
+        int inventoryOffset = offset + 236;
+        for (int i = 0; i < 12; i++) {
+            final Item item = new Item(chunk);
+            item.decode(inventoryOffset);
             if (!item.getName().isEmpty()) { inventory.add(item); }
             inventoryOffset += 23;
         }
     }
 
-    private static int readByte(RandomAccessFile dataFile) throws IOException {
-        return dataFile.read();
+    private byte getByte() {
+        byte b = chunk.getByte(chunkPointer);
+        chunkPointer++;
+        return b;
     }
 
-    private static int readByte(RandomAccessFile dataFile, long offset) throws IOException {
-        dataFile.seek(offset);
-        return readByte(dataFile);
+    private List<Byte> getBytes(int length) {
+        List<Byte> b = chunk.getBytes(chunkPointer, length);
+        chunkPointer += length;
+        return b;
     }
 
-    private static int readBytes(RandomAccessFile dataFile, int count) throws IOException {
-        int result = 0;
-        for (int i = 0; i < count; i++) {
-            int b = dataFile.read();
-            result = result | (b << (8*i));
-        }
-        return result;
+    private int getUnsignedByte() {
+        int b = chunk.getUnsignedByte(chunkPointer);
+        chunkPointer++;
+        return b;
+    }
+
+    private int getWord() {
+        int b = chunk.getWord(chunkPointer);
+        chunkPointer += 2;
+        return b;
+    }
+
+    private int getQuadWord() {
+        int b = chunk.getWord(chunkPointer) | (chunk.getWord(chunkPointer+2) << 16);
+        chunkPointer += 4;
+        return b;
     }
 
     private String translateGender() {
@@ -140,7 +166,7 @@ public class Character {
         return String.join(", ", stringList);
     }
 
-    private String translateSpells() {
+    private String translateSpells(String indent) {
         List<String> spellNameList = new ArrayList<>();
         int spellSegment = 0;
         for (byte b : spells) {
@@ -151,7 +177,32 @@ public class Character {
             }
             spellSegment++;
         }
-        return String.join(", ", spellNameList);
+
+        final String spellList = String.join(",", spellNameList);
+        return paginate(spellList, indent, 80);
+    }
+
+    private String paginate(String longString, String indent, int maxLength) {
+        final StringBuilder sb = new StringBuilder();
+        int lastNewline = 0;
+        int lastIndex = 0;
+        boolean done = false;
+        while (!done) {
+            int nextIndex = longString.indexOf(",", lastIndex);
+            if (nextIndex == -1) {
+                done = true;
+                nextIndex = longString.length() - 1;
+            }
+            if (nextIndex - lastNewline > maxLength) {
+                sb.append("\n").append(indent);
+                lastNewline = nextIndex + 1;
+            } else {
+                sb.append(" ");
+            }
+            sb.append(longString, lastIndex, nextIndex + 1);
+            lastIndex = nextIndex + 1;
+        }
+        return sb.toString();
     }
 
     private String translateStatus() {
@@ -197,7 +248,7 @@ public class Character {
         }
         System.out.println();
         System.out.println("  Skills: " + translateSkills());
-        System.out.println("  Spells: " + translateSpells());
+        System.out.println("  Spells:" + translateSpells("    "));
         System.out.println("  Inventory:");
         for (Item i : inventory) { System.out.println(i); }
     }

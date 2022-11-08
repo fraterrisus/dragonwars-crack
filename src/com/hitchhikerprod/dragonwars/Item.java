@@ -6,62 +6,70 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Item {
-    private final byte[] bytes;
-    private final String name;
+    private final Chunk chunk;
 
-    private final int attackValueMod;
-    private final int armorClassMod;
-    private final List<WeaponDamage> damageDice;
-    private final boolean equipped;
-    private final int itemType;
-    private final int ammoType;
-    private final String magicEffect;
-    private final int minimumValue;
-    private final PowerInt purchasePrice;
-    private final int range;
-    private final String skill;
-    private final int uses;
+    private String name;
 
-    private final boolean unknownFlag;
+    private int attackValueMod;
+    private int armorClassMod;
+    private List<WeaponDamage> damageDice;
+    private boolean equipped;
+    private int itemType;
+    private int ammoType;
+    private String magicEffect;
+    private int minimumValue;
+    private PowerInt purchasePrice;
+    private int range;
+    private String skill;
+    private int uses;
 
-    public Item(RandomAccessFile dataFile, long offset) throws IOException {
-        final byte[] bytes = new byte[11];
+    private boolean unknownFlag;
+
+    public Item(RandomAccessFile dataFile, final long offset) throws IOException {
+        final byte[] rawBytes = new byte[23];
         dataFile.seek(offset);
-        dataFile.read(bytes, 0, 11);
-        this.bytes = bytes;
+        dataFile.read(rawBytes, 0, 23);
+        this.chunk = new Chunk(rawBytes);
+    }
 
-        this.name = new DataString(dataFile, offset+11, 12).toString();
-        this.equipped = (bytes[0] & 0x80) > 0;
-        this.uses = (bytes[0] & 0x1f);
+    public Item(Chunk chunk) {
+        this.chunk = chunk;
+    }
 
-        final boolean reducesAV = (bytes[1] & 0x80) > 0;
-        this.unknownFlag = (bytes[1] & 0x40) > 0;
-        final String skillName = Lists.REQUIREMENTS[bytes[1] & 0x3f];
+    public void decode(int offset) {
+        this.name = new DataString(chunk, offset+11, 12).toString();
+        
+        this.equipped = (chunk.getByte(offset + 0) & 0x80) > 0;
+        this.uses = (chunk.getByte(offset + 0) & 0x1f);
 
-        this.minimumValue = (bytes[2] & 0x1f);
+        final boolean reducesAV = (chunk.getByte(offset + 1) & 0x80) > 0;
+        this.unknownFlag = (chunk.getByte(offset + 1) & 0x40) > 0;
+        final String skillName = Lists.REQUIREMENTS[chunk.getByte(offset + 1) & 0x3f];
+
+        this.minimumValue = (chunk.getByte(offset + 2) & 0x1f);
         this.skill = (this.minimumValue > 0) ? skillName : null;
 
-        final int av = (bytes[3] & 0xf0) >> 4;
+        final int av = (chunk.getByte(offset + 3) & 0xf0) >> 4;
         this.attackValueMod = reducesAV ? av * -1 : av;
-        this.armorClassMod = (bytes[3] & 0x0f);
+        this.armorClassMod = (chunk.getByte(offset + 3) & 0x0f);
 
-        this.purchasePrice = new PowerInt(bytes[4]);
+        this.purchasePrice = new PowerInt(chunk.getByte(offset + 4));
 
-        this.itemType = bytes[5] & 0x1f;
+        this.itemType = chunk.getByte(offset + 5) & 0x1f;
 
-        this.magicEffect = parseMagicEffect(bytes[6], bytes[7]);
+        this.magicEffect = parseMagicEffect(chunk.getByte(offset + 6), chunk.getByte(offset + 7));
 
-        this.ammoType = (bytes[10] & 0xF0) >> 4;
-        this.range = bytes[10] & 0x0F;
+        this.ammoType = (chunk.getByte(offset + 10) & 0xF0) >> 4;
+        this.range = chunk.getByte(offset + 10) & 0x0F;
 
         this.damageDice = new ArrayList<>();
         if (List.of(Lists.WEAPON_TYPES).contains(Lists.ITEM_TYPES[this.itemType])) {
-            damageDice.add(new WeaponDamage(bytes[8]));
+            damageDice.add(new WeaponDamage(chunk.getByte(offset + 8)));
             if (this.name.equals("Druids Mace")) {
-                damageDice.set(0, new WeaponDamage(bytes[9]));
-            } else if (this.range > 0 && bytes[9] != 0) {
+                damageDice.set(0, new WeaponDamage(chunk.getByte(offset + 9)));
+            } else if (this.range > 0 && chunk.getByte(offset + 9) != 0) {
             // if (this.name.equals("Axe of Kalah") || this.name.equals("Throw Mace") || this.name.equals("Long Mace")) {
-                damageDice.add(new WeaponDamage(bytes[9]));
+                damageDice.add(new WeaponDamage(chunk.getByte(offset + 9)));
             }
         }
 
@@ -71,7 +79,8 @@ public class Item {
         final List<String> attributes = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(unknownBytes());
+        //sb.append(unknownBytes());
+        sb.append("    ");
         if (this.equipped) { sb.append("*"); }
         sb.append(this.name);
         if (this.uses > 0) {
@@ -117,10 +126,6 @@ public class Item {
         return sb.toString();
     }
 
-    public byte[] toBytes() {
-        return bytes;
-    }
-
     public String getName() {
         return name;
     }
@@ -162,18 +167,18 @@ public class Item {
         }
     }
 
-    private String unknownBytes() {
+/*    private String unknownBytes() {
         final StringBuilder sb = new StringBuilder();
-        sb.append((this.bytes[0] & 0x40) > 0 ? "1" : "0");
-        sb.append((this.bytes[0] & 0x20) > 0 ? "1" : "0");
+        sb.append((this.chunk.getByte(offset + 0) & 0x40) > 0 ? "1" : "0");
+        sb.append((this.chunk.getByte(offset + 0) & 0x20) > 0 ? "1" : "0");
         sb.append("-");
-        sb.append((this.bytes[1] & 0x40) > 0 ? "1" : "0");
+        sb.append((this.chunk.getByte(offset + 1) & 0x40) > 0 ? "1" : "0");
         sb.append("-");
-        sb.append((this.bytes[2] & 0x80) > 0 ? "1" : "0");
-        sb.append((this.bytes[2] & 0x40) > 0 ? "1" : "0");
-        sb.append((this.bytes[2] & 0x20) > 0 ? "1" : "0");
+        sb.append((this.chunk.getByte(offset + 2) & 0x80) > 0 ? "1" : "0");
+        sb.append((this.chunk.getByte(offset + 2) & 0x40) > 0 ? "1" : "0");
+        sb.append((this.chunk.getByte(offset + 2) & 0x20) > 0 ? "1" : "0");
         sb.append(" ");
         return sb.toString();
-    }
+    }*/
 }
 

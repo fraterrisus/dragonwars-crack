@@ -176,11 +176,13 @@ public class Main {
                     continue;
                 }
                 System.out.printf("%-12s ", item.getName());
+/*
                 for (byte b : item.toBytes()) {
                     final String bin = Integer.toBinaryString(b & 0xff);
                     final String padded = "00000000".substring(bin.length()) + bin;
                     System.out.printf(" %8s", padded);
                 }
+*/
                 System.out.println();
                 System.out.println(item);
             }
@@ -197,6 +199,7 @@ public class Main {
             long offset = 0x2e19;
             for (int i = 0; i < 7; i++) {
                 pcs[i] = new Character(dataFile, offset);
+                pcs[i].decode(0);
                 pcs[i].display();
                 System.out.println();
                 offset += 0x200;

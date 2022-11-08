@@ -391,8 +391,17 @@ public class MapData {
         System.out.print("\nExtra data:");
         primaryData.display(rowPointers57e4.get(0));
 
-        System.out.printf("\nSecondary Data (chunk %02x):\n", mapId + 0x1e);
-        secondaryData.display();
+        System.out.printf("\nSecondary Data (chunk %02x):", mapId + 0x1e);
+        System.out.print("\n  Pointers:");
+        int firstPtr = secondaryData.getSize();
+        int thisPtr = 0;
+        while (thisPtr < firstPtr) {
+            int nextPtr = secondaryData.getWord(thisPtr);
+            System.out.printf(" [%04x]", nextPtr);
+            if (nextPtr < firstPtr) { firstPtr = nextPtr; }
+            thisPtr += 2;
+        }
+        secondaryData.display(thisPtr);
 
         System.out.println();
         for (byte id : textureChunks5677) {
@@ -408,6 +417,19 @@ public class MapData {
             }
             System.out.println();
         }
+
+        System.out.println();
+        System.out.println("Strings in secondary data:");
+        final StringDecoder sd = new StringDecoder(executable, secondaryData);
+        try {
+            for (int ptr = 0; ptr < secondaryData.getSize(); ptr++) {
+                sd.decodeString(ptr);
+                final String s = sd.getDecodedString();
+                if (s.isEmpty()) { continue; }
+                System.out.printf("  [%04x-%04x] %s\n", ptr, sd.getPointer()-1, sd.getDecodedString());
+                ptr = sd.getPointer()-1;
+            }
+        } catch (IndexOutOfBoundsException ignored) {}
     }
 
     private String displayMapFlags() {

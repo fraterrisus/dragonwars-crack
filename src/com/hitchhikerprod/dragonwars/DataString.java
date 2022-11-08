@@ -16,12 +16,30 @@ public class DataString {
         this.value = parseStringFromBytes(bytes);
     }
 
+    public DataString(Chunk chunk, int offset, int length) {
+        this.bytes = new byte[0];
+        this.value = parseString(chunk.getBytes(offset, length));
+    }
+
     public String toString() {
         return value;
     }
 
     public byte[] toBytes() {
         return bytes;
+    }
+
+    private static String parseString(final Iterable<Byte> bytes) {
+        final StringBuilder builder = new StringBuilder();
+        for (final Byte b : bytes) {
+            final boolean done = (b & 0x80) == 0x0;
+            final char c = (char)(b & 0x7f);
+            if (!Character.isISOControl(c)) {
+                builder.append((char) (b & 0x7F));
+            } else { break; }
+            if (done) { break; }
+        }
+        return builder.toString();
     }
 
     private static String parseStringFromBytes(final byte[] bytes) {

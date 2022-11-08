@@ -2,6 +2,7 @@ package com.hitchhikerprod.dragonwars;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Chunk {
     List<Byte> raw;
@@ -10,8 +11,18 @@ public class Chunk {
         this.raw = new ArrayList<>(raw);
     }
 
+    public Chunk(byte[] rawBytes) {
+        this(IntStream.range(0, rawBytes.length)
+            .mapToObj(i -> rawBytes[i])
+            .toList());
+    }
+
     public byte getByte(int i) {
         return this.raw.get(i);
+    }
+
+    public List<Byte> getBytes(int offset, int length) {
+        return this.raw.subList(offset, offset+length);
     }
 
     public int getSize() {
