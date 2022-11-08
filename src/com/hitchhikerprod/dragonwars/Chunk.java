@@ -22,7 +22,9 @@ public class Chunk {
     }
 
     public List<Byte> getBytes(int offset, int length) {
-        return this.raw.subList(offset, offset+length);
+        int end = offset + length;
+        if (end > getSize()) { end = getSize(); }
+        return this.raw.subList(offset, end);
     }
 
     public int getSize() {
@@ -58,7 +60,11 @@ public class Chunk {
             if (counter % 4 == 0) {
                 System.out.print(" ");
             }
-            System.out.printf(" %02x", b & 0xff);
+            if (counter < start) {
+                System.out.print(" --");
+            } else {
+                System.out.printf(" %02x", b & 0xff);
+            }
             counter++;
         }
         System.out.println();

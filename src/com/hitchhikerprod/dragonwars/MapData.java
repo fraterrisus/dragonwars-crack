@@ -45,9 +45,15 @@ public class MapData {
     int xMax;
     int yMax;
     int mapMetadata; // heap[23-24]
-    int titleStringAdr;
-    int metaprogramStartAdr;
-    int specialEventsAdr;
+
+    List<Integer> primaryPointers;
+    List<Integer> secondaryPointers;
+    List<Integer> secondaryItemPointers;
+
+    int titleStringPtr;
+    int metaprogramStartPtr;
+    int specialEventsPtr;
+    int itemListPtr;
     String titleString;
 
     final List<Byte> wallTextures54a7 = new ArrayList<>();
@@ -103,11 +109,11 @@ public class MapData {
         byteReader((b) -> floorTextures54c9.add((byte)(b & 0x7f)));
         byteReader((b) -> otherTextures54cd.add((byte)(b & 0x7f)));
 
-        titleStringAdr = primaryData.getWord(chunkPointer);
+        titleStringPtr = primaryData.getWord(chunkPointer);
         chunkPointer += 2;
 
         final StringDecoder sd = new StringDecoder(executable, primaryData);
-        sd.decodeString(titleStringAdr);
+        sd.decodeString(titleStringPtr);
         titleString = sd.getDecodedString();
         // System.out.printf("Title string: %04x - %04x\n", titleStringAdr, sd.getPointer());
 
@@ -120,10 +126,13 @@ public class MapData {
         // 55bb:parseMapData() builds this array backwards, from yMax down to 0, so it can include an "end" pointer(?)
         Collections.reverse(rowPointers57e4);
 
-        chunkPointer = rowPointers57e4.get(0);
-        metaprogramStartAdr = primaryData.getWord(chunkPointer);
-        chunkPointer += 2;
-        specialEventsAdr = primaryData.getWord(chunkPointer);
+        primaryPointers = discoverPointers(primaryData, rowPointers57e4.get(0));
+        metaprogramStartPtr = primaryPointers.get(0);
+        specialEventsPtr = primaryPointers.get(1);
+
+        secondaryPointers = discoverPointers(secondaryData, 0);
+        itemListPtr = secondaryPointers.get(3);
+        secondaryItemPointers = discoverPointers(secondaryData, itemListPtr);
 
         parseSpecialEvents();
     }
@@ -153,10 +162,8 @@ public class MapData {
         drawGrid(image);
 
         for (int y = yMax; y > 0; y--) { // skip the end pointer
-            int base = rowPointers57e4.get(y); // actual y coordinate is (y-1)
             for (int x = 0; x < xMax; x++) {
-                drawSquare(gfx, base, x, y-1);
-                base += 3;
+                drawSquare(gfx, x, y-1);
             }
         }
 
@@ -231,17 +238,16 @@ public class MapData {
         drawWall(gfx, wallSouthTexture, southWall, southDoor);
     }
 
-    private void drawSquare(Graphics2D gfx, int pointer, int x, int y) {
-        final int byte0 = primaryData.getUnsignedByte(pointer);
-        final int byte1 = primaryData.getUnsignedByte(pointer + 1);
-        final int byte2 = primaryData.getUnsignedByte(pointer + 2);
+    private void drawSquare(Graphics2D gfx, int x, int y) {
+        final int squareData = getSquare(x, y);
 
-        final int wallNorthTexture = (byte0 >> 4) & 0x0f;
-        final int wallWestTexture = byte0 & 0x0f;
-        // final int roofTexture = (byte1 >> 6) & 0x03;
-        final int floorTexture = (byte1 >> 4) & 0x03;
-        // final boolean steppedOn = (byte1 & 0x80) > 0;
-        final int specialTexture = byte1 & 0x7;
+        final int wallNorthTexture = (squareData >> 20) & 0xf;
+        final int wallWestTexture = (squareData >> 16) & 0xf;
+        // final int roofTexture = (squareData >> 14) & 0x3;
+        final int floorTexture = (squareData >> 12) & 0x3;
+        // final boolean steppedOn = (squareData & 0x008000) > 0;
+        final int specialTexture = (squareData >> 8) & 0x7;
+        final int eventId = squareData & 0xff;
 
         final int yRel = yMax - y - 1;
 
@@ -253,9 +259,9 @@ public class MapData {
         final Rectangle2D floor = new Rectangle2D.Double(x0y0.getX() + 1, x0y0.getY() + 1, GRID_SIZE-1, GRID_SIZE-1);
         drawFloor(gfx, floorTexture, floor);
         drawSpecial(gfx, specialTexture, floor);
-        if (byte2 != 0) {
+        if (eventId != 0) {
             gfx.setColor(ENCOUNTER);
-            gfx.drawString(String.format("%X", byte2 & 0xff), (int) floor.getX()+2, (int) floor.getMaxY()-2);
+            gfx.drawString(String.format("%X", eventId), (int) floor.getX()+2, (int) floor.getMaxY()-2);
         }
 
         final Line2D northWall = new Line2D.Double(x0y0, x1y0);
@@ -364,8 +370,23 @@ public class MapData {
         for (byte b : floorTextures54c9) { System.out.printf(" %02x", b); }
         System.out.print("\n0x54cd Decor textures:");
         for (byte b : otherTextures54cd) { System.out.printf(" %02x", b); }
+        System.out.println();
 
-        System.out.printf("\n\nTitle string: [%04x]\n", titleStringAdr);
+        System.out.println();
+        System.out.printf("Primary Map Data (chunk %02d):\n", mapId + 0x46);
+        System.out.printf("  Title string: [%04x]\n", titleStringPtr);
+        System.out.print("  Pointers:");
+        for (int p : primaryPointers) {
+            System.out.printf(" [%04x]", p);
+        }
+        System.out.println();
+        System.out.printf("  Metaprogram start: ptr[00] -> [%04x]\n", metaprogramStartPtr);
+        System.out.printf("  Special events:    ptr[01] -> [%04x]\n", specialEventsPtr);
+        for (SpecialEvent a : specialEvents) {
+            // final int offset = rowPointers57e4.get(0) + (2 * (a.getMetaprogramIndex() + 1));
+            final int offset = a.getMetaprogramIndex() + 1;
+            System.out.printf("    %s -> ptr[%02x] -> [%04x]\n", a, offset, primaryPointers.get(offset));
+        }
 
         System.out.print("\nMap squares:\n");
         for (int y = yMax-1; y >= 0; y--) {
@@ -380,56 +401,85 @@ public class MapData {
         for (int x = 0; x < xMax; x++) { System.out.printf("  x=%02d ", x); }
         System.out.println();
 
-        System.out.printf("\nMetaprogram start: [%04x]\n", metaprogramStartAdr);
-
-        System.out.printf("\nSpecial events [%04x]:\n", specialEventsAdr);
-        for (SpecialEvent a : specialEvents) {
-            final int offset = rowPointers57e4.get(0) + (2 * (a.getMetaprogramIndex() + 1));
-            System.out.printf("  %s -> [%04x]\n", a, primaryData.getWord(offset));
-        }
-
-        System.out.print("\nExtra data:");
-        primaryData.display(rowPointers57e4.get(0));
+        primaryData.display(primaryPointers.stream().min(Integer::compareTo).orElse(0));
 
         System.out.printf("\nSecondary Data (chunk %02x):", mapId + 0x1e);
         System.out.print("\n  Pointers:");
-        int firstPtr = secondaryData.getSize();
-        int thisPtr = 0;
-        while (thisPtr < firstPtr) {
-            int nextPtr = secondaryData.getWord(thisPtr);
-            System.out.printf(" [%04x]", nextPtr);
-            if (nextPtr < firstPtr) { firstPtr = nextPtr; }
-            thisPtr += 2;
+        for (int p : secondaryPointers) {
+            System.out.printf(" [%04x]", p);
         }
-        secondaryData.display(thisPtr);
+
+        System.out.printf("\n  Items: ptr[03] -> [%04x]\n", itemListPtr);
+        for (int p : secondaryItemPointers) {
+            System.out.printf("    [%04x]%s\n", p, decodeItemFromSecondaryData(p));
+        }
+
+        secondaryData.display(secondaryPointers.stream().min(Integer::compareTo).orElse(0));
 
         System.out.println();
+        System.out.println("Texture Chunks:");
         for (byte id : textureChunks5677) {
             final int chunkId = (id & 0x7f) + 0x6e;
             final Chunk moreData = decompressChunk(chunkId);
             if (chunkId == 0x6f) {
-                System.out.printf("Chunk*6f* 0000 0000 %04x", moreData.getWord(0x04));
+                System.out.printf("  0*6f* 0000 0000 %04x", moreData.getWord(0x04));
             } else {
-                System.out.printf("Chunk %02x:", chunkId);
-                for (int i = 0; i < 0x0f; i += 2) {
-                    System.out.printf(" %04x", moreData.getWord(i));
+                System.out.printf("  0x%02x:", chunkId);
+                for (int p : discoverPointers(moreData, 0)) {
+                    System.out.printf(" [%04x]", p);
                 }
             }
             System.out.println();
         }
 
         System.out.println();
-        System.out.println("Strings in secondary data:");
-        final StringDecoder sd = new StringDecoder(executable, secondaryData);
+        System.out.println("Packed strings in primary data:");
+        final StringDecoder sd1 = new StringDecoder(executable, primaryData);
         try {
-            for (int ptr = 0; ptr < secondaryData.getSize(); ptr++) {
-                sd.decodeString(ptr);
-                final String s = sd.getDecodedString();
+            for (int ptr = 0; ptr < primaryData.getSize(); ptr++) {
+                sd1.decodeString(ptr);
+                final String s = sd1.getDecodedString();
                 if (s.isEmpty()) { continue; }
-                System.out.printf("  [%04x-%04x] %s\n", ptr, sd.getPointer()-1, sd.getDecodedString());
-                ptr = sd.getPointer()-1;
+                System.out.printf("  [%04x-%04x] %s\n", ptr, sd1.getPointer()-1, sd1.getDecodedString());
+                //ptr = sd1.getPointer()-1;
             }
         } catch (IndexOutOfBoundsException ignored) {}
+
+        System.out.println();
+        System.out.println("Packed strings in secondary data:");
+        final StringDecoder sd2 = new StringDecoder(executable, secondaryData);
+        try {
+            for (int ptr = 0; ptr < secondaryData.getSize(); ptr++) {
+                sd2.decodeString(ptr);
+                final String s = sd2.getDecodedString();
+                if (s.isEmpty()) { continue; }
+                System.out.printf("  [%04x-%04x] %s\n", ptr, sd2.getPointer()-1, sd2.getDecodedString());
+                //ptr = sd2.getPointer()-1;
+            }
+        } catch (IndexOutOfBoundsException ignored) {}
+
+        System.out.println();
+        System.out.println("Data strings in secondary data:");
+        try {
+            for (int ptr = 0; ptr < secondaryData.getSize(); ptr++) {
+                final String s = new DataString(secondaryData, ptr, 13).toString();
+                if (s.isEmpty()) { continue; }
+                System.out.printf("  [%04x] %s\n", ptr, s);
+            }
+        } catch (IndexOutOfBoundsException ignored) {}
+    }
+
+    private List<Integer> discoverPointers(Chunk chunk, int basePtr) {
+        final List<Integer> pointers = new ArrayList<>();
+        int thisPtr = basePtr;
+        int firstPtr = chunk.getWord(basePtr);
+        while (thisPtr < firstPtr) {
+            int nextPtr = chunk.getWord(thisPtr);
+            pointers.add(nextPtr);
+            if ((nextPtr != 0) && (nextPtr < firstPtr)) { firstPtr = nextPtr; }
+            thisPtr += 2;
+        }
+        return pointers;
     }
 
     private String displayMapFlags() {
@@ -455,7 +505,7 @@ public class MapData {
     }
 
     private void parseSpecialEvents() {
-        int pointer = specialEventsAdr;
+        int pointer = specialEventsPtr;
         while (true) {
             final int header = primaryData.getUnsignedByte(pointer);
             switch (header) {
@@ -476,6 +526,12 @@ public class MapData {
             }
         }
 
+    }
+
+    private Item decodeItemFromSecondaryData(int offset) {
+        final Item item = new Item(secondaryData);
+        item.decode(offset);
+        return item;
     }
 
     private class SpecialEvent {
@@ -544,6 +600,13 @@ public class MapData {
             mapData.parse(0);
             mapData.display();
             mapData.draw();
+
+/* Sunken Ruins (0x16)
+            for (int offset : List.of(0x024e, 0x025d, 0x0274, 0x0286, 0x029d, 0x02b4, 0x02cb)) {
+                final Item inv = mapData.decodeItemFromSecondaryData(offset - 11);
+                System.out.println(inv);
+            }
+*/
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
