@@ -1,5 +1,7 @@
 package com.hitchhikerprod.dragonwars;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -156,5 +158,31 @@ public class HuffmanDecoder {
             x = x >> 1;
         }
         return i;
+    }
+
+    public static void main(String[] args) {
+        final int chunkId;
+        try {
+            chunkId = Integer.parseInt(args[0].substring(2), 16);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("Insufficient arguments");
+        }
+
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        try (
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
+        ) {
+            final ChunkTable chunkTable = new ChunkTable(data1, data2);
+            final Chunk rawChunk = chunkTable.getChunk(chunkId);
+            rawChunk.display();
+            final HuffmanDecoder mapDecoder = new HuffmanDecoder(rawChunk);
+            final List<Byte> decodedMapData = mapDecoder.decode();
+            final Chunk decodedChunk = new Chunk(decodedMapData);
+            decodedChunk.display();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

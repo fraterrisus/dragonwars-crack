@@ -373,7 +373,7 @@ public class MapData {
         System.out.println();
 
         System.out.println();
-        System.out.printf("Primary Map Data (chunk %02d):\n", mapId + 0x46);
+        System.out.printf("Primary Map Data (chunk %02x):\n", mapId + 0x46);
         System.out.printf("  Title string: [%04x]\n", titleStringPtr);
         System.out.print("  Pointers:");
         for (int p : primaryPointers) {
