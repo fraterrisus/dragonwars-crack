@@ -6,10 +6,31 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class StringDecoder {
 
-    private final RandomAccessFile executable;
+    public static class LookupTable {
+        final List<Byte> data;
+
+        public LookupTable(RandomAccessFile executable) {
+            try {
+                byte[] rawData = new byte[94];
+                rawData[0] = 0;
+                executable.seek(0x1bca);
+                executable.read(rawData, 1, 93);
+                data = IntStream.range(0, 94).mapToObj(i -> rawData[i]).toList();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public byte get(int index) {
+            return data.get(index);
+        }
+    }
+
+    private final LookupTable table;
     private final Chunk chunk;
 
     private int pointer;
@@ -18,13 +39,18 @@ public class StringDecoder {
     private List<Integer> decodedChars;
 
     public StringDecoder(RandomAccessFile executable, Chunk data) {
-        this.executable = executable;
         this.chunk = data;
+        this.table = new LookupTable(executable);
+    }
+
+    public StringDecoder(LookupTable charTable, Chunk data) {
+        this.chunk = data;
+        this.table = charTable;
     }
 
     public void decodeString(int pointer) {
         this.pointer = pointer;
-        try {
+        // try {
             bitQueue = new LinkedList<>();
             rawBytes = new ArrayList<>();
             decodedChars = new ArrayList<>();
@@ -43,8 +69,9 @@ public class StringDecoder {
                     value = shiftBits(6) + 0x1e;
                 }
                 value &= 0xff;
-                executable.seek(0x1bc9 + value);
-                int ascii = executable.readUnsignedByte();
+                int ascii = table.get(value) & 0xff;
+                //executable.seek(0x1bc9 + value);
+                //int ascii = executable.readUnsignedByte();
                 if (capitalize && ascii >= 0xe1 && ascii <= 0xfa) {
                     ascii &= 0xdf;
                 }
@@ -53,9 +80,11 @@ public class StringDecoder {
 
                 // other, much more complicated logic in decode_string()
             }
+/*
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+*/
     }
 
     public int getPointer() {
@@ -64,6 +93,10 @@ public class StringDecoder {
 
     public List<Integer> getDecodedChars() {
         return this.decodedChars;
+    }
+
+    public List<Integer> getRawBytes() {
+        return rawBytes;
     }
 
     public String getDecodedString() {
@@ -127,12 +160,14 @@ public class StringDecoder {
 
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
 
-            //final Chunk chunk = chunkTable.getChunk(0x02);
+            final Chunk chunk = chunkTable.getChunk(0x0b);
             // map chunks only
+/*
             final Chunk mapChunk = chunkTable.getChunk(0x19 + 0x46);
             final HuffmanDecoder mapDecoder = new HuffmanDecoder(mapChunk);
             final List<Byte> decodedMapData = mapDecoder.decode();
             final Chunk chunk = new Chunk(decodedMapData);
+*/
 
             final StringDecoder decoder = new StringDecoder(exec, chunk);
 

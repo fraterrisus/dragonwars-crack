@@ -3,10 +3,12 @@ package com.hitchhikerprod.dragonwars;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class MetaprogramDecompiler {
     private final Chunk chunk;
+    private final Optional<StringDecoder.LookupTable> charTable;
 
     private int pointer;
     private boolean width;
@@ -15,6 +17,14 @@ public class MetaprogramDecompiler {
         this.chunk = chunk;
         this.pointer = 0;
         this.width = false;
+        this.charTable = Optional.empty();
+    }
+
+    public MetaprogramDecompiler(Chunk chunk, StringDecoder.LookupTable charTable) {
+        this.chunk = chunk;
+        this.pointer = 0;
+        this.width = false;
+        this.charTable = Optional.of(charTable);
     }
 
     public void printInstructions() {
@@ -25,7 +35,7 @@ public class MetaprogramDecompiler {
         }
     }
 
-    private static final List<Integer> STOPCODES = List.of(0x77,0x78);
+    private static final List<Integer> STOPCODES = List.of(0x77,0x78,0x7b);
 
     public void disasm(int pointer, boolean width) {
         this.pointer = pointer;
@@ -35,16 +45,27 @@ public class MetaprogramDecompiler {
             final int opcode = getByte();
             System.out.printf("%08x  %02x", startPointer, opcode);
             final Instruction ins = decodeOpcode(opcode);
-            final int numBytes = ins.sideEffect().get();
+            int numBytes = ins.sideEffect().get();
             for (int i = 0; i < numBytes; i++) {
                 System.out.printf("%02x", getByte());
+            }
+            if (numBytes > 5) {
+                System.out.print("\n            ");
+                numBytes = 0;
             }
             System.out.print("            ".substring(2*numBytes));
             System.out.println(ins.operation());
 
             if (STOPCODES.contains(opcode)) {
-                System.err.printf("Refusing to decode past stopcode %02x\n", opcode);
-                return;
+                if (charTable.isEmpty()) {
+                    System.err.printf("Refusing to decode past stopcode %02x\n", opcode);
+                    return;
+                }
+                final StringDecoder sd = new StringDecoder(charTable.get(), chunk);
+                System.out.printf("%08x  .string ", this.pointer);
+                sd.decodeString(this.pointer);
+                System.out.println("\"" + sd.getDecodedString() + "\"");
+                this.pointer = sd.getPointer();
             }
         }
     }
@@ -272,11 +293,14 @@ public class MetaprogramDecompiler {
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
-            final Chunk rawChunk = chunkTable.getChunk(chunkId);
-            final HuffmanDecoder mapDecoder = new HuffmanDecoder(rawChunk);
-            final List<Byte> decodedMapData = mapDecoder.decode();
-            final Chunk decodedChunk = new Chunk(decodedMapData);
-            final MetaprogramDecompiler decomp = new MetaprogramDecompiler(decodedChunk);
+            Chunk chunk = chunkTable.getChunk(chunkId);
+            if (chunkId >= 0x1e) {
+                final HuffmanDecoder mapDecoder = new HuffmanDecoder(chunk);
+                final List<Byte> decodedMapData = mapDecoder.decode();
+                chunk = new Chunk(decodedMapData);
+            }
+            final StringDecoder.LookupTable charTable = new StringDecoder.LookupTable(exec);
+            final MetaprogramDecompiler decomp = new MetaprogramDecompiler(chunk, charTable);
             decomp.disasm(offset, false);
         } catch (ArrayIndexOutOfBoundsException ignored) {
             System.err.println("Decoding error");
