@@ -53,7 +53,12 @@ public class MetaprogramDecompiler {
                 System.out.print("\n            ");
                 numBytes = 0;
             }
-            System.out.print("            ".substring(2*numBytes));
+            System.out.print("           ".substring(2*numBytes));
+            if (this.width) {
+                System.out.print(":");
+            } else {
+                System.out.print(" ");
+            }
             System.out.println(ins.operation());
 
             if (STOPCODES.contains(opcode)) {
@@ -68,6 +73,12 @@ public class MetaprogramDecompiler {
                 this.pointer = sd.getPointer();
             }
         }
+    }
+
+    private int getWord() {
+        final int w = chunk.getWord(pointer);
+        pointer += 2;
+        return w;
     }
 
     private int getByte() {
@@ -98,15 +109,19 @@ public class MetaprogramDecompiler {
 
     private final Supplier<Integer> readKeySwitch = () -> {
         final int oldPointer = pointer;
-        getByte();
-        getByte();
+        final int w = getWord();
         int count = 2;
+        if ((w & 0x1000) > 0) { getByte(); count++; }
         while (true) {
             final int scanCode = getByte();
             count++;
             if (scanCode == 0xff) break;
-            getByte();
-            getByte();
+            if ((scanCode == 0x81) || ((scanCode & 0x80) == 0)) {
+                // I think this means it's a scancode and not an ASCII byte?
+                getByte();
+                count++;
+            }
+            getWord();
             count += 2;
         }
         pointer = oldPointer;
@@ -147,13 +162,13 @@ public class MetaprogramDecompiler {
         new Instruction("heap[imm]:w <- imm:w", compose(immIndex, immWord)),
         new Instruction("ds:[imm]:w -> ds:[imm]:w", compose(immAddress, immAddress)),
         new Instruction("ds:[imm]:w <- imm:w", compose(immAddress, immWord)),
-        new Instruction("bufferCopy()", immNone),
+        new Instruction("bufferCopy(ds:[ax], 01dd:[d1b0]:0380, dir:bl)", immNone),
         new Instruction("kill()", immNone),
         new Instruction("readChunkTable(file:ax)", immNone),
         // 20
         new Instruction("0x0000", immNone),
         new Instruction("bl <- al", immNone),
-        new Instruction("bx <- ax", immNone),
+        new Instruction("ax <- bx", immNone),
         new Instruction("inc heap[imm]:w", immIndex),
         new Instruction("inc ax:w", immNone),
         new Instruction("inc bx", immNone),
@@ -167,18 +182,18 @@ public class MetaprogramDecompiler {
         new Instruction("shr heap[imm] >> 1", immIndex),
         new Instruction("shr ax:w >> 1", immNone),
         new Instruction("shr bx >> 1", immNone),
-        new Instruction("add ax, heap[imm]", immIndex),
+        new Instruction("add ax, heap[imm], cf", immIndex),
         // 30
-        new Instruction("add ax, imm", immWord),
+        new Instruction("add ax, imm, cf", immWord),
         new Instruction("sub ax, heap[imm]", immIndex),
         new Instruction("sub ax, imm", immWord),
         new Instruction("mul heap[imm]:4, ax ; heap[37]:4 <- mul", immIndex),
         new Instruction("mul ax, imm:w ; heap[37]:4 <- mul", immWord),
         new Instruction("div heap[imm]:4, ax ; heap[37]:4 <- div ; heap[3b]:2 <- mod", immIndex),
         new Instruction("div ax, imm:w ; heap[37]:4 <- div ; heap[3b]:2 <- mod", immWord),
-        new Instruction("and ax, heap[imm], cf", immIndex),
+        new Instruction("and ax, heap[imm]", immIndex),
         // 38
-        new Instruction("and ax, imm:w, cf", immWord),
+        new Instruction("and ax, imm:w", immWord),
         new Instruction("or ax, heap[imm]", immIndex),
         new Instruction("or ax, imm:w", immWord),
         new Instruction("xor ax, heap[imm]", immIndex),
@@ -202,10 +217,10 @@ public class MetaprogramDecompiler {
         new Instruction("stc", immNone),
         new Instruction("clc", immNone),
         new Instruction("ax <- readPITCounter()", immNone),
-        new Instruction("set heap[r2.h + imm], 0x80 >> r2.l", immIndex),
-        new Instruction("clr heap[r2.h + imm], 0x80 >> r2.l", immIndex),
+        new Instruction("set heap[ax.h + imm], 0x80 >> ax.l", immIndex),
+        new Instruction("clr heap[ax.h + imm], 0x80 >> ax.l", immIndex),
         // 50
-        new Instruction("test heap[r2.h + imm], 0x80 >> r2.l", immIndex),
+        new Instruction("test heap[ax.h + imm], 0x80 >> ax.l", immIndex),
         new Instruction("max ds:[imm + 0..bx]", immAddress),
         new Instruction("jmp imm", immAddress),
         new Instruction("call imm", immAddress),
@@ -216,24 +231,24 @@ public class MetaprogramDecompiler {
         // 58
         new Instruction("longcall(chunk:imm, adr:imm)", compose(immIndex, immAddress)),
         new Instruction("longret", immNone),
-        new Instruction("exit()", immNone),
+        new Instruction("exit()", () -> { width = false; return 0; }),
         new Instruction("eraseSquareSpecial(x:heap[01], y:heap[00])", immNone),
         new Instruction("recurseOverParty(imm)", immAddress),
-        new Instruction("ax <- party(pc:heap[06], off:imm:1)", immByte),
-        new Instruction("party(pc:heap[06], adr:imm:1) <- ax ; heap[18 + heap[06]] <- 0x00", immByte),
-        new Instruction("set party(pc:heap[06], adr:ax.h + imm), 0x80 >> ax.l", immIndex),
+        new Instruction("ax <- party(pc:h[06], off:imm:1)", immByte),
+        new Instruction("party(pc:h[06], off:imm:1) <- ax ; h[18 + h[06]] <- 0x00", immByte),
+        new Instruction("set party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
         // 60
-        new Instruction("clr party(pc:heap[06], adr:ax.h + imm), 0x80 >> ax.l", immIndex),
-        new Instruction("test party(pc:heap[06], adr:ax.h + imm), 0x80 >> ax.l", immIndex),
+        new Instruction("clr party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
+        new Instruction("test party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
         new Instruction("search party(adr:imm) >= imm ; cf <- 0 if found", compose(immAddress, immByte)),
         new Instruction("recurseOverInventory(imm)", immAddress),
-        new Instruction("findEmptyInventorySlot(pc:heap[06])", immNone),
+        new Instruction("findEmptyInventorySlot(pc:h[06])", immNone),
         new Instruction("matchSpecialItem(ax) ; zf <- 1 if found", immNone),
         new Instruction("test heap[imm]", immIndex),
-        new Instruction("dropInventorySlot(pc:heap[06], slot:heap[07])", immNone),
+        new Instruction("dropInventorySlot(pc:h[06], slot:h[07])", immNone),
         // 68
-        new Instruction("", immNone),
-        new Instruction("", immNone),
+        new Instruction("ax:w <- getInventoryByte(pc:h[06], slot:h[07], off:imm)", immByte),
+        new Instruction("set_inventory_word(pc:h[06], slot:h[07], off:imm:1) <- ax:w", immByte),
         new Instruction("compare party(y,x) vs imm:y0,x0,y1,x1 ; zf <- 1 if inside", immRectangle),
         new Instruction("runAway()", immNone),
         new Instruction("stepForward()", immNone),
@@ -255,15 +270,15 @@ public class MetaprogramDecompiler {
         new Instruction("decodeString(ds,ax)", immNone),
         new Instruction("decodeTitleString(cs,si)", immNone),
         new Instruction("decodeTitleString(ds,ax)", immNone),
-        new Instruction("ifnCharName(pc:heap[06])", immNone),
-        new Instruction("*19f1(party(pc:heap[06]), slot:heap[07]))", immNone),
+        new Instruction("ifnCharName(pc:h[06])", immNone),
+        new Instruction("*19f1(party(pc:h[06]), slot:h[07]))", immNone),
         new Instruction("*19f1(ds,ax)", immNone),
         // 80
-        new Instruction("*1b86(imm)", immByte),
-        new Instruction("*1d5b(ax)", immNone),
-        new Instruction("*1d6b(heap[00]:4)", immNone),
+        new Instruction("indent(imm)", immByte),
+        new Instruction("print4DigitNumber(ax)", immNone),
+        new Instruction("print9DigitNumber(heap[imm]:4)", immIndex),
         new Instruction("*ifn.3093(ax)", immNone),
-        new Instruction("readChunkAndGetSegment(ch:0xffff, frob:0x1, size:ax)", immNone),
+        new Instruction("ax <- allocateSegment(frob:0x1, size:ax)", immNone),
         new Instruction("freeStructMemory(str:ax)", immNone),
         new Instruction("unpackChunkIntoSegment(ch:ax)", immNone),
         new Instruction("writeChunkToDisk(ch:ax)", immNone),
@@ -273,20 +288,20 @@ public class MetaprogramDecompiler {
         new Instruction("*4a80(ax)", immNone),
         new Instruction("drawCurrentViewport()", immNone),
         new Instruction("runYesNoModal() ; zf <- 1 if 'y'", immNone),
-        new Instruction("*1d39()", immNone),
-        new Instruction("*11ab()", immNone),
-        new Instruction("enableSpeaker(imm)", immByte),
-        // 90
-        new Instruction("*1a12()", immNone),
-        new Instruction("*1a12()", immNone),
+        new Instruction("*1de9()", immNone),
         new Instruction("", immNone),
+        new Instruction("*11ab()", immNone),
+        // 90
+        new Instruction("enableSpeaker(imm)", immByte),
+        new Instruction("*1a12()", immNone),
+        new Instruction("*1a12++()", immNone),
         new Instruction("push bl", immNone),
         new Instruction("pop bl", immNone),
-        new Instruction("", immNone),
-        new Instruction("", immNone),
-        new Instruction("ax <- party(pc:heap[06], adr:imm + bx)", immAddress),
+        new Instruction("setCursor(x:ax, y:bx)", immNone),
+        new Instruction("eraseLine()", immNone),
+        new Instruction("ax <- party(pc:h[06], off:imm + bx)", immByte),
         // 98
-        new Instruction("party(pc:heap[06], adr:imm + bx) <- ax ; heap[18 + heap[06]] <- 0x00", immAddress),
+        new Instruction("party(pc:h[06], off:imm + bx) <- ax ; h[18 + h[06]] <- 0x00", immByte),
         new Instruction("test ax", immNone),
         new Instruction("heap[imm] <- 0xff", immIndex),
         new Instruction("set heap[immA.h + immB], 0x80 >> immA.l", compose(immIndex, immIndex)),

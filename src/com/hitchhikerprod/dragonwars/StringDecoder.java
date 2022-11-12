@@ -151,39 +151,29 @@ public class StringDecoder {
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
-/*
-            data.seek(0x300);
-            final byte[] rawData = new byte[0x500];
-            data.read(rawData, 0, 0x500);
-            final Chunk chunk = new ModifiableChunk(rawData);
-*/
-
+            final int chunkId = 0x14;
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
-
-            final Chunk chunk = chunkTable.getChunk(0x0b);
-            // map chunks only
-/*
-            final Chunk mapChunk = chunkTable.getChunk(0x19 + 0x46);
-            final HuffmanDecoder mapDecoder = new HuffmanDecoder(mapChunk);
-            final List<Byte> decodedMapData = mapDecoder.decode();
-            final Chunk chunk = new Chunk(decodedMapData);
-*/
-
+            Chunk chunk = chunkTable.getChunk(chunkId);
+            if (chunkId >= 0x1e) {
+                final HuffmanDecoder mapDecoder = new HuffmanDecoder(chunk);
+                final List<Byte> decodedMapData = mapDecoder.decode();
+                chunk = new Chunk(decodedMapData);
+            }
             final StringDecoder decoder = new StringDecoder(exec, chunk);
 
-            for (int i = 0; i < chunk.getSize(); i++) {
+            chunk.display();
+            System.out.println();
+
+/*
+            int i = 0x003f;
+            while (i < chunk.getSize()) {
                 decoder.decodeString(i);
                 System.out.printf("0x%04x 0x%04x %s\n", i, decoder.getPointer(), decoder.getDecodedString());
+                i = decoder.getPointer();
             }
-
-/*
-            final ChunkTable chunkTable = new ChunkTable(data1, data2);
-            final Chunk chunk = chunkTable.getChunk(0x10);
-            final StringDecoder decoder = new StringDecoder(exec, chunk);
-            decoder.decodeString(0x7f8);
-            System.out.printf("0x%04x 0x%04x %s\n", 0x07f8, decoder.getPointer(), decoder.getDecodedString());
 */
-        } catch (ArrayIndexOutOfBoundsException e) {
+
+        } catch (IndexOutOfBoundsException e) {
             System.out.println("Stopped because we tried to decode off the end of the array");
         } catch (IOException e) {
             throw new RuntimeException(e);
