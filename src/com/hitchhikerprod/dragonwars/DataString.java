@@ -54,4 +54,18 @@ public class DataString {
         }
         return builder.toString();
     }
+
+    public static void main(String[] args) {
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+
+        try (
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r")
+        ) {
+            final DataString dataString = new DataString(exec, 0x2911, 0x20);
+            System.out.println(dataString.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 }

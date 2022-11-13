@@ -38,9 +38,13 @@ public class MetaprogramDecompiler {
     private static final List<Integer> STOPCODES = List.of(0x77,0x78,0x7b);
 
     public void disasm(int pointer, boolean width) {
+        disasm(pointer, chunk.getSize(), width);
+    }
+
+    public void disasm(int pointer, int endPointer, boolean width) {
         this.pointer = pointer;
         this.width = width;
-        while (this.pointer < chunk.getSize()) {
+        while (this.pointer < endPointer) {
             final int startPointer = this.pointer;
             final int opcode = getByte();
             System.out.printf("%08x  %02x", startPointer, opcode);
@@ -59,7 +63,12 @@ public class MetaprogramDecompiler {
             } else {
                 System.out.print(" ");
             }
-            System.out.println(ins.operation());
+
+            if (List.of(0x9b, 0x9c, 0x09d).contains(opcode)) {
+                System.out.println(calculateImmediate(opcode, ins));
+            } else {
+                System.out.println(ins.operation());
+            }
 
             if (STOPCODES.contains(opcode)) {
                 if (charTable.isEmpty()) {
@@ -115,11 +124,13 @@ public class MetaprogramDecompiler {
         while (true) {
             final int scanCode = getByte();
             count++;
-            if (scanCode == 0xff) break;
-            if ((scanCode == 0x81) || ((scanCode & 0x80) == 0)) {
-                // I think this means it's a scancode and not an ASCII byte?
-                getByte();
-                count++;
+            if (scanCode != 0x00) {
+                if (scanCode == 0xff) break;
+                if ((scanCode != 0x01) && ((scanCode == 0x81) || ((scanCode & 0x80) == 0))) {
+                    // I think this means it's a scancode and not an ASCII byte?
+                    getByte();
+                    count++;
+                }
             }
             getWord();
             count += 2;
@@ -311,14 +322,31 @@ public class MetaprogramDecompiler {
         new Instruction("*039f()", immNone)
     );
 
+    private String calculateImmediate(int opcode, Instruction ins) {
+        final int imm_one = chunk.getUnsignedByte(pointer - 2);
+        final int imm_two = chunk.getUnsignedByte(pointer - 1);
+        return ins.operation()
+            .replace("immA.h", String.format("%02x", imm_one >> 3))
+            .replace("0x80 >> immA.l", String.format("0x%02x", 0x80 >> (imm_one & 0x7)))
+            .replace("immB", String.format("%02x", imm_two));
+    }
+
     public static void main(String[] args) {
         final int chunkId;
         final int offset;
+        final Optional<Integer> endPointer;
         try {
             chunkId = Integer.parseInt(args[0].substring(2), 16);
             offset = Integer.parseInt(args[1].substring(2), 16);
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new RuntimeException("Insufficient arguments");
+        }
+
+        if (args.length > 2) {
+            final int end = Integer.parseInt(args[2].substring(2), 16);
+            endPointer = Optional.of(end);
+        } else {
+            endPointer = Optional.empty();
         }
 
         final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
@@ -336,7 +364,11 @@ public class MetaprogramDecompiler {
             }
             final StringDecoder.LookupTable charTable = new StringDecoder.LookupTable(exec);
             final MetaprogramDecompiler decomp = new MetaprogramDecompiler(chunk, charTable);
-            decomp.disasm(offset, false);
+            if (endPointer.isPresent()) {
+                decomp.disasm(offset, endPointer.get(), false);
+            } else {
+                decomp.disasm(offset, false);
+            }
         } catch (ArrayIndexOutOfBoundsException ignored) {
             System.err.println("Decoding error");
         } catch (IOException e) {

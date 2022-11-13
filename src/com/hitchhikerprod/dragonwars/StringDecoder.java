@@ -142,15 +142,17 @@ public class StringDecoder {
     public static void main(String[] args) {
         final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
 
-        // final String filename = basePath + "DRAGON.COM";
-        // final int startPoint = 0x463b;
-        final String filename = basePath + "DATA1";
-
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
+            final byte[] rawBytes = new byte[512];
+            exec.seek(0x2911);
+            exec.read(rawBytes, 0, 512);
+            final Chunk chunk = new Chunk(rawBytes);
+
+/*
             final int chunkId = 0x14;
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             Chunk chunk = chunkTable.getChunk(chunkId);
@@ -159,19 +161,19 @@ public class StringDecoder {
                 final List<Byte> decodedMapData = mapDecoder.decode();
                 chunk = new Chunk(decodedMapData);
             }
+*/
+
             final StringDecoder decoder = new StringDecoder(exec, chunk);
 
             chunk.display();
             System.out.println();
 
-/*
-            int i = 0x003f;
+            int i = 0x00;
             while (i < chunk.getSize()) {
                 decoder.decodeString(i);
                 System.out.printf("0x%04x 0x%04x %s\n", i, decoder.getPointer(), decoder.getDecodedString());
                 i = decoder.getPointer();
             }
-*/
 
         } catch (IndexOutOfBoundsException e) {
             System.out.println("Stopped because we tried to decode off the end of the array");

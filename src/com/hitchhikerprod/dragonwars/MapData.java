@@ -36,10 +36,11 @@ public class MapData {
     private static final int GRID_SIZE = GRID_SCALE * 10;
 
     final int mapId;
-    final RandomAccessFile executable;
+    // final RandomAccessFile executable;
     final ChunkTable chunkTable;
     final Chunk primaryData;
     final Chunk secondaryData;
+    final StringDecoder.LookupTable stringDecoderLookupTable;
 
     int chunkPointer;
     int xMax;
@@ -72,10 +73,11 @@ public class MapData {
 
     public MapData(RandomAccessFile executable, ChunkTable chunkTable, int mapId) {
         this.mapId = mapId;
-        this.executable = executable;
+        // this.executable = executable;
         this.chunkTable = chunkTable;
         this.primaryData = decompressChunk(mapId + 0x46);
         this.secondaryData = decompressChunk(mapId + 0x1e);
+        this.stringDecoderLookupTable = new StringDecoder.LookupTable(executable);
     }
 
     public void parse(int offset) throws IOException {
@@ -112,7 +114,7 @@ public class MapData {
         titleStringPtr = primaryData.getWord(chunkPointer);
         chunkPointer += 2;
 
-        final StringDecoder sd = new StringDecoder(executable, primaryData);
+        final StringDecoder sd = new StringDecoder(stringDecoderLookupTable, primaryData);
         sd.decodeString(titleStringPtr);
         titleString = sd.getDecodedString();
         // System.out.printf("Title string: %04x - %04x\n", titleStringAdr, sd.getPointer());
@@ -401,7 +403,17 @@ public class MapData {
         for (int x = 0; x < xMax; x++) { System.out.printf("  x=%02d ", x); }
         System.out.println();
 
-        primaryData.display(primaryPointers.stream().min(Integer::compareTo).orElse(0));
+        final int startOfMetaprogram = primaryPointers.stream().min(Integer::compareTo).orElse(0);
+        primaryData.display(startOfMetaprogram);
+        System.out.println();
+
+/*
+        try {
+            MetaprogramDecompiler decompiler = new MetaprogramDecompiler(primaryData, stringDecoderLookupTable);
+            decompiler.disasm(startOfMetaprogram, false);
+        } catch (IndexOutOfBoundsException ignored) {}
+        System.out.println();
+*/
 
         System.out.printf("\nSecondary Data (chunk %02x):", mapId + 0x1e);
         System.out.print("\n  Pointers:");
@@ -432,9 +444,10 @@ public class MapData {
             System.out.println();
         }
 
+/*
         System.out.println();
         System.out.println("Packed strings in primary data:");
-        final StringDecoder sd1 = new StringDecoder(executable, primaryData);
+        final StringDecoder sd1 = new StringDecoder(stringDecoderLookupTable, primaryData);
         try {
             for (int ptr = 0; ptr < primaryData.getSize(); ptr++) {
                 sd1.decodeString(ptr);
@@ -444,10 +457,11 @@ public class MapData {
                 //ptr = sd1.getPointer()-1;
             }
         } catch (IndexOutOfBoundsException ignored) {}
+*/
 
         System.out.println();
         System.out.println("Packed strings in secondary data:");
-        final StringDecoder sd2 = new StringDecoder(executable, secondaryData);
+        final StringDecoder sd2 = new StringDecoder(stringDecoderLookupTable, secondaryData);
         try {
             for (int ptr = 0; ptr < secondaryData.getSize(); ptr++) {
                 sd2.decodeString(ptr);
