@@ -1,4 +1,4 @@
-package com.hitchhikerprod.dragonwars;
+package com.hitchhikerprod.dragonwars.data;
 
 public class WeaponDamage {
     private final int num;

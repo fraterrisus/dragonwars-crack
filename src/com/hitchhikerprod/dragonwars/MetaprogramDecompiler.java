@@ -64,10 +64,12 @@ public class MetaprogramDecompiler {
                 System.out.print(" ");
             }
 
-            if (List.of(0x9b, 0x9c, 0x09d).contains(opcode)) {
-                System.out.println(calculateImmediate(opcode, ins));
-            } else {
-                System.out.println(ins.operation());
+            switch(opcode) {
+                case 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x52, 0x53 ->
+                    System.out.println(calculateJumpTarget(opcode, ins));
+                case 0x57, 0x58 -> System.out.println(calculateLongTarget(opcode, ins));
+                case 0x9b, 0x9c, 0x9d -> System.out.println(calculateImmediate(opcode, ins));
+                default -> System.out.println(ins.operation());
             }
 
             if (STOPCODES.contains(opcode)) {
@@ -156,10 +158,10 @@ public class MetaprogramDecompiler {
         new Instruction("ax:w <- heap[imm + bx]", immIndex),
         new Instruction("ax:w <- ds:[imm]", immAddress),
         new Instruction("ax:w <- ds:[imm + bx]", immAddress),
-        new Instruction("ax:w <- ds:[heap[imm] + bx]", immIndex),
-        new Instruction("ax:w <- longptr(heap[imm]) + bx", immIndex),
+        new Instruction("ax:w <- ds:[heap[imm]:2 + bx]", immIndex),
+        new Instruction("ax:w <- longptr(heap[imm]:3) + bx", immIndex),
         // 10
-        new Instruction("ax:w <- ds:[heap[imm] + imm]", compose(immIndex, immIndex)),
+        new Instruction("ax:w <- ds:[heap[imm]:2 + imm]", compose(immIndex, immIndex)),
         new Instruction("heap[imm]:w <- 0x0000", immIndex),
         new Instruction("heap[imm]:w <- ax:w", immIndex),
         new Instruction("heap[imm + bx]:w <- ax:w", immIndex),
@@ -168,7 +170,7 @@ public class MetaprogramDecompiler {
         new Instruction("ds:[heap[imm] + bx]:w <- ax:w", immIndex),
         new Instruction("longptr(heap[imm]) + bx <- ax:w", immIndex),
         // 18
-        new Instruction("ds:[heap[imm] + imm] <- ax:w", compose(immIndex, immAddress)),
+        new Instruction("ds:[heap[imm] + imm] <- ax:w", compose(immIndex, immByte)),
         new Instruction("heap[imm]:w -> heap[imm]:w", compose(immIndex, immIndex)),
         new Instruction("heap[imm]:w <- imm:w", compose(immIndex, immWord)),
         new Instruction("ds:[imm]:w -> ds:[imm]:w", compose(immAddress, immAddress)),
@@ -227,7 +229,7 @@ public class MetaprogramDecompiler {
         new Instruction("loop bx, limit, addr ; inc bx", compose(immByte, immAddress)),
         new Instruction("stc", immNone),
         new Instruction("clc", immNone),
-        new Instruction("ax <- readPITCounter()", immNone),
+        new Instruction("ax <- random(ax)", immNone),
         new Instruction("set heap[ax.h + imm], 0x80 >> ax.l", immIndex),
         new Instruction("clr heap[ax.h + imm], 0x80 >> ax.l", immIndex),
         // 50
@@ -314,13 +316,27 @@ public class MetaprogramDecompiler {
         // 98
         new Instruction("party(pc:h[06], off:imm + bx) <- ax ; h[18 + h[06]] <- 0x00", immByte),
         new Instruction("test ax", immNone),
-        new Instruction("heap[imm] <- 0xff", immIndex),
+        new Instruction("heap[imm]:w <- 0xffff", immIndex),
         new Instruction("set heap[immA.h + immB], 0x80 >> immA.l", compose(immIndex, immIndex)),
         new Instruction("clr heap[immA.h + immB], 0x80 >> immA.l", compose(immIndex, immIndex)),
         new Instruction("test heap[immA.h + immB], 0x80 >> immA.l", compose(immIndex, immIndex)),
         new Instruction("ax <- getStructSize(str:ax)", immNone),
         new Instruction("*039f()", immNone)
     );
+
+    private String calculateLongTarget(int opcode, Instruction ins) {
+        final int chunkId = chunk.getUnsignedByte(pointer - 3);
+        final int target = chunk.getWord(pointer - 2);
+        return ins.operation()
+            .replace("chunk:imm", String.format("chunk:%02x", chunkId))
+            .replace("adr:imm", String.format("adr:%04x", target));
+    }
+
+    private String calculateJumpTarget(int opcode, Instruction ins) {
+        final int target = chunk.getWord(pointer - 2);
+        return ins.operation()
+            .replace("imm", String.format("0x%04x", target));
+    }
 
     private String calculateImmediate(int opcode, Instruction ins) {
         final int imm_one = chunk.getUnsignedByte(pointer - 2);

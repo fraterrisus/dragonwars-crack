@@ -1,5 +1,9 @@
 package com.hitchhikerprod.dragonwars;
 
+import com.hitchhikerprod.dragonwars.data.Character;
+import com.hitchhikerprod.dragonwars.data.DataString;
+import com.hitchhikerprod.dragonwars.data.Item;
+
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;

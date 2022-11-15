@@ -1,4 +1,6 @@
-package com.hitchhikerprod.dragonwars;
+package com.hitchhikerprod.dragonwars.data;
+
+import com.hitchhikerprod.dragonwars.Chunk;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

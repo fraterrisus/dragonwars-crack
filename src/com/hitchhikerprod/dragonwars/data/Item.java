@@ -1,4 +1,10 @@
-package com.hitchhikerprod.dragonwars;
+package com.hitchhikerprod.dragonwars.data;
+
+import com.hitchhikerprod.dragonwars.Chunk;
+import com.hitchhikerprod.dragonwars.data.DataString;
+import com.hitchhikerprod.dragonwars.data.Lists;
+import com.hitchhikerprod.dragonwars.data.PowerInt;
+import com.hitchhikerprod.dragonwars.data.WeaponDamage;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

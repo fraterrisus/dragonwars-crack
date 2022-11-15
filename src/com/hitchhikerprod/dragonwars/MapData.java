@@ -1,5 +1,10 @@
 package com.hitchhikerprod.dragonwars;
 
+import com.hitchhikerprod.dragonwars.data.DataString;
+import com.hitchhikerprod.dragonwars.data.Item;
+import com.hitchhikerprod.dragonwars.data.ItemEvent;
+import com.hitchhikerprod.dragonwars.data.SpecialEvent;
+
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;
@@ -49,7 +54,7 @@ public class MapData {
 
     List<Integer> primaryPointers;
     List<Integer> secondaryPointers;
-    List<Integer> secondaryItemPointers;
+    List<Integer> itemPointers;
 
     int titleStringPtr;
     int metaprogramStartPtr;
@@ -90,14 +95,6 @@ public class MapData {
         chunkPointer += 4;
 
         byteReader(textureChunks5677::add);
-        // Additional Chunk layout:
-        // word 0: pointer to start of texture data; if 0, return immediately
-        //   how long does this go on? in some chunks, for a *while*
-        // start byte:
-        //   0: width
-        //   1: height
-        //   2: x offset (add this to x0)
-        //   3: y offset (add this to y0)
 
         byte f = 0;
         while ((f & 0x80) == 0) {
@@ -133,8 +130,13 @@ public class MapData {
         specialEventsPtr = primaryPointers.get(1);
 
         secondaryPointers = discoverPointers(secondaryData, 0);
+
+        monsterDataPtr = secondaryPointers.get(0);
+        monsterListPtr = secondaryPointers.get(1);
+        parseMonsters();
+
         itemListPtr = secondaryPointers.get(3);
-        secondaryItemPointers = discoverPointers(secondaryData, itemListPtr);
+        itemPointers = discoverPointers(secondaryData, itemListPtr);
 
         parseSpecialEvents();
     }
@@ -421,8 +423,10 @@ public class MapData {
             System.out.printf(" [%04x]", p);
         }
 
+        // pointer 1 = [00ce]
+
         System.out.printf("\n  Items: ptr[03] -> [%04x]\n", itemListPtr);
-        for (int p : secondaryItemPointers) {
+        for (int p : itemPointers) {
             System.out.printf("    [%04x]%s\n", p, decodeItemFromSecondaryData(p));
         }
 
@@ -518,6 +522,13 @@ public class MapData {
         return new Chunk(decodedMapData);
     }
 
+    private int monsterDataPtr;
+    private int monsterListPtr;
+
+    private void parseMonsters() {
+
+    }
+
     private void parseSpecialEvents() {
         int pointer = specialEventsPtr;
         while (true) {
@@ -548,50 +559,12 @@ public class MapData {
         return item;
     }
 
-    private class SpecialEvent {
-        final int header;
-        final int eventId;
-        final int metaprogramIndex;
+    private class Monster {
 
-        public SpecialEvent(int header, int eventId, int metaprogramIndex) {
-            this.header = header;
-            this.eventId = eventId;
-            this.metaprogramIndex = metaprogramIndex;
-        }
-
-        public int getHeader() { return header; }
-        public int getEventId() { return eventId; }
-        public int getMetaprogramIndex() { return metaprogramIndex; }
-
-        @Override
-        public String toString() {
-            final List<String> fields = new ArrayList<>();
-            fields.add(String.format("header=%02x", header & 0xff));
-            fields.add(String.format("eventId=%02x", eventId & 0xff));
-            fields.add(String.format("metaprogramIndex=%02x", metaprogramIndex & 0xff));
-            return "SpecialEvent<" + String.join(",", fields) + ">";
-        }
     }
 
-    private class ItemEvent extends SpecialEvent {
-        final int itemIndex;
+    private class MonsterGroup {
 
-        public ItemEvent(int header, int itemIndex, int eventId, int metaprogramIndex) {
-            super(header, eventId, metaprogramIndex);
-            this.itemIndex = itemIndex;
-        }
-
-        public int getItemIndex() { return itemIndex; }
-
-        @Override
-        public String toString() {
-            final List<String> fields = new ArrayList<>();
-            fields.add(String.format("header=%02x", header & 0xff));
-            fields.add(String.format("itemIndex=%02x", itemIndex & 0xff));
-            fields.add(String.format("eventId=%02x", eventId & 0xff));
-            fields.add(String.format("metaprogramIndex=%02x", metaprogramIndex & 0xff));
-            return "ItemEvent<" + String.join(",", fields) + ">";
-        }
     }
 
     public static void main(String[] args) {

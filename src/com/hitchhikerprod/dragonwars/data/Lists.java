@@ -1,4 +1,4 @@
-package com.hitchhikerprod.dragonwars;
+package com.hitchhikerprod.dragonwars.data;
 
 public class Lists {
     static final String[] SKILL_NAMES = { "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",

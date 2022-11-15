@@ -176,7 +176,7 @@ public class HuffmanDecoder {
         ) {
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             final Chunk rawChunk = chunkTable.getChunk(chunkId);
-            rawChunk.display();
+            // rawChunk.display();
             final HuffmanDecoder mapDecoder = new HuffmanDecoder(rawChunk);
             final List<Byte> decodedMapData = mapDecoder.decode();
             final Chunk decodedChunk = new Chunk(decodedMapData);

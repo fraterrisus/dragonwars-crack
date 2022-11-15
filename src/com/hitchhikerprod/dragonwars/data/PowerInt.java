@@ -1,4 +1,4 @@
-package com.hitchhikerprod.dragonwars;
+package com.hitchhikerprod.dragonwars.data;
 
 public class PowerInt {
     private final Integer value;
