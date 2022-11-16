@@ -15,6 +15,7 @@ public class Item {
     private final Chunk chunk;
 
     private String name;
+    private int offset;
 
     private int attackValueMod;
     private int armorClassMod;
@@ -42,7 +43,8 @@ public class Item {
         this.chunk = chunk;
     }
 
-    public void decode(int offset) {
+    public Item decode(int offset) {
+        this.offset = offset;
         this.name = new DataString(chunk, offset+11, 12).toString();
         
         this.equipped = (chunk.getByte(offset + 0) & 0x80) > 0;
@@ -78,7 +80,7 @@ public class Item {
                 damageDice.add(new WeaponDamage(chunk.getByte(offset + 9)));
             }
         }
-
+        return this;
     }
 
     public String toString() {
@@ -134,6 +136,10 @@ public class Item {
 
     public String getName() {
         return name;
+    }
+
+    public int getOffset() {
+        return offset;
     }
 
     private String parseMagicEffect(byte one, byte two) {

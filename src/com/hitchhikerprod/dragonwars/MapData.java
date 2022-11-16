@@ -1,8 +1,11 @@
 package com.hitchhikerprod.dragonwars;
 
 import com.hitchhikerprod.dragonwars.data.DataString;
+import com.hitchhikerprod.dragonwars.data.Encounter;
 import com.hitchhikerprod.dragonwars.data.Item;
 import com.hitchhikerprod.dragonwars.data.ItemEvent;
+import com.hitchhikerprod.dragonwars.data.Monster;
+import com.hitchhikerprod.dragonwars.data.MonsterGroup;
 import com.hitchhikerprod.dragonwars.data.SpecialEvent;
 
 import javax.imageio.ImageIO;
@@ -40,41 +43,47 @@ public class MapData {
     private static final int GRID_SCALE = 4;
     private static final int GRID_SIZE = GRID_SCALE * 10;
 
-    final int mapId;
-    // final RandomAccessFile executable;
-    final ChunkTable chunkTable;
-    final Chunk primaryData;
-    final Chunk secondaryData;
-    final StringDecoder.LookupTable stringDecoderLookupTable;
+    private final int mapId;
+    // private final RandomAccessFile executable;
+    private final ChunkTable chunkTable;
+    private final Chunk primaryData;
+    private final Chunk secondaryData;
+    private final StringDecoder.LookupTable stringDecoderLookupTable;
 
-    int chunkPointer;
-    int xMax;
-    int yMax;
-    int mapMetadata; // heap[23-24]
+    private int chunkPointer;
+    private int xMax;
+    private int yMax;
+    private int mapMetadata; // heap[23-24]
 
-    List<Integer> primaryPointers;
-    List<Integer> secondaryPointers;
-    List<Integer> itemPointers;
+    private List<Integer> primaryPointers;
+    private List<Integer> secondaryPointers;
+    // private List<Integer> itemPointers;
 
-    int titleStringPtr;
-    int metaprogramStartPtr;
-    int specialEventsPtr;
-    int itemListPtr;
-    String titleString;
+    private List<Item> items;
+    private List<Encounter> encounters;
 
-    final List<Byte> wallTextures54a7 = new ArrayList<>();
+    private int titleStringPtr;
+    private int metaprogramStartPtr;
+    private int specialEventsPtr;
+    private int itemListPtr;
+    private int monsterDataPtr;
+    private int encountersPtr;
+
+    private String titleString;
+
+    private final List<Byte> wallTextures54a7 = new ArrayList<>();
     // 54b5: translates map square bits [0:3]
-    final List<Byte> wallMetadata54b6 = new ArrayList<>();
+    private final List<Byte> wallMetadata54b6 = new ArrayList<>();
     // 54c5: texture array? maxlen 4, values are indexes into 5677
-    final List<Byte> roofTextures54c5 = new ArrayList<>();
-    final List<Byte> floorTextures54c9 = new ArrayList<>();
-    final List<Byte> otherTextures54cd = new ArrayList<>();
+    private final List<Byte> roofTextures54c5 = new ArrayList<>();
+    private final List<Byte> floorTextures54c9 = new ArrayList<>();
+    private final List<Byte> otherTextures54cd = new ArrayList<>();
     // 5677: list of texture chunks (+0x6e); see 0x5786()
     // 57c4: list of texture? segments
-    final List<Byte> textureChunks5677 = new ArrayList<>();
+    private final List<Byte> textureChunks5677 = new ArrayList<>();
     // 5734: list of pointers to square data rows
-    final List<Integer> rowPointers57e4 = new ArrayList<>();
-    final List<SpecialEvent> specialEvents = new ArrayList<>();
+    private final List<Integer> rowPointers57e4 = new ArrayList<>();
+    private final List<SpecialEvent> specialEvents = new ArrayList<>();
 
     public MapData(RandomAccessFile executable, ChunkTable chunkTable, int mapId) {
         this.mapId = mapId;
@@ -132,11 +141,11 @@ public class MapData {
         secondaryPointers = discoverPointers(secondaryData, 0);
 
         monsterDataPtr = secondaryPointers.get(0);
-        monsterListPtr = secondaryPointers.get(1);
-        parseMonsters();
+        encountersPtr = secondaryPointers.get(1);
+        parseEncounters();
 
         itemListPtr = secondaryPointers.get(3);
-        itemPointers = discoverPointers(secondaryData, itemListPtr);
+        parseItems();
 
         parseSpecialEvents();
     }
@@ -422,13 +431,22 @@ public class MapData {
         for (int p : secondaryPointers) {
             System.out.printf(" [%04x]", p);
         }
+        System.out.println();
 
-        // pointer 1 = [00ce]
+        System.out.printf("\n  Encounters: ptr[00]->[%04x], ptr[01]->[%04x]\n", encountersPtr, monsterDataPtr);
+        for (Encounter enc : encounters) {
+            System.out.printf("    [%04x]%s", enc.getOffset(), enc);
+        }
 
         System.out.printf("\n  Items: ptr[03] -> [%04x]\n", itemListPtr);
+        for (Item item : items) {
+            System.out.printf("    [%04x]%s\n", item.getOffset(), item);
+        }
+/*
         for (int p : itemPointers) {
             System.out.printf("    [%04x]%s\n", p, decodeItemFromSecondaryData(p));
         }
+*/
 
         secondaryData.display(secondaryPointers.stream().min(Integer::compareTo).orElse(0));
 
@@ -462,7 +480,7 @@ public class MapData {
             }
         } catch (IndexOutOfBoundsException ignored) {}
 */
-
+/*
         System.out.println();
         System.out.println("Packed strings in secondary data:");
         final StringDecoder sd2 = new StringDecoder(stringDecoderLookupTable, secondaryData);
@@ -485,6 +503,7 @@ public class MapData {
                 System.out.printf("  [%04x] %s\n", ptr, s);
             }
         } catch (IndexOutOfBoundsException ignored) {}
+ */
     }
 
     private List<Integer> discoverPointers(Chunk chunk, int basePtr) {
@@ -522,13 +541,6 @@ public class MapData {
         return new Chunk(decodedMapData);
     }
 
-    private int monsterDataPtr;
-    private int monsterListPtr;
-
-    private void parseMonsters() {
-
-    }
-
     private void parseSpecialEvents() {
         int pointer = specialEventsPtr;
         while (true) {
@@ -553,18 +565,26 @@ public class MapData {
 
     }
 
-    private Item decodeItemFromSecondaryData(int offset) {
-        final Item item = new Item(secondaryData);
-        item.decode(offset);
-        return item;
+    private void parseItems() {
+        this.items = new ArrayList<>();
+        for (int offset : discoverPointers(secondaryData, itemListPtr)) {
+            this.items.add(new Item(secondaryData).decode(offset));
+        }
     }
 
-    private class Monster {
-
-    }
-
-    private class MonsterGroup {
-
+    private void parseEncounters() {
+        this.encounters = new ArrayList<>();
+        final List<Monster> monsters = new ArrayList<>();
+        for (int offset : discoverPointers(secondaryData, monsterDataPtr + 1)) {
+            monsters.add(new Monster(secondaryData, stringDecoderLookupTable).decode(offset));
+        }
+        for (int offset : discoverPointers(secondaryData, encountersPtr + 1)) {
+            final Encounter enc = new Encounter(secondaryData).decode(offset);
+            for (MonsterGroup mg : enc.getGroups()) {
+                mg.setMonster(monsters.get(mg.getMonsterIndex() - 1));
+            }
+            this.encounters.add(enc);
+        }
     }
 
     public static void main(String[] args) {
