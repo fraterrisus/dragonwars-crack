@@ -68,6 +68,7 @@ public class MapData {
     private int itemListPtr;
     private int monsterDataPtr;
     private int encountersPtr;
+    private int tagLinesPtr;
 
     private String titleString;
 
@@ -142,6 +143,7 @@ public class MapData {
 
         monsterDataPtr = secondaryPointers.get(0);
         encountersPtr = secondaryPointers.get(1);
+        tagLinesPtr = secondaryPointers.get(2);
         parseEncounters();
 
         itemListPtr = secondaryPointers.get(3);
@@ -433,22 +435,18 @@ public class MapData {
         }
         System.out.println();
 
-        System.out.printf("\n  Encounters: ptr[00]->[%04x], ptr[01]->[%04x]\n", encountersPtr, monsterDataPtr);
+        System.out.printf("\n  Encounters: ptr[00]->[%04x], ptr[01]->[%04x], ptr[02]->[%04x]\n",
+            encountersPtr, monsterDataPtr, tagLinesPtr);
         for (Encounter enc : encounters) {
             System.out.printf("    [%04x]%s", enc.getOffset(), enc);
         }
 
-        System.out.printf("\n  Items: ptr[03] -> [%04x]\n", itemListPtr);
+        System.out.printf("\n  Items: ptr[03]->[%04x]\n", itemListPtr);
         for (Item item : items) {
             System.out.printf("    [%04x]%s\n", item.getOffset(), item);
         }
-/*
-        for (int p : itemPointers) {
-            System.out.printf("    [%04x]%s\n", p, decodeItemFromSecondaryData(p));
-        }
-*/
 
-        secondaryData.display(secondaryPointers.stream().min(Integer::compareTo).orElse(0));
+        // secondaryData.display(secondaryPointers.stream().min(Integer::compareTo).orElse(0));
 
         System.out.println();
         System.out.println("Texture Chunks:");
@@ -456,7 +454,7 @@ public class MapData {
             final int chunkId = (id & 0x7f) + 0x6e;
             final Chunk moreData = decompressChunk(chunkId);
             if (chunkId == 0x6f) {
-                System.out.printf("  0*6f* 0000 0000 %04x", moreData.getWord(0x04));
+                System.out.printf(" *0x6f* [0000] [0000] [%04x]", moreData.getWord(0x04));
             } else {
                 System.out.printf("  0x%02x:", chunkId);
                 for (int p : discoverPointers(moreData, 0)) {
@@ -503,7 +501,7 @@ public class MapData {
                 System.out.printf("  [%04x] %s\n", ptr, s);
             }
         } catch (IndexOutOfBoundsException ignored) {}
- */
+*/
     }
 
     private List<Integer> discoverPointers(Chunk chunk, int basePtr) {
@@ -574,12 +572,22 @@ public class MapData {
 
     private void parseEncounters() {
         this.encounters = new ArrayList<>();
+
         final List<Monster> monsters = new ArrayList<>();
         for (int offset : discoverPointers(secondaryData, monsterDataPtr + 1)) {
             monsters.add(new Monster(secondaryData, stringDecoderLookupTable).decode(offset));
         }
+
+        final List<String> taglines = new ArrayList<>();
+        final StringDecoder sd = new StringDecoder(this.stringDecoderLookupTable, secondaryData);
+        for (int offset : discoverPointers(secondaryData, tagLinesPtr)) {
+            sd.decodeString(offset);
+            taglines.add(sd.getDecodedString());
+        }
+
         for (int offset : discoverPointers(secondaryData, encountersPtr + 1)) {
             final Encounter enc = new Encounter(secondaryData).decode(offset);
+            enc.setTagline(taglines.get(enc.getTaglineIndex()));
             for (MonsterGroup mg : enc.getGroups()) {
                 mg.setMonster(monsters.get(mg.getMonsterIndex() - 1));
             }

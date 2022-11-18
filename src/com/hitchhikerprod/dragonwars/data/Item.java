@@ -30,15 +30,6 @@ public class Item {
     private String skill;
     private int uses;
 
-    private boolean unknownFlag;
-
-    public Item(RandomAccessFile dataFile, final long offset) throws IOException {
-        final byte[] rawBytes = new byte[23];
-        dataFile.seek(offset);
-        dataFile.read(rawBytes, 0, 23);
-        this.chunk = new Chunk(rawBytes);
-    }
-
     public Item(Chunk chunk) {
         this.chunk = chunk;
     }
@@ -47,11 +38,11 @@ public class Item {
         this.offset = offset;
         this.name = new DataString(chunk, offset+11, 12).toString();
         
-        this.equipped = (chunk.getByte(offset + 0) & 0x80) > 0;
-        this.uses = (chunk.getByte(offset + 0) & 0x1f);
+        this.equipped = (chunk.getByte(offset) & 0x80) > 0;
+        this.uses =     (chunk.getByte(offset) & 0x1f);
 
         final boolean reducesAV = (chunk.getByte(offset + 1) & 0x80) > 0;
-        this.unknownFlag = (chunk.getByte(offset + 1) & 0x40) > 0;
+        final boolean reducesAC = (chunk.getByte(offset + 1) & 0x40) > 0;
         final String skillName = Lists.REQUIREMENTS[chunk.getByte(offset + 1) & 0x3f];
 
         this.minimumValue = (chunk.getByte(offset + 2) & 0x1f);
@@ -59,7 +50,8 @@ public class Item {
 
         final int av = (chunk.getByte(offset + 3) & 0xf0) >> 4;
         this.attackValueMod = reducesAV ? av * -1 : av;
-        this.armorClassMod = (chunk.getByte(offset + 3) & 0x0f);
+        final int ac = (chunk.getByte(offset + 3) & 0x0f);
+        this.armorClassMod = reducesAC ? ac * -1 : ac;
 
         this.purchasePrice = new PowerInt(chunk.getByte(offset + 4));
 
@@ -87,7 +79,7 @@ public class Item {
         final List<String> attributes = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
 
-        //sb.append(unknownBytes());
+//        sb.append(unknownBytes());
         sb.append("    ");
         if (this.equipped) { sb.append("*"); }
         sb.append(this.name);
@@ -179,18 +171,16 @@ public class Item {
         }
     }
 
-/*    private String unknownBytes() {
+    private String unknownBytes() {
         final StringBuilder sb = new StringBuilder();
         sb.append((this.chunk.getByte(offset + 0) & 0x40) > 0 ? "1" : "0");
         sb.append((this.chunk.getByte(offset + 0) & 0x20) > 0 ? "1" : "0");
-        sb.append("-");
-        sb.append((this.chunk.getByte(offset + 1) & 0x40) > 0 ? "1" : "0");
         sb.append("-");
         sb.append((this.chunk.getByte(offset + 2) & 0x80) > 0 ? "1" : "0");
         sb.append((this.chunk.getByte(offset + 2) & 0x40) > 0 ? "1" : "0");
         sb.append((this.chunk.getByte(offset + 2) & 0x20) > 0 ? "1" : "0");
         sb.append(" ");
         return sb.toString();
-    }*/
+    }
 }
 

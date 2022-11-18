@@ -10,19 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChunkImageDecoder {
-    final ChunkTable chunks;
-    final int chunkId;
-
-    ChunkImageDecoder(RandomAccessFile data1, RandomAccessFile data2, int chunkId) {
-        this.chunks = new ChunkTable(data1, data2);
-        this.chunkId = chunkId;
-    }
-
-    public void parse() {
-        final Chunk chunk = chunks.getChunk(chunkId);
+    public void parse(Chunk chunk) {
         final HuffmanDecoder decoder = new HuffmanDecoder(chunk);
-        final List<Byte> unpacked = applyRollingXor(decoder.decode(), 0x00);
-        final BufferedImage image = convert(unpacked);
+        final List<Byte> decoded = decoder.decode();
+        final List<Byte> rolled = applyRollingXor(decoded, 0x00);
+        final BufferedImage image = convert(rolled);
         try {
             ImageIO.write(Images.scale(image,4, AffineTransformOp.TYPE_NEAREST_NEIGHBOR),
                     "png", new File("image.png"));
@@ -76,30 +68,33 @@ public class ChunkImageDecoder {
     private static final String IMAGE_USAGE = "usage: image chunkId";
 
     public static void main(String[] args) {
-        final String chunk = args[0];
+        final String chunkString = args[0];
         final int chunkId;
 
         try {
-            if (chunk.startsWith("0x")) {
-                chunkId = Integer.parseInt(chunk.substring(2), 16);
+            if (chunkString.startsWith("0x")) {
+                chunkId = Integer.parseInt(chunkString.substring(2), 16);
             } else {
-                chunkId = Integer.parseInt(chunk, 10);
+                chunkId = Integer.parseInt(chunkString, 10);
             }
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException(IMAGE_USAGE);
         }
 
+        final Chunk chunk;
         final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
         try (
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r")
         ) {
-            final ChunkImageDecoder decoder = new ChunkImageDecoder(data1, data2, chunkId);
-            decoder.parse();
+            final ChunkTable table = new ChunkTable(data1, data2);
+            chunk = table.getChunk(chunkId);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+        final ChunkImageDecoder decoder = new ChunkImageDecoder();
+        decoder.parse(chunk);
     }
 
 }

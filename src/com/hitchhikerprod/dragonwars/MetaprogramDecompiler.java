@@ -298,7 +298,7 @@ public class MetaprogramDecompiler {
         // 88
         new Instruction("waitForEscKey()", immNone),
         new Instruction("readKeySwitch()", readKeySwitch),
-        new Instruction("*4a80(ax)", immNone),
+        new Instruction("*4a80(ax)", immNone), // show monster graphics?
         new Instruction("drawCurrentViewport()", immNone),
         new Instruction("runYesNoModal() ; zf <- 1 if 'y'", immNone),
         new Instruction("*1de9()", immNone),

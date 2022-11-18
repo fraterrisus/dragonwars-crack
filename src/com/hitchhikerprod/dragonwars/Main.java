@@ -174,8 +174,14 @@ public class Main {
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             while (index < args.size()) {
                 final int offset = Integer.valueOf(args.get(index), 16) - 11;
+
+                final byte[] rawBytes = new byte[23];
+                dataFile.seek(offset);
+                dataFile.read(rawBytes, 0, 23);
+                final Chunk chunk = new Chunk(rawBytes);
+
                 index++;
-                final Item item = new Item(dataFile, offset);
+                final Item item = new Item(chunk).decode(0);
                 if (item.getName().isBlank()) {
                     continue;
                 }

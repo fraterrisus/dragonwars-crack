@@ -10,7 +10,8 @@ public class Encounter {
 
     private int offset;
     private List<MonsterGroup> groups;
-    private int heap5c;
+    private int taglineIdx;
+    private String tagline;
 
     public Encounter(Chunk data) {
         this.data = data;
@@ -21,7 +22,7 @@ public class Encounter {
 
         final int b0 = data.getUnsignedByte(offset);
         final int numGroups = ((b0 & 0x00c0) >> 6) + 1;
-        heap5c = b0 & 0x003f;
+        taglineIdx = b0 & 0x003f;
 
         this.groups = new ArrayList<>();
         for (int i = 0; i < numGroups; i++) {
@@ -40,14 +41,16 @@ public class Encounter {
         return offset;
     }
 
-    public int getHeap5c() {
-        return heap5c;
+    public int getTaglineIndex() {
+        return taglineIdx;
     }
+
+    public void setTagline(String tagline) { this.tagline = tagline; }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("\n");
+        sb.append("  Tagline: ").append(tagline).append("\n");
         for (MonsterGroup mg : groups) {
             sb.append("    ").append(mg).append("\n");
         }
