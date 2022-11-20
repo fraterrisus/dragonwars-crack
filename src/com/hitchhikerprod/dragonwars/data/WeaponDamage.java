@@ -13,6 +13,14 @@ public class WeaponDamage {
         this.other = (b & 18) >> 3;
     }
 
+    public int getNum() {
+        return num;
+    }
+
+    public int getSides() {
+        return sides;
+    }
+
     public String toString() {
         if (other != 0) {
             return num + "d" + sides + " (" + other + ")";

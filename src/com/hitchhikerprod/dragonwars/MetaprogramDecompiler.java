@@ -49,6 +49,7 @@ public class MetaprogramDecompiler {
             final int opcode = getByte();
             System.out.printf("%08x  %02x", startPointer, opcode);
             final Instruction ins = decodeOpcode(opcode);
+
             int numBytes = ins.sideEffect().get();
             for (int i = 0; i < numBytes; i++) {
                 System.out.printf("%02x", getByte());
@@ -64,13 +65,28 @@ public class MetaprogramDecompiler {
                 System.out.print(" ");
             }
 
+            final String mnemonic;
             switch(opcode) {
-                case 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x52, 0x53 ->
-                    System.out.println(calculateJumpTarget(opcode, ins));
-                case 0x57, 0x58 -> System.out.println(calculateLongTarget(opcode, ins));
-                case 0x9b, 0x9c, 0x9d -> System.out.println(calculateImmediate(opcode, ins));
-                default -> System.out.println(ins.operation());
+                // Opcodes where the immediate is always narrow
+                case 0x05, 0x06, 0x08, 0x0a, 0x0b, 0x0e, 0x0f, 0x11,
+                    0x12, 0x13, 0x16, 0x17, 0x23, 0x26, 0x29, 0x2c,
+                    0x2f, 0x31, 0x33, 0x35, 0x37, 0x39, 0x3b, 0x3d,
+                    0x3f, 0x40, 0x48, 0x4e, 0x4f, 0x50, 0x5d, 0x5e,
+                    0x5f, 0x60, 0x61, 0x66, 0x68, 0x69, 0x6f, 0x70,
+                    0x80, 0x82, 0x90, 0x97, 0x98, 0x9a ->
+                    mnemonic = replaceImmediateByte(opcode, ins);
+                // Opcodes where the immediate is always wide
+                case 0x0c, 0x0d, 0x14, 0x15, 0x41, 0x42, 0x43, 0x44,
+                    0x45, 0x46, 0x47, 0x49, 0x51, 0x52, 0x53, 0x5c, 0x63 ->
+                    mnemonic = replaceImmediateWord(opcode, ins);
+                // Opcodes where the immediate is WIDTH
+                case 0x09, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e ->
+                    mnemonic = replaceImmediateValue(opcode, ins);
+                case 0x57, 0x58 -> mnemonic = calculateLongTarget(opcode, ins);
+                case 0x9b, 0x9c, 0x9d -> mnemonic = calculateBitsplit(opcode, ins);
+                default -> mnemonic = ins.operation();
             }
+            System.out.println(mnemonic);
 
             if (STOPCODES.contains(opcode)) {
                 if (charTable.isEmpty()) {
@@ -168,7 +184,7 @@ public class MetaprogramDecompiler {
         new Instruction("ds:[imm]:w <- ax:w", immAddress),
         new Instruction("ds:[imm + bx]:w <- ax:w", immAddress),
         new Instruction("ds:[heap[imm] + bx]:w <- ax:w", immIndex),
-        new Instruction("longptr(heap[imm]) + bx <- ax:w", immIndex),
+        new Instruction("longptr(heap[imm]:3) + bx <- ax:w", immIndex),
         // 18
         new Instruction("ds:[heap[imm] + imm] <- ax:w", compose(immIndex, immByte)),
         new Instruction("heap[imm]:w -> heap[imm]:w", compose(immIndex, immIndex)),
@@ -247,8 +263,8 @@ public class MetaprogramDecompiler {
         new Instruction("exit()", () -> { width = false; return 0; }),
         new Instruction("eraseSquareSpecial(x:heap[01], y:heap[00])", immNone),
         new Instruction("recurseOverParty(imm)", immAddress),
-        new Instruction("ax <- party(pc:h[06], off:imm:1)", immByte),
-        new Instruction("party(pc:h[06], off:imm:1) <- ax ; h[18 + h[06]] <- 0x00", immByte),
+        new Instruction("ax <- party(pc:h[06], off:imm)", immByte),
+        new Instruction("party(pc:h[06], off:imm) <- ax ; h[18 + h[06]] <- 0x00", immByte),
         new Instruction("set party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
         // 60
         new Instruction("clr party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
@@ -260,8 +276,8 @@ public class MetaprogramDecompiler {
         new Instruction("test heap[imm]", immIndex),
         new Instruction("dropInventorySlot(pc:h[06], slot:h[07])", immNone),
         // 68
-        new Instruction("ax:w <- getInventoryByte(pc:h[06], slot:h[07], off:imm)", immByte),
-        new Instruction("set_inventory_word(pc:h[06], slot:h[07], off:imm:1) <- ax:w", immByte),
+        new Instruction("ax:w <- item(pc:h[06], slot:h[07], off:imm)", immByte),
+        new Instruction("item(pc:h[06], slot:h[07], off:imm) <- ax:w", immByte),
         new Instruction("compare party(y,x) vs imm:y0,x0,y1,x1 ; zf <- 1 if inside", immRectangle),
         new Instruction("runAway()", immNone),
         new Instruction("stepForward()", immNone),
@@ -284,8 +300,8 @@ public class MetaprogramDecompiler {
         new Instruction("decodeTitleString(cs,si)", immNone),
         new Instruction("decodeTitleString(ds,ax)", immNone),
         new Instruction("ifnCharName(pc:h[06])", immNone),
-        new Instruction("*19f1(party(pc:h[06]), slot:h[07]))", immNone),
-        new Instruction("*19f1(ds,ax)", immNone),
+        new Instruction("ifnItem(party(pc:h[06]), slot:h[07]))", immNone),
+        new Instruction("ifnString(ds,ax)", immNone),
         // 80
         new Instruction("indent(imm)", immByte),
         new Instruction("print4DigitNumber(ax)", immNone),
@@ -332,19 +348,43 @@ public class MetaprogramDecompiler {
             .replace("adr:imm", String.format("adr:%04x", target));
     }
 
-    private String calculateJumpTarget(int opcode, Instruction ins) {
-        final int target = chunk.getWord(pointer - 2);
-        return ins.operation()
-            .replace("imm", String.format("0x%04x", target));
-    }
-
-    private String calculateImmediate(int opcode, Instruction ins) {
+    private String calculateBitsplit(int opcode, Instruction ins) {
         final int imm_one = chunk.getUnsignedByte(pointer - 2);
         final int imm_two = chunk.getUnsignedByte(pointer - 1);
         return ins.operation()
             .replace("immA.h", String.format("%02x", imm_one >> 3))
             .replace("0x80 >> immA.l", String.format("0x%02x", 0x80 >> (imm_one & 0x7)))
             .replace("immB", String.format("%02x", imm_two));
+    }
+
+    private String replaceImmediateByte(int opcode, Instruction ins) {
+        final String immediateValue;
+        final int imm = chunk.getUnsignedByte(pointer - 1);
+        if (ins.operation().contains("[imm")) {
+            immediateValue = String.format("%02x", imm);
+        } else {
+            immediateValue = String.format("0x%02x", imm);
+        }
+        return ins.operation().replace("imm", immediateValue);
+    }
+
+    private String replaceImmediateWord(int opcode, Instruction ins) {
+        final String immediateValue;
+        final int imm = chunk.getWord(pointer - 2);
+        if (ins.operation().contains("[imm")) {
+            immediateValue = String.format("%04x", imm);
+        } else {
+            immediateValue = String.format("0x%04x", imm);
+        }
+        return ins.operation().replace("imm", immediateValue);
+    }
+
+    private String replaceImmediateValue(int opcode, Instruction ins) {
+        if (width) {
+            return replaceImmediateWord(opcode, ins);
+        } else {
+            return replaceImmediateByte(opcode, ins);
+        }
     }
 
     public static void main(String[] args) {
@@ -380,6 +420,9 @@ public class MetaprogramDecompiler {
             }
             final StringDecoder.LookupTable charTable = new StringDecoder.LookupTable(exec);
             final MetaprogramDecompiler decomp = new MetaprogramDecompiler(chunk, charTable);
+
+            // decomp.printInstructions();
+
             if (endPointer.isPresent()) {
                 decomp.disasm(offset, endPointer.get(), false);
             } else {

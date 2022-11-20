@@ -75,11 +75,14 @@ public class Item {
         return this;
     }
 
+    public List<Byte> toBytes() {
+        return chunk.getBytes(this.offset, this.offset+10);
+    }
+
     public String toString() {
         final List<String> attributes = new ArrayList<>();
         final StringBuilder sb = new StringBuilder();
 
-//        sb.append(unknownBytes());
         sb.append("    ");
         if (this.equipped) { sb.append("*"); }
         sb.append(this.name);
@@ -169,18 +172,6 @@ public class Item {
                 }
             }
         }
-    }
-
-    private String unknownBytes() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append((this.chunk.getByte(offset + 0) & 0x40) > 0 ? "1" : "0");
-        sb.append((this.chunk.getByte(offset + 0) & 0x20) > 0 ? "1" : "0");
-        sb.append("-");
-        sb.append((this.chunk.getByte(offset + 2) & 0x80) > 0 ? "1" : "0");
-        sb.append((this.chunk.getByte(offset + 2) & 0x40) > 0 ? "1" : "0");
-        sb.append((this.chunk.getByte(offset + 2) & 0x20) > 0 ? "1" : "0");
-        sb.append(" ");
-        return sb.toString();
     }
 }
 

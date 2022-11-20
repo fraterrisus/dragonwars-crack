@@ -61,6 +61,7 @@ public class MapData {
 
     private List<Item> items;
     private List<Encounter> encounters;
+    private List<Monster> monsters;
 
     private int titleStringPtr;
     private int metaprogramStartPtr;
@@ -435,8 +436,13 @@ public class MapData {
         }
         System.out.println();
 
-        System.out.printf("\n  Encounters: ptr[00]->[%04x], ptr[01]->[%04x], ptr[02]->[%04x]\n",
-            encountersPtr, monsterDataPtr, tagLinesPtr);
+        System.out.printf("\n  Monsters: ptr[00]->[%04x]", monsterDataPtr);
+        System.out.printf("    Random max: %02x\n", secondaryData.getUnsignedByte(monsterDataPtr));
+        for (int i = 0; i < monsters.size(); i++) {
+            System.out.printf("    [%02x] %s\n", i, monsters.get(i));
+        }
+
+        System.out.printf("\n  Encounters: ptr[01]->[%04x], ptr[02]->[%04x]\n", encountersPtr, tagLinesPtr);
         for (Encounter enc : encounters) {
             System.out.printf("    [%04x]%s", enc.getOffset(), enc);
         }
@@ -572,8 +578,7 @@ public class MapData {
 
     private void parseEncounters() {
         this.encounters = new ArrayList<>();
-
-        final List<Monster> monsters = new ArrayList<>();
+        this.monsters = new ArrayList<>();
         for (int offset : discoverPointers(secondaryData, monsterDataPtr + 1)) {
             monsters.add(new Monster(secondaryData, stringDecoderLookupTable).decode(offset));
         }
@@ -588,9 +593,6 @@ public class MapData {
         for (int offset : discoverPointers(secondaryData, encountersPtr + 1)) {
             final Encounter enc = new Encounter(secondaryData).decode(offset);
             enc.setTagline(taglines.get(enc.getTaglineIndex()));
-            for (MonsterGroup mg : enc.getGroups()) {
-                mg.setMonster(monsters.get(mg.getMonsterIndex() - 1));
-            }
             this.encounters.add(enc);
         }
     }

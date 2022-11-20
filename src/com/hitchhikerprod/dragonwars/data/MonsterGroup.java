@@ -1,11 +1,12 @@
 package com.hitchhikerprod.dragonwars.data;
 
 import com.hitchhikerprod.dragonwars.Chunk;
-import com.hitchhikerprod.dragonwars.MapData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MonsterGroup {
     private final Chunk data;
-    private Monster monster;
     private int offset;
 
     private int group1f;
@@ -43,13 +44,31 @@ public class MonsterGroup {
         return offset;
     }
 
-    public void setMonster(Monster monster) {
-        this.monster = monster;
-    }
-
     @Override
     public String toString() {
-        return String.format("  1f:%02x, unk:%02x, rng:%3d', cnt:%2d, %s",
-            group1f, unknownMiddle, range * 10, groupSize, monster);
+        final List<String> strings = new ArrayList<>();
+
+        strings.add(String.format("1f:0x%02x", group1f));
+        strings.add(String.format("unk:0x%02x", unknownMiddle));
+
+        if (range == 0) {
+            strings.add("rng:rnd");
+        } else {
+            strings.add(String.format("rng:%d'", range * 10));
+        }
+
+        if (groupSize == 0) {
+            strings.add("cnt:rnd");
+        } else {
+            strings.add(String.format("cnt:%d", groupSize));
+        }
+
+        if (monsterIndex == 0) {
+            strings.add("monster:rnd");
+        } else {
+            strings.add(String.format("monster:0x%02x", monsterIndex - 1));
+        }
+
+        return "  " + String.join(", ", strings);
     }
 }

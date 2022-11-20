@@ -13,6 +13,7 @@ public class Monster {
     private int offset;
 
     private String name;
+    private int dexterity;
     private int baseHealth;
     private WeaponDamage varHealth;
     private int varGroupSize;
@@ -27,6 +28,7 @@ public class Monster {
 
         final int b00 = data.getUnsignedByte(offset);
         final int b01 = data.getUnsignedByte(offset + 0x01);
+        this.dexterity = b01;
         final int b02 = data.getUnsignedByte(offset + 0x02);
         final int b03 = data.getUnsignedByte(offset + 0x03);
         this.baseHealth = data.getUnsignedByte(offset + 0x04);
@@ -69,6 +71,9 @@ public class Monster {
         tokens.add(this.name);
         tokens.add("max:" + varGroupSize);
         tokens.add("HD:" + varHealth + "+" + baseHealth);
+        tokens.add("HP:" + (baseHealth + varHealth.getNum()) + "-" +
+            (baseHealth + (varHealth.getNum() * varHealth.getSides())));
+        tokens.add("DEX:" + this.dexterity);
         return String.join(", ", tokens);
     }
 }
