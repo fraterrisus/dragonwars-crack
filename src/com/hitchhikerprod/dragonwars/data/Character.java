@@ -38,7 +38,7 @@ public class Character {
     int armorClass;
     int npcId;
     int status;
-    int gender;
+    Gender gender;
     int flags;
     List<Byte> unknown;
     List<Byte> skills;
@@ -87,7 +87,7 @@ public class Character {
         unknown = getBytes(8);
         status = getUnsignedByte(); // 0 OK 1 dead 2 chained 4 poisoned ...?
         npcId = getUnsignedByte(); // prevents you from adding the same NPC twice
-        gender = getUnsignedByte();
+        gender = Gender.of(getUnsignedByte()).orElseThrow();
         level = getWord();
         experience = getQuadWord();
         gold = getQuadWord();
@@ -146,14 +146,8 @@ public class Character {
         return b;
     }
 
-    private String translateGender() {
-        switch (gender) {
-            case 0 -> { return "he/him"; }
-            case 1 -> { return "she/her"; }
-            case 2 -> { return "it"; }
-            case 3 -> { return "none"; }
-            default -> { return ""; }
-        }
+    private String getPronouns() {
+        return this.gender.getPronouns();
     }
 
     private String translateSkills() {
@@ -216,7 +210,7 @@ public class Character {
     }
 
     public void display() {
-        System.out.print("Name: " + name + " (" + translateGender() + ")");
+        System.out.print("Name: " + name + " (" + getPronouns() + ")");
 
         System.out.print("  Level: " + level);
         System.out.print("  XP: " + experience);
