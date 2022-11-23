@@ -321,9 +321,9 @@ public class MetaprogramDecompiler {
         new Instruction("", immNone),
         new Instruction("*11ab()", immNone),
         // 90
-        new Instruction("enableSpeaker(imm)", immByte),
+        new Instruction("playSoundEffect(imm)", immByte),
         new Instruction("*1a12()", immNone),
-        new Instruction("*1a12++()", immNone),
+        new Instruction("pauseUntilKeyOrTime()", immNone),
         new Instruction("push bl", immNone),
         new Instruction("pop bl", immNone),
         new Instruction("setCursor(x:ax, y:bx)", immNone),

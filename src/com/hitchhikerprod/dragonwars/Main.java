@@ -203,16 +203,28 @@ public class Main {
 
     private static void mainDecodeParty(List<String> args) {
         final Character[] pcs = new Character[7];
-        final String filename = basePath + "DATA1";
+
+        final String filename;
+        if (args.get(0) == null) {
+            filename = basePath + "DATA1";
+        } else {
+            filename = args.get(0);
+        }
 
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
-            long offset = 0x2e19;
-            for (int i = 0; i < 7; i++) {
+            final byte[] marchingOrder = new byte[7];
+            dataFile.seek(0x3c23);
+            dataFile.read(marchingOrder, 0, 7);
+
+            dataFile.seek(0x3c38);
+            final int partySize = dataFile.readUnsignedByte();
+
+            for (int i = 0; i < partySize; i++) {
+                final long offset = 0x2e19 + (marchingOrder[i] << 8);
                 pcs[i] = new Character(dataFile, offset);
                 pcs[i].decode(0);
                 pcs[i].display();
                 System.out.println();
-                offset += 0x200;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

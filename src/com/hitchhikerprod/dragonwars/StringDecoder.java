@@ -153,7 +153,7 @@ public class StringDecoder {
             exec.read(rawBytes, 0, 512);
             final Chunk chunk = new Chunk(rawBytes);
 */
-            final int chunkId = 0x1e;
+            final int chunkId = 0x03;
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             Chunk chunk = chunkTable.getChunk(chunkId);
             if (chunkId >= 0x1e) {

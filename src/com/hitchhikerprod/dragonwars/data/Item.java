@@ -1,13 +1,7 @@
 package com.hitchhikerprod.dragonwars.data;
 
 import com.hitchhikerprod.dragonwars.Chunk;
-import com.hitchhikerprod.dragonwars.data.DataString;
-import com.hitchhikerprod.dragonwars.data.Lists;
-import com.hitchhikerprod.dragonwars.data.PowerInt;
-import com.hitchhikerprod.dragonwars.data.WeaponDamage;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +15,7 @@ public class Item {
     private int armorClassMod;
     private List<WeaponDamage> damageDice;
     private boolean equipped;
+    private boolean disposable;              // disappears when it runs out of charges
     private int itemType;
     private int ammoType;
     private String magicEffect;
@@ -38,8 +33,9 @@ public class Item {
         this.offset = offset;
         this.name = new DataString(chunk, offset+11, 12).toString();
         
-        this.equipped = (chunk.getByte(offset) & 0x80) > 0;
-        this.uses =     (chunk.getByte(offset) & 0x1f);
+        this.equipped =   (chunk.getByte(offset) & 0x80) > 0;
+        this.disposable = (chunk.getByte(offset) & 0x40) > 0;
+        this.uses =       (chunk.getByte(offset) & 0x3f);
 
         final boolean reducesAV = (chunk.getByte(offset + 1) & 0x80) > 0;
         final boolean reducesAC = (chunk.getByte(offset + 1) & 0x40) > 0;
@@ -87,13 +83,21 @@ public class Item {
         if (this.equipped) { sb.append("*"); }
         sb.append(this.name);
         if (this.uses > 0) {
-            sb.append(" [#").append(this.uses).append("]");
+            if (this.uses == 63) {
+                sb.append(" [#**]");
+            } else {
+                sb.append(" [#").append(this.uses).append("]");
+            }
         }
         sb.append(": ");
 
         attributes.add(Lists.ITEM_TYPES[this.itemType]);
         if (this.itemType >= 8 && this.itemType <= 12) {
             attributes.add("ammo type " + this.ammoType);
+        }
+
+        if (disposable) {
+            attributes.add("disposable");
         }
 
         for (WeaponDamage d : this.damageDice) {

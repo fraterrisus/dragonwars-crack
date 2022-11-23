@@ -9,7 +9,7 @@ public class MonsterGroup {
     private final Chunk data;
     private int offset;
 
-    private int group1f;
+    private int confidence;
     private int unknownMiddle;
     private int range;
     private int groupSize;
@@ -25,8 +25,8 @@ public class MonsterGroup {
             (data.getUnsignedByte(offset + 1) << 8) |
             (data.getUnsignedByte(offset + 2) << 16);
 
-        group1f       = (bits >> 18) & 0x1f;
-        if (((bits >> 24) & 0x1) > 0) { group1f *= -1; }
+        confidence = (bits >> 18) & 0x1f;
+        if (((bits >> 24) & 0x1) > 0) { confidence *= -1; }
 
         unknownMiddle = (bits >> 14) & 0x0f;
         range         = (bits >> 10) & 0x0f;
@@ -48,7 +48,7 @@ public class MonsterGroup {
     public String toString() {
         final List<String> strings = new ArrayList<>();
 
-        strings.add(String.format("1f:0x%02x", group1f));
+        strings.add(String.format("cnf:0x%02x", confidence));
         strings.add(String.format("unk:0x%02x", unknownMiddle));
 
         if (range == 0) {
@@ -58,9 +58,9 @@ public class MonsterGroup {
         }
 
         if (groupSize == 0) {
-            strings.add("cnt:rnd");
+            strings.add("#rnd");
         } else {
-            strings.add(String.format("cnt:%d", groupSize));
+            strings.add(String.format("#%d", groupSize));
         }
 
         if (monsterIndex == 0) {

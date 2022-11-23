@@ -17,7 +17,11 @@ public class Monster {
     private int dexterity;
     private int baseHealth;
     private WeaponDamage varHealth;
+    private int confidence;
     private int varGroupSize;
+
+    private int unknown0b;
+    private PowerInt unknown0c;
 
     public Monster(Chunk data, StringDecoder.LookupTable table) {
         this.data = data;
@@ -26,6 +30,8 @@ public class Monster {
 
     public Monster decode(int offset) {
         this.offset = offset;
+
+        data.display(offset, offset+0x21);
 
         final int b00 = data.getUnsignedByte(offset);
         final int b01 = data.getUnsignedByte(offset + 0x01);
@@ -37,7 +43,12 @@ public class Monster {
         final int b09 = data.getUnsignedByte(offset + 0x09);
         final int b0a = data.getUnsignedByte(offset + 0x0a);
         this.gender = Gender.of((b0a & 0xc0) >> 6).orElseThrow();
+        final int b0b = data.getUnsignedByte(offset + 0x0b);
+        this.unknown0b = b0b;
+        final int b0c = data.getUnsignedByte(offset + 0x0c);
+        this.unknown0c = new PowerInt((byte)b0c).plus(1);
         final int b1f = data.getUnsignedByte(offset + 0x1f);
+        this.confidence = b1f & 0x1f;
         final int b20 = data.getUnsignedByte(offset + 0x20);
 
         final StringDecoder sd = new StringDecoder(this.lookupTable, this.data);
@@ -77,6 +88,12 @@ public class Monster {
             (baseHealth + (varHealth.getNum() * varHealth.getSides())));
         tokens.add("DEX:" + this.dexterity);
         tokens.add("pronouns:" + this.gender.getPronouns());
+        tokens.add("0x0b:" + String.format("%02x", unknown0b));
+        tokens.add("0x0c:" + unknown0c.toInteger());
         return String.join(", ", tokens);
     }
+
+    /* 0x0b:
+     *   case 0x03, 0x09, 0x24, 0x13, 0x38 -> add 1 to heap[6c] and 1+random(0x28) to heap[6a]
+     */
 }
