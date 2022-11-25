@@ -29,4 +29,8 @@ public class PowerInt {
     public PowerInt plus(int a) {
         return new PowerInt(this.exponent, this.mantissa + a);
     }
+
+    public String toString() {
+        return String.valueOf(toInteger());
+    }
 }
