@@ -31,7 +31,7 @@ public class SpecialEvent {
         final List<String> fields = new ArrayList<>();
         fields.add(String.format("header=%02x", header & 0xff));
         fields.add(String.format("eventId=%02x", eventId & 0xff));
-        fields.add(String.format("metaprogramIndex=%02x", metaprogramIndex & 0xff));
+        fields.add(String.format("metaprogramIndex=%02x", 1 + (metaprogramIndex & 0xff)));
         return "SpecialEvent<" + String.join(",", fields) + ">";
     }
 }

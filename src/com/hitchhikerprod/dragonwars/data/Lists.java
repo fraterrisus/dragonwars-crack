@@ -19,10 +19,11 @@ public class Lists {
                     "D:Beast Call", "D:Wood Spirit", "S:Sun Stroke", "S:Exorcism" },
             { "S:Rage of Mithras", "S:Wrath of Mithras", "S:Fire Storm", "S:Inferno",
                     "S:Holy Aim", "S:Battle Power", "S:Column of Fire", "S:Mithras' Bless" },
-            { "S:Light Flash" /* ?!?! */, "S:Armor of Light", "S:Sun Light", "S:Heal",
+            { "S:Light Flash", "S:Armor of Light", "S:Sun Light", "S:Heal",
                     "S:Major Healing", "S:Disarm Trap", "S:Guidance", "S:Radiance" },
             { "S:Summon Salamander", "S:Charger", "M:Zak's Speed", "M:Kill Ray",
-                    "M:Poison" /* ?!?! */, "0x04", "0x02", "0x01" }
+                    "M:Prison", "0x04", "0x02", "0x01" }
+            // S:Light Flash and M:Prison are in the manual, but never found in the game.
     };
 
     static final String[] REQUIREMENTS = {

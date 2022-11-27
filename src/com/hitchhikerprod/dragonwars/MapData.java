@@ -1,11 +1,10 @@
 package com.hitchhikerprod.dragonwars;
 
-import com.hitchhikerprod.dragonwars.data.DataString;
 import com.hitchhikerprod.dragonwars.data.Encounter;
 import com.hitchhikerprod.dragonwars.data.Item;
 import com.hitchhikerprod.dragonwars.data.ItemEvent;
 import com.hitchhikerprod.dragonwars.data.Monster;
-import com.hitchhikerprod.dragonwars.data.MonsterGroup;
+import com.hitchhikerprod.dragonwars.data.SkillEvent;
 import com.hitchhikerprod.dragonwars.data.SpecialEvent;
 
 import javax.imageio.ImageIO;
@@ -51,17 +50,14 @@ public class MapData {
     private final StringDecoder.LookupTable stringDecoderLookupTable;
 
     private int chunkPointer;
-    private int xMax;
-    private int yMax;
-    private int mapMetadata; // heap[23-24]
+    private int xMax; // heap[21]
+    private int yMax; // heap[22]
+    private int flags; // heap[23]
+    private int randomEncounters; // heap[24]
 
     private List<Integer> primaryPointers;
-    private List<Integer> secondaryPointers;
+    // private List<Integer> secondaryPointers;
     // private List<Integer> itemPointers;
-
-    private List<Item> items;
-    private List<Encounter> encounters;
-    private List<Monster> monsters;
 
     private int titleStringPtr;
     private int metaprogramStartPtr;
@@ -86,6 +82,10 @@ public class MapData {
     // 5734: list of pointers to square data rows
     private final List<Integer> rowPointers57e4 = new ArrayList<>();
     private final List<SpecialEvent> specialEvents = new ArrayList<>();
+    private final List<Item> items = new ArrayList<>();
+    private final List<Encounter> encounters = new ArrayList<>();
+    private final List<Monster> monsters = new ArrayList<>();
+
 
     public MapData(RandomAccessFile executable, ChunkTable chunkTable, int mapId) {
         this.mapId = mapId;
@@ -101,8 +101,8 @@ public class MapData {
         this.xMax = primaryData.getByte(chunkPointer);
         // for some reason this is one larger than it should be; see below
         this.yMax = primaryData.getByte(chunkPointer + 1);
-        this.mapMetadata = (primaryData.getUnsignedByte(chunkPointer + 2) << 8) |
-            primaryData.getUnsignedByte(chunkPointer + 3);
+        this.flags = primaryData.getUnsignedByte(chunkPointer + 2);
+        this.randomEncounters = primaryData.getUnsignedByte(chunkPointer + 3);
         chunkPointer += 4;
 
         byteReader(textureChunks5677::add);
@@ -140,16 +140,13 @@ public class MapData {
         metaprogramStartPtr = primaryPointers.get(0);
         specialEventsPtr = primaryPointers.get(1);
 
-        secondaryPointers = discoverPointers(secondaryData, 0);
+        monsterDataPtr = secondaryData.getWord(0);
+        encountersPtr = secondaryData.getWord(2);
+        tagLinesPtr = secondaryData.getWord(4);
+        itemListPtr = secondaryData.getWord(6);
 
-        monsterDataPtr = secondaryPointers.get(0);
-        encountersPtr = secondaryPointers.get(1);
-        tagLinesPtr = secondaryPointers.get(2);
         parseEncounters();
-
-        itemListPtr = secondaryPointers.get(3);
         parseItems();
-
         parseSpecialEvents();
     }
 
@@ -183,7 +180,7 @@ public class MapData {
             }
         }
 
-        if ((mapMetadata & 0x0200) > 0) { // map wraps around
+        if ((flags & 0x02) > 0) { // map wraps around
             int base;
             for (int y = yMax; y > 0; y--) {
                 base = rowPointers57e4.get(y);
@@ -369,10 +366,13 @@ public class MapData {
     }
 
     public void display() {
-        final String binString = Integer.toBinaryString(mapMetadata);
-        final String foo = "0".repeat(16 - binString.length()) + binString;
-        System.out.printf("\"%s\" (%dx%d)  meta:%16s\n", titleString, xMax, yMax, foo);
+        final String binString = Integer.toBinaryString(flags);
+        final String foo = "0".repeat(8 - binString.length()) + binString;
+        System.out.printf("\"%s\" (%dx%d)  meta:%8s\n", titleString, xMax, yMax, foo);
         System.out.println("  Flags: " + displayMapFlags());
+        if (this.randomEncounters > 0) {
+            System.out.println("  Random encounters: 1 in " + randomEncounters);
+        }
 
         System.out.print("\n0x5677 Texture chunks:");
         for (byte b : textureChunks5677) { System.out.printf(" %02x", (b & 0x7f) + 0x6e); }
@@ -399,9 +399,7 @@ public class MapData {
         System.out.printf("  Metaprogram start: ptr[00] -> [%04x]\n", metaprogramStartPtr);
         System.out.printf("  Special events:    ptr[01] -> [%04x]\n", specialEventsPtr);
         for (SpecialEvent a : specialEvents) {
-            // final int offset = rowPointers57e4.get(0) + (2 * (a.getMetaprogramIndex() + 1));
-            final int offset = a.getMetaprogramIndex() + 1;
-            System.out.printf("    %s -> ptr[%02x] -> [%04x]\n", a, offset, primaryPointers.get(offset));
+            System.out.printf("    %s -> [%04x]\n", a, primaryPointers.get(a.getMetaprogramIndex() + 1));
         }
 
         System.out.print("\nMap squares:\n");
@@ -417,42 +415,60 @@ public class MapData {
         for (int x = 0; x < xMax; x++) { System.out.printf("  x=%02d ", x); }
         System.out.println();
 
+/*
         final int startOfMetaprogram = primaryPointers.stream().min(Integer::compareTo).orElse(0);
         primaryData.display(startOfMetaprogram);
         System.out.println();
-
-/*
-        try {
-            MetaprogramDecompiler decompiler = new MetaprogramDecompiler(primaryData, stringDecoderLookupTable);
-            decompiler.disasm(startOfMetaprogram, false);
-        } catch (IndexOutOfBoundsException ignored) {}
-        System.out.println();
 */
-
-        System.out.printf("\nSecondary Data (chunk %02x):", mapId + 0x1e);
-        System.out.print("\n  Pointers:");
-        for (int p : secondaryPointers) {
-            System.out.printf(" [%04x]", p);
+        System.out.println("\nDisassembly:");
+        final List<Integer> metaprogramPointers = new ArrayList<>();
+        final MetaprogramDecompiler decompiler = new MetaprogramDecompiler(primaryData, stringDecoderLookupTable);
+        metaprogramPointers.add(primaryPointers.get(0));
+        metaprogramPointers.addAll(primaryPointers.subList(2,primaryPointers.size()));
+        metaprogramPointers.sort(Integer::compareTo);
+        int mpi = 0;
+        while (mpi < metaprogramPointers.size()) {
+            final Integer thisPointer = metaprogramPointers.get(mpi);
+            if ((mpi > 0) && (thisPointer.equals(metaprogramPointers.get(mpi-1)))) { continue; }
+            Integer nextPointer = thisPointer;
+            while (nextPointer.equals(thisPointer)) {
+                if (mpi == metaprogramPointers.size() - 1) {
+                    nextPointer = primaryData.getSize();
+                } else {
+                    nextPointer = metaprogramPointers.get(mpi + 1);
+                }
+                mpi++;
+            }
+            try {
+                System.out.printf("  0x%04x:\n", thisPointer);
+                decompiler.disasm(thisPointer, nextPointer, false);
+            } catch (MetaprogramDecompiler.DecompilationException ignored) {
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+                System.out.println();
+            }
         }
         System.out.println();
 
-        System.out.printf("\n  Monsters: ptr[00]->[%04x]", monsterDataPtr);
+        System.out.println();
+        System.out.printf("Secondary Data (chunk %02x):\n", mapId + 0x1e);
+
+        System.out.printf("  Monsters: ptr[00]->[%04x]", monsterDataPtr);
         System.out.printf("    Random max: %02x\n", secondaryData.getUnsignedByte(monsterDataPtr));
         for (int i = 0; i < monsters.size(); i++) {
             System.out.printf("    [%02x] %s\n", i, monsters.get(i));
         }
 
-        System.out.printf("\n  Encounters: ptr[01]->[%04x], ptr[02]->[%04x]\n", encountersPtr, tagLinesPtr);
+        System.out.println();
+        System.out.printf("  Encounters: ptr[01]->[%04x], ptr[02]->[%04x]\n", encountersPtr, tagLinesPtr);
         for (Encounter enc : encounters) {
             System.out.printf("    [%04x]%s", enc.getOffset(), enc);
         }
 
-        System.out.printf("\n  Items: ptr[03]->[%04x]\n", itemListPtr);
+        System.out.println();
+        System.out.printf("  Items: ptr[03]->[%04x]\n", itemListPtr);
         for (Item item : items) {
             System.out.printf("    [%04x]%s\n", item.getOffset(), item);
         }
-
-        // secondaryData.display(secondaryPointers.stream().min(Integer::compareTo).orElse(0));
 
         System.out.println();
         System.out.println("Texture Chunks:");
@@ -516,6 +532,7 @@ public class MapData {
         int firstPtr = chunk.getWord(basePtr);
         while (thisPtr < firstPtr) {
             int nextPtr = chunk.getWord(thisPtr);
+            // if (nextPtr > chunk.getSize()) { return pointers; }
             pointers.add(nextPtr);
             if ((nextPtr != 0) && (nextPtr < firstPtr)) { firstPtr = nextPtr; }
             thisPtr += 2;
@@ -524,9 +541,16 @@ public class MapData {
     }
 
     private String displayMapFlags() {
-        List<String> flags = new ArrayList<>();
-        if ((mapMetadata & 0x0200) > 0) flags.add("Wrapping");
-        return String.join(", ", flags);
+        List<String> flagStrings = new ArrayList<>();
+        // if ((flags & 0x80) > 0) flagStrings.add("0x80");
+        // if ((flags & 0x40) > 0) flagStrings.add("0x40");
+        if ((flags & 0x20) > 0) flagStrings.add("0x20"); // Kingshome Dungeon
+        if ((flags & 0x10) == 0) flagStrings.add("forbids Create Wall");
+        if ((flags & 0x08) == 0) flagStrings.add("needs light");
+        if ((flags & 0x04) == 0) flagStrings.add("needs compass");
+        if ((flags & 0x02) > 0) flagStrings.add("wraps");
+        if ((flags & 0x01) > 0) flagStrings.add("0x01"); // Kingshome Dungeon
+        return String.join(", ", flagStrings);
     }
 
     private void byteReader(Consumer<Byte> consumer) {
@@ -546,39 +570,46 @@ public class MapData {
     }
 
     private void parseSpecialEvents() {
+        if (specialEventsPtr == 0) return;
+
         int pointer = specialEventsPtr;
         while (true) {
             final int header = primaryData.getUnsignedByte(pointer);
-            switch (header) {
-                case 0xff -> { return; }
-                case 0x80 -> {
-                    specialEvents.add(new ItemEvent(header,
-                        primaryData.getUnsignedByte(pointer + 1),
-                        primaryData.getUnsignedByte(pointer + 2),
-                        primaryData.getUnsignedByte(pointer + 3)));
-                    pointer += 4;
-                }
-                default -> {
-                    specialEvents.add(new SpecialEvent(header,
-                        primaryData.getUnsignedByte(pointer + 1),
-                        primaryData.getUnsignedByte(pointer + 2)));
-                    pointer += 3;
-                }
+            if (header == 0xff) {
+                return;
+            } else if (header == 0x80) {
+                specialEvents.add(new ItemEvent(
+                    primaryData.getUnsignedByte(pointer + 1),
+                    primaryData.getUnsignedByte(pointer + 2),
+                    primaryData.getUnsignedByte(pointer + 3)));
+                pointer += 4;
+            } else if (header >= 0x8c && header <= 0xba) {
+                specialEvents.add(new SkillEvent(header,
+                    primaryData.getUnsignedByte(pointer + 1),
+                    primaryData.getUnsignedByte(pointer + 2)));
+                pointer += 3;
+            } else {
+                specialEvents.add(new SpecialEvent(header,
+                    primaryData.getUnsignedByte(pointer + 1),
+                    primaryData.getUnsignedByte(pointer + 2)));
+                pointer += 3;
             }
         }
-
     }
 
     private void parseItems() {
-        this.items = new ArrayList<>();
+        if (itemListPtr == 0) return;
+
         for (int offset : discoverPointers(secondaryData, itemListPtr)) {
             this.items.add(new Item(secondaryData).decode(offset));
         }
     }
 
     private void parseEncounters() {
-        this.encounters = new ArrayList<>();
-        this.monsters = new ArrayList<>();
+        if ((monsterDataPtr == 0) ||
+            (monsterDataPtr == tagLinesPtr) ||
+            (monsterDataPtr == encountersPtr)) { return; }
+
         for (int offset : discoverPointers(secondaryData, monsterDataPtr + 1)) {
             monsters.add(new Monster(secondaryData, stringDecoderLookupTable).decode(offset));
         }

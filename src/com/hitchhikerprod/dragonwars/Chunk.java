@@ -26,6 +26,7 @@ public class Chunk {
     public List<Byte> getBytes(int offset, int length) {
         int end = offset + length;
         if (end > getSize()) { end = getSize(); }
+        if (offset > end) { return List.of(); }
         return this.raw.subList(offset, end);
     }
 

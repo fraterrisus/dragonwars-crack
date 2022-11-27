@@ -7,6 +7,11 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class MetaprogramDecompiler {
+    public static class DecompilationException extends RuntimeException {
+        public DecompilationException() { super(); }
+        public DecompilationException(String message) { super(message); }
+    }
+
     private final Chunk chunk;
     private final Optional<StringDecoder.LookupTable> charTable;
 
@@ -117,7 +122,7 @@ public class MetaprogramDecompiler {
     private Instruction decodeOpcode(int opcode) {
         Instruction ins = instructions.get(opcode);
         if (ins == null) {
-            throw new RuntimeException("Unrecognized opcode " + opcode);
+            throw new DecompilationException("Unrecognized opcode " + opcode);
         }
         return ins;
     }
@@ -251,7 +256,7 @@ public class MetaprogramDecompiler {
         // 50
         new Instruction("test heap[ax.h + imm], 0x80 >> ax.l", immIndex),
         new Instruction("max ds:[imm + 0..bx]", immAddress),
-        new Instruction("jmp imm", immAddress),
+        new Instruction("jmp imm", () -> { width = false ; return immAddress.get(); }),
         new Instruction("call imm", immAddress),
         new Instruction("ret", immNone),
         new Instruction("pop ax", immNone),
@@ -306,7 +311,7 @@ public class MetaprogramDecompiler {
         new Instruction("indent(imm)", immByte),
         new Instruction("print4DigitNumber(ax)", immNone),
         new Instruction("print9DigitNumber(heap[imm]:4)", immIndex),
-        new Instruction("*ifn.3093(ax)", immNone),
+        new Instruction("ifnCharacter(ax)", immNone),
         new Instruction("ax <- allocateSegment(frob:0x1, size:ax)", immNone),
         new Instruction("freeStructMemory(str:ax)", immNone),
         new Instruction("unpackChunkIntoSegment(ch:ax)", immNone),

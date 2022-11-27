@@ -50,7 +50,7 @@ public class Encounter {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("  Tagline: ").append(tagline).append("\n");
+        sb.append("  ").append(tagline).append("\n");
         for (MonsterGroup mg : groups) {
             sb.append("    ").append(mg).append("\n");
         }
