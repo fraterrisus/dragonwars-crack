@@ -1,8 +1,13 @@
 package com.hitchhikerprod.dragonwars.data;
 
 import com.hitchhikerprod.dragonwars.Chunk;
+import com.hitchhikerprod.dragonwars.ChunkTable;
+import com.hitchhikerprod.dragonwars.HuffmanDecoder;
 import com.hitchhikerprod.dragonwars.StringDecoder;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +28,7 @@ public class Monster {
     private int varGroupSize;
     private int speed;
 
+    private List<String> flags;
     private List<Action> actions;
 
     private int unknown0b;
@@ -58,6 +64,9 @@ public class Monster {
         this.xpReward = new PowerInt(data.getByte(offset + 0x0c)).plus(1);
         final int b0d = data.getUnsignedByte(offset + 0x0d);
         final int b0e = data.getUnsignedByte(offset + 0x0e);
+        this.flags = new ArrayList<>();
+        if ((b0e & 0x08) > 0) this.flags.add("Undead");
+        if ((b0e & 0x01) > 0) this.flags.add("Vowel");
         final int b0f = data.getUnsignedByte(offset + 0x0f);
 
         this.actions = new ArrayList<>();
@@ -96,7 +105,7 @@ public class Monster {
         return offset;
     }
 
-    public void encounterConfidence(int a) {
+    public void addConfidence(int a) {
         this.confidence += a;
     }
 
@@ -106,16 +115,23 @@ public class Monster {
         tokens.add(this.name);
         tokens.add(this.gender.getPronouns());
         tokens.add("max:" + varGroupSize);
-        tokens.add("HD:" + varHealth + "+" + baseHealth);
-        tokens.add("HP:" + (baseHealth + varHealth.getNum()) + "-" +
-            (baseHealth + (varHealth.getNum() * varHealth.getSides())));
+        tokens.add("HD:" + varHealth + "+" + baseHealth + " (" +
+            (baseHealth + varHealth.getNum()) + "-" +
+            (baseHealth + (varHealth.getNum() * varHealth.getSides())) + ")");
         tokens.add("DEX:" + this.dexterity);
         tokens.add("spd:" + this.speed + "0'");
-        tokens.add("0x0b:" + String.format("%02x", unknown0b));
         tokens.add("XP:" + xpReward.toInteger());
-        return String.join(", ", tokens) + "\n      " +
-            this.actions.stream().map(Action::toString).collect(Collectors.joining("; ")) + "\n      " +
-            raw.stream().map(x -> String.format("%02x", x)).collect(Collectors.joining(" "));
+        tokens.addAll(this.flags);
+
+        StringBuilder response = new StringBuilder();
+        response.append(String.join(", ", tokens));
+        for (Action a : this.actions) {
+            response.append("\n      ");
+            response.append(a.toString());
+        }
+        response.append("\n      ");
+        response.append(raw.stream().map(x -> String.format("%02x", x)).collect(Collectors.joining(" ")));
+        return response.toString();
     }
 
     /* 0x0b:
@@ -134,7 +150,7 @@ public class Monster {
 
         private final int index;
 
-        Bravery (int index) {
+        Bravery(int index) {
             this.index = index;
         }
 
@@ -142,7 +158,7 @@ public class Monster {
             return Arrays.stream(Bravery.values()).filter(x -> x.index == index).findFirst();
         }
     }
-    
+
     public enum Sentiment {
         ALWAYS(0),   // always matches
         DAMAGED(1),  // if monster has been damaged
@@ -177,9 +193,9 @@ public class Monster {
 
         public static Action decode(List<Byte> bytes) {
             final int b0 = bytes.get(0);
-            final int bravery =   (b0 & 0xc0) >> 6;
+            final int bravery = (b0 & 0xc0) >> 6;
             final int sentiment = (b0 & 0x30) >> 4;
-            final int action =    (b0 & 0x0f);
+            final int action = (b0 & 0x0f);
 
             final Action newAction;
             switch (action) {
@@ -244,7 +260,9 @@ public class Monster {
     }
 
     public static class BlockAction extends Action {
-        public BlockAction(int bravery, int modifier) { super (bravery, modifier, 0x5); }
+        public BlockAction(int bravery, int modifier) {
+            super(bravery, modifier, 0x5);
+        }
 
         public String toString() {
             return String.format("%s/%s:Block", this.bravery, this.sentiment);
@@ -279,13 +297,16 @@ public class Monster {
         }
 
         public String toString() {
-            return String.format("%s/%s:Cast(spell:%02x, pow:%d%s)", this.bravery, this.sentiment, this.spellId,
+            final String spellName = Lists.SPELL_NAMES[spellId / 8][spellId % 8];
+            return String.format("%s/%s:Cast(%s, pow:%d%s)", this.bravery, this.sentiment, spellName,
                 this.power, (this.selfTarget) ? "" : ", target");
         }
     }
 
     public static class DodgeAction extends Action {
-        public DodgeAction(int bravery, int modifier) { super (bravery, modifier, 0x6); }
+        public DodgeAction(int bravery, int modifier) {
+            super(bravery, modifier, 0x6);
+        }
 
         public String toString() {
             return String.format("%s/%s:Dodge", this.bravery, this.sentiment);
@@ -306,10 +327,45 @@ public class Monster {
     }
 
     public static class PassAction extends Action {
-        public PassAction(int bravery, int modifier, int action) { super(bravery, modifier, action); }
+        public PassAction(int bravery, int modifier, int action) {
+            super(bravery, modifier, action);
+        }
 
         public String toString() {
             return String.format("%s/%s:Pass", this.bravery, this.sentiment);
+        }
+    }
+
+    public static void main(String[] args) {
+        final int chunkId;
+        final int baseAddress;
+        try {
+            chunkId = Integer.parseInt(args[0].substring(2), 16);
+            baseAddress = Integer.parseInt(args[1].substring(2), 16);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("Insufficient arguments");
+        }
+
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+
+        try (
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
+        ) {
+            final StringDecoder.LookupTable table = new StringDecoder.LookupTable(exec);
+            final ChunkTable chunkTable = new ChunkTable(data1, data2);
+            Chunk chunk = chunkTable.getChunk(chunkId);
+            if (chunkId >= 0x1e) {
+                final HuffmanDecoder mapDecoder = new HuffmanDecoder(chunk);
+                final List<Byte> decodedMapData = mapDecoder.decode();
+                chunk = new Chunk(decodedMapData);
+            }
+            final Monster monster = new Monster(chunk, table);
+            monster.decode(baseAddress);
+            System.out.println(monster);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
