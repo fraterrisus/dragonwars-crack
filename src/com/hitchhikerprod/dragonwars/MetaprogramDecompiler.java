@@ -1,5 +1,7 @@
 package com.hitchhikerprod.dragonwars;
 
+import com.hitchhikerprod.dragonwars.data.Lists;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
@@ -13,34 +15,19 @@ public class MetaprogramDecompiler {
     }
 
     private final Chunk chunk;
-    private final Optional<StringDecoder.LookupTable> charTable;
+    private final StringDecoder.LookupTable charTable;
 
     private int pointer;
     private boolean width;
-
-    public MetaprogramDecompiler(Chunk chunk) {
-        this.chunk = chunk;
-        this.pointer = 0;
-        this.width = false;
-        this.charTable = Optional.empty();
-    }
 
     public MetaprogramDecompiler(Chunk chunk, StringDecoder.LookupTable charTable) {
         this.chunk = chunk;
         this.pointer = 0;
         this.width = false;
-        this.charTable = Optional.of(charTable);
+        this.charTable = charTable;
     }
 
-    public void printInstructions() {
-        int i = 0;
-        for (Instruction ins : instructions) {
-            System.out.printf("%02x  %s\n", i, ins.operation());
-            i++;
-        }
-    }
-
-    private static final List<Integer> STOPCODES = List.of(0x77,0x78,0x7b);
+    private static final List<Integer> STRING_OPCODES = List.of(0x77,0x78,0x7b);
 
     public void disasm(int pointer, boolean width) {
         disasm(pointer, chunk.getSize(), width);
@@ -79,32 +66,96 @@ public class MetaprogramDecompiler {
                     0x3f, 0x40, 0x48, 0x4e, 0x4f, 0x50, 0x5d, 0x5e,
                     0x5f, 0x60, 0x61, 0x66, 0x68, 0x69, 0x6f, 0x70,
                     0x80, 0x82, 0x90, 0x97, 0x98, 0x9a ->
-                    mnemonic = replaceImmediateByte(opcode, ins);
+                    mnemonic = replaceImmediateByte(ins.operation());
                 // Opcodes where the immediate is always wide
                 case 0x0c, 0x0d, 0x14, 0x15, 0x41, 0x42, 0x43, 0x44,
                     0x45, 0x46, 0x47, 0x49, 0x51, 0x52, 0x53, 0x5c, 0x63 ->
-                    mnemonic = replaceImmediateWord(opcode, ins);
+                    mnemonic = replaceImmediateWord(ins.operation());
                 // Opcodes where the immediate is WIDTH
                 case 0x09, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e ->
-                    mnemonic = replaceImmediateValue(opcode, ins);
-                case 0x57, 0x58 -> mnemonic = calculateLongTarget(opcode, ins);
-                case 0x9b, 0x9c, 0x9d -> mnemonic = calculateBitsplit(opcode, ins);
+                    mnemonic = replaceImmediateValue(ins.operation());
+                case 0x57, 0x58 -> mnemonic = calculateLongTarget(ins.operation());
+                case 0x9b, 0x9c, 0x9d -> mnemonic = calculateBitsplit(ins.operation());
+                case 0x10, 0x18 -> mnemonic = replaceImmediates10(ins);
+                case 0x1a -> mnemonic = replaceImmediates1a(ins);
+                case 0x1c -> mnemonic = replaceImmediates1c(ins);
+                case 0x62 -> mnemonic = replaceImmediates62(ins);
                 default -> mnemonic = ins.operation();
             }
             System.out.println(mnemonic);
 
-            if (STOPCODES.contains(opcode)) {
-                if (charTable.isEmpty()) {
-                    System.err.printf("Refusing to decode past stopcode %02x\n", opcode);
-                    return;
+            if (opcode == 0x58) { // long call
+                final int chunkId = chunk.getUnsignedByte(this.pointer - 3);
+                final int target = chunk.getWord(this.pointer - 2);
+                if (chunkId == 0x08) {
+                    if (target == 0x0015 || target == 0x0018) {
+                        final int para = chunk.getWord(this.pointer);
+                        System.out.printf("%08x  .data %04x\n", this.pointer, para);
+                        this.pointer += 2;
+                    }
                 }
-                final StringDecoder sd = new StringDecoder(charTable.get(), chunk);
+            }
+            if (STRING_OPCODES.contains(opcode)) {
+                final StringDecoder sd = new StringDecoder(charTable, chunk);
                 System.out.printf("%08x  .string ", this.pointer);
                 sd.decodeString(this.pointer);
                 System.out.println("\"" + sd.getDecodedString() + "\"");
                 this.pointer = sd.getPointer();
             }
         }
+    }
+
+    private String replaceImmediates10(Instruction ins) {
+        final String imm1, imm2;
+        int index = chunk.getUnsignedByte(this.pointer - 2);
+        imm1 = String.format("heap[%02x,%02x]", index + 1, index);
+        imm2 = String.format("%02x", chunk.getUnsignedByte(this.pointer - 1));
+        return ins.operation()
+            .replace("heap[imm]:2", imm1)
+            .replace("imm", imm2);
+    }
+
+    private String replaceImmediates1a(Instruction ins) {
+        final String imm1, imm2;
+        if (width) {
+            int index = chunk.getUnsignedByte(this.pointer - 3);
+            imm1 = String.format("heap[%02x,%02x]", index + 1, index);
+            imm2 = String.format("0x%04x", chunk.getWord(this.pointer - 2));
+        } else {
+            imm1 = String.format("heap[%02x]", chunk.getUnsignedByte(this.pointer - 2));
+            imm2 = String.format("0x%02x", chunk.getUnsignedByte(this.pointer - 1));
+        }
+        return ins.operation()
+            .replace("heap[imm]:w", imm1)
+            .replace("imm:w", imm2);
+    }
+
+    private String replaceImmediates1c(Instruction ins) {
+        final String imm1, imm2;
+        if (width) {
+            imm1 = String.format("ds:[%04x]", chunk.getWord(this.pointer - 4));
+            imm2 = String.format("0x%04x", chunk.getWord(this.pointer - 2));
+        } else {
+            imm1 = String.format("ds:[%04x]", chunk.getWord(this.pointer - 3));
+            imm2 = String.format("0x%02x", chunk.getUnsignedByte(this.pointer - 1));
+        }
+        return ins.operation()
+            .replace("ds:[imm]:w", imm1)
+            .replace("imm:w", imm2);
+    }
+
+    private String replaceImmediates62(Instruction ins) {
+        final String imm1, imm2;
+        final int offset = chunk.getUnsignedByte(this.pointer - 2);
+        if (offset >= 0x0c && offset <= 0x3a) {
+            imm1 = Lists.REQUIREMENTS[offset - 0x0c];
+        } else {
+            imm1 = String.format("off:%02x", offset);
+        }
+        imm2 = String.format("0x%02x", chunk.getUnsignedByte(this.pointer - 1));
+        return ins.operation()
+            .replace("off:imm", imm1)
+            .replace(">= imm", ">= " + imm2);
     }
 
     private int getWord() {
@@ -274,12 +325,12 @@ public class MetaprogramDecompiler {
         // 60
         new Instruction("clr party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
         new Instruction("test party(pc:h[06], off:ax.h + imm), 0x80 >> ax.l", immIndex),
-        new Instruction("search party(adr:imm) >= imm ; cf <- 0 if found", compose(immAddress, immByte)),
+        new Instruction("search party(off:imm) >= imm ; cf <- 0 if found", compose(immIndex, immByte)),
         new Instruction("recurseOverInventory(imm)", immAddress),
-        new Instruction("findEmptyInventorySlot(pc:h[06])", immNone),
+        new Instruction("pickUpItem(pc:h[06], ds:[ax])", immNone),
         new Instruction("matchSpecialItem(ax) ; zf <- 1 if found", immNone),
         new Instruction("test heap[imm]", immIndex),
-        new Instruction("dropInventorySlot(pc:h[06], slot:h[07])", immNone),
+        new Instruction("dropItem(pc:h[06], slot:h[07])", immNone),
         // 68
         new Instruction("ax:w <- item(pc:h[06], slot:h[07], off:imm)", immByte),
         new Instruction("item(pc:h[06], slot:h[07], off:imm) <- ax:w", immByte),
@@ -345,50 +396,50 @@ public class MetaprogramDecompiler {
         new Instruction("*039f()", immNone)
     );
 
-    private String calculateLongTarget(int opcode, Instruction ins) {
+    private String calculateLongTarget(String operation) {
         final int chunkId = chunk.getUnsignedByte(pointer - 3);
         final int target = chunk.getWord(pointer - 2);
-        return ins.operation()
+        return operation
             .replace("chunk:imm", String.format("chunk:%02x", chunkId))
             .replace("adr:imm", String.format("adr:%04x", target));
     }
 
-    private String calculateBitsplit(int opcode, Instruction ins) {
+    private String calculateBitsplit(String operation) {
         final int imm_one = chunk.getUnsignedByte(pointer - 2);
         final int imm_two = chunk.getUnsignedByte(pointer - 1);
-        return ins.operation()
+        return operation
             .replace("immA.h", String.format("%02x", imm_one >> 3))
             .replace("0x80 >> immA.l", String.format("0x%02x", 0x80 >> (imm_one & 0x7)))
             .replace("immB", String.format("%02x", imm_two));
     }
 
-    private String replaceImmediateByte(int opcode, Instruction ins) {
+    private String replaceImmediateByte(String operation) {
         final String immediateValue;
         final int imm = chunk.getUnsignedByte(pointer - 1);
-        if (ins.operation().contains("[imm")) {
+        if (operation.contains("[imm")) {
             immediateValue = String.format("%02x", imm);
         } else {
             immediateValue = String.format("0x%02x", imm);
         }
-        return ins.operation().replace("imm", immediateValue);
+        return operation.replace("imm", immediateValue);
     }
 
-    private String replaceImmediateWord(int opcode, Instruction ins) {
+    private String replaceImmediateWord(String operation) {
         final String immediateValue;
         final int imm = chunk.getWord(pointer - 2);
-        if (ins.operation().contains("[imm")) {
+        if (operation.contains("[imm")) {
             immediateValue = String.format("%04x", imm);
         } else {
             immediateValue = String.format("0x%04x", imm);
         }
-        return ins.operation().replace("imm", immediateValue);
+        return operation.replace("imm", immediateValue);
     }
 
-    private String replaceImmediateValue(int opcode, Instruction ins) {
+    private String replaceImmediateValue(String operation) {
         if (width) {
-            return replaceImmediateWord(opcode, ins);
+            return replaceImmediateWord(operation);
         } else {
-            return replaceImmediateByte(opcode, ins);
+            return replaceImmediateByte(operation);
         }
     }
 

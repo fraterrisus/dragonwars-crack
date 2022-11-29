@@ -3,7 +3,7 @@ package com.hitchhikerprod.dragonwars.data;
 public class Lists {
     static final String[] SKILL_NAMES = { "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",
             "Town Lore", "Bandage", "Climb", "Fistfighting", "Hiding", "Lockpick", "Pickpocket", "Swim", "Tracker",
-            "Bureaucracy", "Druid Magic", "High Magic", "Low Magic", "Merchant" /* ?!?! */, "Sun Magic", "Axes", "Flails",
+            "Bureaucracy", "Druid Magic", "High Magic", "Low Magic", "Merchant" /* ?! */, "Sun Magic", "Axes", "Flails",
             "Maces", "Swords", "Two-handers", "Bows", "Crossbows", "Thrown Weapons" };
 
     static final String[][] SPELL_NAMES = {
@@ -26,7 +26,7 @@ public class Lists {
             // S:Light Flash and M:Prison are in the manual, but never found in the game.
     };
 
-    static final String[] REQUIREMENTS = {
+    static public final String[] REQUIREMENTS = {
         "Strength", "Strength", "Dexterity", "Dexterity",
         "Intelligence", "Intelligence", "Spirit", "Spirit",
         "-", "-", "-", "-",
