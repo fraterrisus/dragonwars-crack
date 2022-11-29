@@ -1,6 +1,9 @@
 package com.hitchhikerprod.dragonwars.data;
 
 import com.hitchhikerprod.dragonwars.Chunk;
+import com.hitchhikerprod.dragonwars.ChunkTable;
+import com.hitchhikerprod.dragonwars.HuffmanDecoder;
+import com.hitchhikerprod.dragonwars.StringDecoder;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -247,6 +250,39 @@ public class Character {
         System.out.println("  Spells:" + translateSpells("    "));
         System.out.println("  Inventory:");
         for (Item i : inventory) { System.out.println(i); }
+    }
+
+    public static void main(String[] args) {
+        final int chunkId;
+        final int baseAddress;
+        try {
+            chunkId = Integer.parseInt(args[0].substring(2), 16);
+            baseAddress = Integer.parseInt(args[1].substring(2), 16);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("Insufficient arguments");
+        }
+
+        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+
+        try (
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
+        ) {
+            final StringDecoder.LookupTable table = new StringDecoder.LookupTable(exec);
+            final ChunkTable chunkTable = new ChunkTable(data1, data2);
+            Chunk chunk = chunkTable.getChunk(chunkId);
+            if (chunkId >= 0x1e) {
+                final HuffmanDecoder mapDecoder = new HuffmanDecoder(chunk);
+                final List<Byte> decodedMapData = mapDecoder.decode();
+                chunk = new Chunk(decodedMapData);
+            }
+            final Character c = new Character(chunk);
+            c.decode(baseAddress);
+            System.out.println(c);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
