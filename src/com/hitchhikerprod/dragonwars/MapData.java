@@ -460,14 +460,17 @@ public class MapData {
 
         System.out.println();
         System.out.printf("  Encounters: ptr[01]->[%04x], ptr[02]->[%04x]\n", encountersPtr, tagLinesPtr);
-        for (Encounter enc : encounters) {
-            System.out.printf("    [%04x]%s", enc.getOffset(), enc);
+        for (int i = 0; i < encounters.size(); i++) {
+            final Encounter enc = encounters.get(i);
+            System.out.printf("    [%02x:%04x]%s", i, enc.getOffset(), enc);
         }
 
         System.out.println();
         System.out.printf("  Items: ptr[03]->[%04x]\n", itemListPtr);
-        for (Item item : items) {
-            System.out.printf("    [%04x]%s\n", item.getOffset(), item);
+
+        for (int i = 0; i < items.size(); i++) {
+            final Item item = items.get(i);
+            System.out.printf("    [%02x:%04x]%s\n", i, item.getOffset(), item);
         }
 
         System.out.println();

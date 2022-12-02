@@ -44,6 +44,14 @@ public class Chunk {
         return (b1 << 8) | b0;
     }
 
+    public int getQuadWord(int i) {
+        int b0 = getUnsignedByte(i);
+        int b1 = getUnsignedByte(i + 1);
+        int b2 = getUnsignedByte(i + 2);
+        int b3 = getUnsignedByte(i + 3);
+        return (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
+    }
+
     public void display() {
         display(0, raw.size());
     }

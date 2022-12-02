@@ -38,6 +38,10 @@ public class MetaprogramDecompiler {
         this.width = width;
         while (this.pointer < endPointer) {
             final int startPointer = this.pointer;
+
+            // TODO: read in a metadata file that includes chunk, address, and special handler
+            // e.g. {4a:041e}.item -> call the Item decoder, it's the improved Freedom Sword
+
             final int opcode = getByte();
             System.out.printf("%08x  %02x", startPointer, opcode);
             final Instruction ins = decodeOpcode(opcode);
@@ -88,10 +92,14 @@ public class MetaprogramDecompiler {
                 final int chunkId = chunk.getUnsignedByte(this.pointer - 3);
                 final int target = chunk.getWord(this.pointer - 2);
                 if (chunkId == 0x08) {
-                    if (target == 0x0015 || target == 0x0018) {
-                        final int para = chunk.getWord(this.pointer);
-                        System.out.printf("%08x  .data %04x\n", this.pointer, para);
-                        this.pointer += 2;
+                    if (target == 0x0006 || target == 0x0173) {
+                        dataJumpToAnotherBoard();
+                    }
+                    if (target == 0x0012 || target == 0x001b || target == 0x0242 || target == 0x0281) {
+                        dataGetReward();
+                    }
+                    if (target == 0x0015 || target == 0x0018 || target == 0x02d7 || target == 0x02d2) {
+                        dataReadParagraph();
                     }
                 }
             }
@@ -103,6 +111,40 @@ public class MetaprogramDecompiler {
                 this.pointer = sd.getPointer();
             }
         }
+    }
+
+    private void dataGetReward() {
+        final int para = chunk.getQuadWord(this.pointer);
+        System.out.printf("%08x  .data %08x\n", this.pointer, para);
+        this.pointer += 4;
+    }
+
+    private void dataReadParagraph() {
+        final int para = chunk.getWord(this.pointer);
+        System.out.printf("%08x  .data %04x\n", this.pointer, para);
+        this.pointer += 2;
+    }
+
+    private void dataJumpToAnotherBoard() {
+        System.out.printf("%08x  .data ", this.pointer);
+        for (int x = 0; x < 4; x++) {
+            System.out.printf("%02x ", chunk.getUnsignedByte(this.pointer + x));
+        }
+        System.out.println();
+        System.out.printf("%08x  .data %02x\n", this.pointer + 4, chunk.getUnsignedByte(this.pointer + 4));
+        System.out.printf("%08x  .data ", this.pointer + 5);
+        for (int x = 5; x < 0xd; x++) {
+            System.out.printf("%02x ", chunk.getUnsignedByte(this.pointer + x));
+        }
+        System.out.println();
+
+        this.pointer += 0xd;
+
+        final StringDecoder sd = new StringDecoder(charTable, chunk);
+        System.out.printf("%08x  .string ", this.pointer);
+        sd.decodeString(this.pointer);
+        System.out.println("\"" + sd.getDecodedString() + "\"");
+        this.pointer = sd.getPointer();
     }
 
     private String replaceImmediates10(Instruction ins) {
