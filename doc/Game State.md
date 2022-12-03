@@ -2,21 +2,14 @@
 
 ## Board State Bits
 
-| Heap byte |    Bit     | Board                | Meaning                                                    |
-| :-------: | :--------: | -------------------- | ---------------------------------------------------------- |
-|  `[9c]`   | `–*––––––` | Purgatory            | (20,13) Start square intro message has been played         |
-|  `[9d]`   | `–––––*––` | Purgatory            | Defeated the Humbaba                                       |
-|  `[9d]`   | `––––––*–` | Purgatory            | Have received reward from Clopin for defeating the Humbaba |
-|  `[a5]`   | `––*–––––` | Purgatory            | Defeated the Gladiators in the Arena                       |
-|  `[b9]`   | `––*–––––` | Purgatory            | Have been shown para #4 when entering the Arena            |
-|  `[b9]`   | `––––*–––` | Purgatory            | (25,08) "Dive into the harbor" message has been played     |
-|  `[b9]`   | `–––––*––` | Purgatory            | (06,13) Have successfully prayed to Irkalla                |
-|  `[a9]`   | `–*––––––` | Magan Underworld     | Have taken the 5 AP Leap of Faith                          |
-|  `[9c]`   | `–––––––*` | Sunken Ruins (below) | Clam has been brought to surface and replaced with Skull   |
-|  `[9d]`   | `*–––––––` | Sunken Ruins (below) |                                                            |
-|  `[b9]`   | `*–––––––` | Sunken Ruins (below) | Intro message has been played                              |
-|  `[b9]`   | `–*––––––` | Sunken Ruins (below) | Clam has been picked up                                    |
-|  `[b9]`   | `––––––*–` | Sunken Ruins (below) | Chest has been unlocked                                    |
+| Heap byte |    Bit     | Board                | Meaning                                                  |
+| :-------: | :--------: | -------------------- | -------------------------------------------------------- |
+|  `[a9]`   | `–*––––––` | Magan Underworld     | Have taken the 5 AP Leap of Faith                        |
+|  `[9c]`   | `–––––––*` | Sunken Ruins (below) | Clam has been brought to surface and replaced with Skull |
+|  `[9d]`   | `*–––––––` | Sunken Ruins (below) |                                                          |
+|  `[b9]`   | `*–––––––` | Sunken Ruins (below) | Intro message has been played                            |
+|  `[b9]`   | `–*––––––` | Sunken Ruins (below) | Clam has been picked up                                  |
+|  `[b9]`   | `––––––*–` | Sunken Ruins (below) | Chest has been unlocked                                  |
 
 ## Marching Order
 

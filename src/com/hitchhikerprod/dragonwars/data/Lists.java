@@ -27,11 +27,12 @@ public class Lists {
     };
 
     static public final String[] REQUIREMENTS = {
-        "Strength", "max Strength", "Dexterity", "max Dexterity",
-        "Intelligence", "max Intelligence", "Spirit", "max Spirit",
-        "Health0", "Health1", "max Health0", "max Health1",
-        "Stun0", "Stun1", "max Stun0", "max Stun1",
-        "Power0", "Power1", "max Power0", "max Power1",
+        // apostrophe -> current (potentially modified) value
+        "Strength'", "Strength", "Dexterity'", "Dexterity",
+        "Intelligence'", "Intelligence", "Spirit'", "Spirit",
+        "Health'b0", "Health'b1", "Health b0", "Health b1",
+        "Stun'b0", "Stun'b1", "Stun b0", "Stun b1",
+        "Power'b0", "Power'b1", "Power b0", "Power b1",
         "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",
         "Town Lore", "Bandage", "Climb", "Fistfighting",
         "Hiding", "Lockpick", "Pickpocket", "Swim",

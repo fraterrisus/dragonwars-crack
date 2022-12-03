@@ -193,6 +193,8 @@ public class MetaprogramDecompiler {
             case 0x09 -> {
                 if (target == 0x0000) {
                     decodeWords(1); // more?
+                    decodeWords(1);
+                    decodeData(1);
                 }
             }
             case 0x11 -> {

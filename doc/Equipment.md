@@ -1,6 +1,6 @@
 # Equipment
 
-Items are represented as a series of 11 bytes of data followed by an ASCII [string](Strings.md) (the item name). Items in a character's inventory always have their name padded out to 12 bytes; everything after the terminal byte is ignored. Items that appear elsewhere in the data file often don't have padding.
+Items are represented as a series of 11 bytes of data followed by an ASCII [string](Strings.md) (the item name). Items in a character's inventory always have their name padded out to 12 bytes; everything after the terminal byte is ignored. Items that appear elsewhere in the data file often don't have padding.
 
 | Byte  | Bitfield  | Function |
 | :---: | :-------: | -------- |
@@ -54,35 +54,45 @@ Stored in a exponent (3b) and mantissa (5b) format; the value is M x 10^E. This 
 
 The entire byte could be used, but every time the Item Type is checked in the code, it only looks at the bottom five bits (`0x1f`). It's possible that the upper three bits have another use, but (a) I haven't found it yet (b) every Item in the game has those three bits set to zero, so it's unlikely. Unsurprisingly, Item Types are in the same order as the weapon [skills](Skills.md) they relate to.
 
-| Byte `[05]` | Item Type             |
-| :---------: | --------------------- |
-|   `0x00`    | General Item          |
-|   `0x01`    | Shield                |
-|   `0x02`    | Full Shield           |
-|   `0x03`    | Axe                   |
-|   `0x04`    | Flail                 |
-|   `0x05`    | Sword                 |
-|   `0x06`    | Two-hander            |
-|   `0x07`    | Mace                  |
-|   `0x08`    | Bow                   |
-|   `0x09`    | Crossbow              |
-|   `0x0a`    | Gun (?!)              |
-|   `0x0b`    | Thrown weapon         |
-|   `0x0c`    | Ammunition            |
-|   `0x0d`    | Gloves                |
-|   `0x0e`    | Mage Gloves           |
-|   `0x0f`    | Ammo Clip (?!)        |
-|   `0x10`    | Cuir Bouilli armor    |
-|   `0x11`    | Brigandine armor      |
-|   `0x12`    | Scale armor           |
-|   `0x13`    | Chain armor           |
-|   `0x14`    | Plate and Chain armor |
-|   `0x15`    | Full Plate armor      |
-|   `0x16`    | Helmet                |
-|   `0x17`    | Scroll                |
-|   `0x18`    | Pair of Boots         |
+| Byte `[05]` | Item Type             | Conflicts with                                               |
+| :---------: | --------------------- | ------------------------------------------------------------ |
+|   `0x00`    | General Item          |                                                              |
+|   `0x01`    | Shield                | Shield, Full Shield                                          |
+|   `0x02`    | Full Shield           | Shield, Full Shield, Two-hander, Bow                         |
+|   `0x03`    | Axe                   | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x04`    | Flail                 | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x05`    | Sword                 | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x06`    | Two-hander            | Full Shield, all melee, all missile, Thrown weapon, Ammunition |
+|   `0x07`    | Mace                  | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x08`    | Bow                   | Full Shield, all melee, all missile, Thrown weapon, Ammunition |
+|   `0x09`    | Crossbow              | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x0a`    | Gun (?!)              | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x0b`    | Thrown weapon         | all melee, all missile, Thrown weapon, Ammunition            |
+|   `0x0c`    | Ammunition            | Ammunition                                                   |
+|   `0x0d`    | Gloves                | Gloves, Mage Gloves                                          |
+|   `0x0e`    | Mage Gloves           | Gloves, Mage Gloves                                          |
+|   `0x0f`    | Ammo Clip (?!)        | Ammo Clip                                                    |
+|   `0x10`    | Cloth armor           | all body armor                                               |
+|   `0x11`    | Leather armor         | all body armor                                               |
+|   `0x12`    | Cuir Bouilli armor    | all body armor                                               |
+|   `0x13`    | Brigandine armor      | all body armor                                               |
+|   `0x14`    | Scale armor           | all body armor                                               |
+|   `0x15`    | Chain armor           | all body armor                                               |
+|   `0x16`    | Plate and Chain armor | all body armor                                               |
+|   `0x17`    | Full Plate armor      | all body armor                                               |
+|   `0x18`    | Helmet                | Helmet                                                       |
+|   `0x19`    | Scroll                | Scroll                                                       |
+|   `0x1a`    | Pair of Boots         | Boots                                                        |
 
-No, there aren't actually any Guns in *Dragon Wars*. And there's no game difference between the different types of body armor.
+No, there aren't actually any Guns in *Dragon Wars*. And there's no game difference between the different types of body armor.
+
+The matrix of item types that conflict with each other is stored at `{02:00e0}` in a bitfield format. Index that array with the item type above. Bytes `[00:01] ` are a bitfield of other item types that this type conflicts with; shift that value over by byte `[02]`. (There are only `0x1a` item types, so `[02]` will either be `00` or `02`.)
+
+Example: Full Shields are item type 02. Its matrix value is `62 80 00`. Since byte `[00]=0` , don't shift it. That gives the bitmask `0110 1000 1000 0000 0000 0000 000– ––––` (again, there's only `0x1a` item types). Bits 1, 2, 4, and 8 are set, which means Full Shields conflict with Shields, Full Shields, Two-handers, and Bows.
+
+Example: All body armor (type `0x10-0x17`) has the same matrix value, `ff 00 02`. Shift over two bytes for the bitmask `0000 0000 0000 0000 1111 1111 000– ––––`. So all body armor types conflict with the other body armor types.
+
+The odd one to point out here is that Bows conflict with Ammunition, but Ammunition doesn't conflict with Bows. So to load a missile weapon, you have to pick the missile weapon first, then equip the relevant quiver.
 
 ## Magical Effects
 

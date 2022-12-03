@@ -10,6 +10,8 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.hitchhikerprod.dragonwars.Main.basePath;
+
 public class SummonedCreature {
     private final Chunk chunk;
     private int offset;
@@ -57,7 +59,7 @@ public class SummonedCreature {
     }
 
     public static void main(String[] args) {
-        final int chunkId = 0x06;
+        final int chunkId = 0x47;
 /*
         final int baseAddress;
         try {
@@ -67,8 +69,6 @@ public class SummonedCreature {
             throw new RuntimeException("Insufficient arguments");
         }
 */
-
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
 
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
@@ -84,15 +84,18 @@ public class SummonedCreature {
                 chunk = new Chunk(decodedMapData);
             }
 
-            int listPointer = 0x0bab;
+            int listPointer = 0x1390;
             int minPointer = 0x1000;
             final List<Integer> creaturePointers = new ArrayList<>();
+/*
             while (minPointer > listPointer) {
                 int newPointer = chunk.getWord(listPointer);
                 creaturePointers.add(newPointer);
                 if (newPointer < minPointer) { minPointer = newPointer; }
                 listPointer += 2;
             }
+*/
+            creaturePointers.add(0x14b4);
 
             for (Integer baseAddress : creaturePointers) {
                 final SummonedCreature creature = new SummonedCreature(chunk);

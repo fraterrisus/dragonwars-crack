@@ -42,7 +42,7 @@ Here's how the data breaks down within one of those 512-byte blocks:
 Status Bits
 ---
 
-If you hack in bit `0x20`, the character displays as "is poisoned", but there's no code to do anything with it, including cure it.
+If you hack in bit `0x20`, the character displays as "is poisoned", but there's no code to do anything with it, including cure it or reduce HP or anything.
 
 | Byte [76]  | Meaning  |
 | :--------: | -------- |

@@ -64,7 +64,6 @@ public class HintTable {
             }
             hintMap.computeIfAbsent(chunk, (c) -> new HashMap<>());
             hintMap.get(chunk).put(address, hint);
-            System.out.print(".");
         });
     }
 
