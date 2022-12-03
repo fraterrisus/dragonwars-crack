@@ -27,11 +27,11 @@ public class Lists {
     };
 
     static public final String[] REQUIREMENTS = {
-        "Strength", "Strength (max)", "Dexterity", "Dexterity (max)",
-        "Intelligence", "Intelligence (max)", "Spirit", "Spirit (max)",
-        "Health", "Health (max)", "Health", "Health (max)",
-        "Stun", "Stun", "Stun (max)", "Stun (max)",
-        "Power", "Power", "Power (max)", "Power (max)",
+        "Strength", "max Strength", "Dexterity", "max Dexterity",
+        "Intelligence", "max Intelligence", "Spirit", "max Spirit",
+        "Health0", "Health1", "max Health0", "max Health1",
+        "Stun0", "Stun1", "max Stun0", "max Stun1",
+        "Power0", "Power1", "max Power0", "max Power1",
         "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",
         "Town Lore", "Bandage", "Climb", "Fistfighting",
         "Hiding", "Lockpick", "Pickpocket", "Swim",

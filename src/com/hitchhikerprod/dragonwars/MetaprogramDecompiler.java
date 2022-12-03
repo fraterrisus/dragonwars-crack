@@ -48,19 +48,11 @@ public class MetaprogramDecompiler {
             if (hint != null) {
                 switch (hint) {
                     case DATA -> {
-                        System.out.printf("%08x  .data", this.pointer);
-                        for (int i = 0; i < hint.getCount(); i++) {
-                            System.out.printf(" %02x", chunk.getUnsignedByte(this.pointer + i));
-                        }
-                        this.pointer += hint.getCount();
+                        decodeData(hint.getCount());
                         continue;
                     }
                     case WORD -> {
-                        System.out.printf("%08x  .data", this.pointer);
-                        for (int i = 0; i < hint.getCount(); i++) {
-                            System.out.printf(" %04x", chunk.getWord(this.pointer + (2*i)));
-                        }
-                        this.pointer += 2 * hint.getCount();
+                        decodeWords(hint.getCount());
                         continue;
                     }
                     case ITEM -> {
@@ -145,6 +137,24 @@ public class MetaprogramDecompiler {
         }
     }
 
+    private void decodeWords(int count) {
+        System.out.printf("%08x  .data", this.pointer);
+        for (int i = 0; i < count; i++) {
+            System.out.printf(" %04x", chunk.getWord(this.pointer + (2*i)));
+        }
+        System.out.println();
+        this.pointer += 2 * count;
+    }
+
+    private void decodeData(int count) {
+        System.out.printf("%08x  .data", this.pointer);
+        for (int i = 0; i < count; i++) {
+            System.out.printf(" %02x", chunk.getUnsignedByte(this.pointer + i));
+        }
+        System.out.println();
+        this.pointer += count;
+    }
+
     private void decodeItem() {
         final Item item = new Item(this.chunk);
         item.decode(this.pointer);
@@ -168,15 +178,35 @@ public class MetaprogramDecompiler {
     private void parseLongCall() {
         final int chunkId = chunk.getUnsignedByte(this.pointer - 3);
         final int target = chunk.getWord(this.pointer - 2);
-        if (chunkId == 0x08) {
-            if (target == 0x0006 || target == 0x0173) {
-                dataJumpToAnotherBoard();
+        switch(chunkId) {
+            case 0x08 -> {
+                if (target == 0x0006 || target == 0x0173) {
+                    dataJumpToAnotherBoard();
+                }
+                if (target == 0x0012 || target == 0x001b || target == 0x0242 || target == 0x0281) {
+                    dataGetReward();
+                }
+                if (target == 0x0015 || target == 0x0018 || target == 0x02d7 || target == 0x02d2) {
+                    decodeWords(1);
+                }
             }
-            if (target == 0x0012 || target == 0x001b || target == 0x0242 || target == 0x0281) {
-                dataGetReward();
+            case 0x09 -> {
+                if (target == 0x0000) {
+                    decodeWords(1); // more?
+                }
             }
-            if (target == 0x0015 || target == 0x0018 || target == 0x02d7 || target == 0x02d2) {
-                dataReadParagraph();
+            case 0x11 -> {
+                if (target == 0x0000) {
+                    decodeWords(1);
+                    decodeWords(1);
+                    decodeString();
+                }
+            }
+            case 0x0b -> {
+                if (target == 0x000c) {
+                    decodeWords(1);
+                    decodeData(1); // more?
+                }
             }
         }
     }
@@ -185,12 +215,6 @@ public class MetaprogramDecompiler {
         final int para = chunk.getQuadWord(this.pointer);
         System.out.printf("%08x  .data %08x\n", this.pointer, para);
         this.pointer += 4;
-    }
-
-    private void dataReadParagraph() {
-        final int para = chunk.getWord(this.pointer);
-        System.out.printf("%08x  .data %04x\n", this.pointer, para);
-        this.pointer += 2;
     }
 
     private void dataJumpToAnotherBoard() {
