@@ -67,9 +67,9 @@ public class MetaprogramDecompiler {
                 case 0x05, 0x06, 0x08, 0x0a, 0x0b, 0x0e, 0x0f, 0x11,
                     0x12, 0x13, 0x16, 0x17, 0x23, 0x26, 0x29, 0x2c,
                     0x2f, 0x31, 0x33, 0x35, 0x37, 0x39, 0x3b, 0x3d,
-                    0x3f, 0x40, 0x48, 0x4e, 0x4f, 0x50, 0x5d, 0x5e,
-                    0x5f, 0x60, 0x61, 0x66, 0x68, 0x69, 0x6f, 0x70,
-                    0x80, 0x82, 0x90, 0x97, 0x98, 0x9a ->
+                    0x3f, 0x40, 0x48, 0x4e, 0x4f, 0x50, 0x5f, 0x60,
+                    0x61, 0x66, 0x68, 0x69, 0x6f, 0x70, 0x80, 0x82,
+                    0x90, 0x97, 0x98, 0x9a ->
                     mnemonic = replaceImmediateByte(ins.operation());
                 // Opcodes where the immediate is always wide
                 case 0x0c, 0x0d, 0x14, 0x15, 0x41, 0x42, 0x43, 0x44,
@@ -78,12 +78,17 @@ public class MetaprogramDecompiler {
                 // Opcodes where the immediate is WIDTH
                 case 0x09, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e ->
                     mnemonic = replaceImmediateValue(ins.operation());
-                case 0x57, 0x58 -> mnemonic = calculateLongTarget(ins.operation());
-                case 0x9b, 0x9c, 0x9d -> mnemonic = calculateBitsplit(ins.operation());
+                // Two immediates, a two-byte heap index plus a one-byte immediate
                 case 0x10, 0x18 -> mnemonic = replaceImmediates10(ins);
+                // Two immediates, width-dependent
                 case 0x1a -> mnemonic = replaceImmediates1a(ins);
                 case 0x1c -> mnemonic = replaceImmediates1c(ins);
+                case 0x57, 0x58 -> mnemonic = calculateLongTarget(ins.operation());
+                // One immediate is a party offset; check for skills
+                case 0x5d, 0x5e -> mnemonic = replaceImmediates5d(ins);
                 case 0x62 -> mnemonic = replaceImmediates62(ins);
+                // Opcodes with a hardcoded bitsplit
+                case 0x9b, 0x9c, 0x9d -> mnemonic = calculateBitsplit(ins.operation());
                 default -> mnemonic = ins.operation();
             }
             System.out.println(mnemonic);
@@ -184,6 +189,18 @@ public class MetaprogramDecompiler {
         return ins.operation()
             .replace("ds:[imm]:w", imm1)
             .replace("imm:w", imm2);
+    }
+
+    private String replaceImmediates5d(Instruction ins) {
+        final String imm;
+        final int offset = chunk.getUnsignedByte(this.pointer - 1);
+        if (offset >= 0x0c && offset <= 0x3a) {
+            imm = Lists.REQUIREMENTS[offset - 0x0c];
+        } else {
+            imm = String.format("off:%02x", offset);
+        }
+        return ins.operation()
+            .replace("off:imm", imm);
     }
 
     private String replaceImmediates62(Instruction ins) {

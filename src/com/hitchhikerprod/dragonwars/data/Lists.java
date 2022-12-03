@@ -29,9 +29,9 @@ public class Lists {
     static public final String[] REQUIREMENTS = {
         "Strength", "Strength", "Dexterity", "Dexterity",
         "Intelligence", "Intelligence", "Spirit", "Spirit",
-        "-", "-", "-", "-",
-        "-", "-", "-", "-",
-        "-", "-", "-", "-",
+        "Health", "Health", "Health", "Health",
+        "Stun", "Stun", "Stun", "Stun",
+        "Power", "Power", "Power", "Power",
         "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",
         "Town Lore", "Bandage", "Climb", "Fistfighting",
         "Hiding", "Lockpick", "Pickpocket", "Swim",
