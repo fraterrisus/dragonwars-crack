@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.hitchhikerprod.dragonwars.Main.basePath;
+
 // Largely based on fcn.55bb
 public class MapData {
     private static final Color BUSH = new Color(87, 202, 87);
@@ -45,6 +47,7 @@ public class MapData {
     private final int mapId;
     // private final RandomAccessFile executable;
     private final ChunkTable chunkTable;
+    private final HintTable hintTable;
     private final Chunk primaryData;
     private final Chunk secondaryData;
     private final StringDecoder.LookupTable stringDecoderLookupTable;
@@ -86,15 +89,20 @@ public class MapData {
     private final List<Encounter> encounters = new ArrayList<>();
     private final List<Monster> monsters = new ArrayList<>();
 
-
     public MapData(RandomAccessFile executable, ChunkTable chunkTable, int mapId) {
+        this(executable, chunkTable, mapId, new HintTable());
+    }
+
+    public MapData(RandomAccessFile executable, ChunkTable chunkTable, int mapId, HintTable hintTable) {
         this.mapId = mapId;
         // this.executable = executable;
         this.chunkTable = chunkTable;
         this.primaryData = decompressChunk(mapId + 0x46);
         this.secondaryData = decompressChunk(mapId + 0x1e);
         this.stringDecoderLookupTable = new StringDecoder.LookupTable(executable);
+        this.hintTable = hintTable;
     }
+
 
     public void parse(int offset) throws IOException {
         chunkPointer = offset;
@@ -422,7 +430,8 @@ public class MapData {
 */
         System.out.println("\nDisassembly:");
         final List<Integer> metaprogramPointers = new ArrayList<>();
-        final MetaprogramDecompiler decompiler = new MetaprogramDecompiler(primaryData, stringDecoderLookupTable);
+        final MetaprogramDecompiler decompiler =
+            new MetaprogramDecompiler(primaryData, stringDecoderLookupTable, hintTable.getHints(mapId + 0x46));
         metaprogramPointers.add(primaryPointers.get(0));
         metaprogramPointers.addAll(primaryPointers.subList(2,primaryPointers.size()));
         metaprogramPointers.sort(Integer::compareTo);
@@ -438,6 +447,9 @@ public class MapData {
                     nextPointer = metaprogramPointers.get(mpi + 1);
                 }
                 mpi++;
+            }
+            if ((thisPointer < specialEventsPtr) & (specialEventsPtr < nextPointer)) {
+                nextPointer = specialEventsPtr;
             }
             try {
                 System.out.printf("  0x%04x:\n", thisPointer);
@@ -639,15 +651,15 @@ public class MapData {
             throw new RuntimeException("Insufficient arguments");
         }
 
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
         try (
+            final RandomAccessFile hints = new RandomAccessFile(basePath + "hints", "r");
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
         ) {
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
-
-            final MapData mapData = new MapData(exec, chunkTable, boardIndex);
+            final HintTable hintTable = new HintTable(hints);
+            final MapData mapData = new MapData(exec, chunkTable, boardIndex, hintTable);
             mapData.parse(0);
             mapData.display();
             mapData.draw();

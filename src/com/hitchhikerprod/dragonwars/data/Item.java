@@ -77,7 +77,7 @@ public class Item {
     }
 
     public List<Byte> toBytes() {
-        return chunk.getBytes(this.offset, this.offset+10);
+        return chunk.getBytes(this.offset, 10);
     }
 
     public String toString() {

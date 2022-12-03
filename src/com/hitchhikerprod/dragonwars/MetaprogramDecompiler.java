@@ -1,12 +1,17 @@
 package com.hitchhikerprod.dragonwars;
 
+import com.hitchhikerprod.dragonwars.data.Hint;
+import com.hitchhikerprod.dragonwars.data.Item;
 import com.hitchhikerprod.dragonwars.data.Lists;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import static com.hitchhikerprod.dragonwars.Main.basePath;
 
 public class MetaprogramDecompiler {
     public static class DecompilationException extends RuntimeException {
@@ -16,18 +21,18 @@ public class MetaprogramDecompiler {
 
     private final Chunk chunk;
     private final StringDecoder.LookupTable charTable;
+    private final Map<Integer, Hint> hints;
 
     private int pointer;
     private boolean width;
 
-    public MetaprogramDecompiler(Chunk chunk, StringDecoder.LookupTable charTable) {
+    public MetaprogramDecompiler(Chunk chunk, StringDecoder.LookupTable charTable, Map<Integer, Hint> hints) {
         this.chunk = chunk;
         this.pointer = 0;
         this.width = false;
         this.charTable = charTable;
+        this.hints = hints;
     }
-
-    private static final List<Integer> STRING_OPCODES = List.of(0x77,0x78,0x7b);
 
     public void disasm(int pointer, boolean width) {
         disasm(pointer, chunk.getSize(), width);
@@ -39,8 +44,35 @@ public class MetaprogramDecompiler {
         while (this.pointer < endPointer) {
             final int startPointer = this.pointer;
 
-            // TODO: read in a metadata file that includes chunk, address, and special handler
-            // e.g. {4a:041e}.item -> call the Item decoder, it's the improved Freedom Sword
+            final Hint hint = hints.get(startPointer);
+            if (hint != null) {
+                switch (hint) {
+                    case DATA -> {
+                        System.out.printf("%08x  .data", this.pointer);
+                        for (int i = 0; i < hint.getCount(); i++) {
+                            System.out.printf(" %02x", chunk.getUnsignedByte(this.pointer + i));
+                        }
+                        this.pointer += hint.getCount();
+                        continue;
+                    }
+                    case WORD -> {
+                        System.out.printf("%08x  .data", this.pointer);
+                        for (int i = 0; i < hint.getCount(); i++) {
+                            System.out.printf(" %04x", chunk.getWord(this.pointer + (2*i)));
+                        }
+                        this.pointer += 2 * hint.getCount();
+                        continue;
+                    }
+                    case ITEM -> {
+                        decodeItem();
+                        continue;
+                    }
+                    case STRING -> {
+                        decodeString();
+                        continue;
+                    }
+                }
+            }
 
             final int opcode = getByte();
             System.out.printf("%08x  %02x", startPointer, opcode);
@@ -70,50 +102,81 @@ public class MetaprogramDecompiler {
                     0x3f, 0x40, 0x48, 0x4e, 0x4f, 0x50, 0x5f, 0x60,
                     0x61, 0x66, 0x68, 0x69, 0x6f, 0x70, 0x80, 0x82,
                     0x90, 0x97, 0x98, 0x9a ->
-                    mnemonic = replaceImmediateByte(ins.operation());
+                    System.out.println(replaceImmediateByte(ins.operation()));
+
                 // Opcodes where the immediate is always wide
                 case 0x0c, 0x0d, 0x14, 0x15, 0x41, 0x42, 0x43, 0x44,
                     0x45, 0x46, 0x47, 0x49, 0x51, 0x52, 0x53, 0x5c, 0x63 ->
-                    mnemonic = replaceImmediateWord(ins.operation());
+                    System.out.println(replaceImmediateWord(ins.operation()));
+
                 // Opcodes where the immediate is WIDTH
                 case 0x09, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e ->
-                    mnemonic = replaceImmediateValue(ins.operation());
-                // Two immediates, a two-byte heap index plus a one-byte immediate
-                case 0x10, 0x18 -> mnemonic = replaceImmediates10(ins);
-                // Two immediates, width-dependent
-                case 0x1a -> mnemonic = replaceImmediates1a(ins);
-                case 0x1c -> mnemonic = replaceImmediates1c(ins);
-                case 0x57, 0x58 -> mnemonic = calculateLongTarget(ins.operation());
-                // One immediate is a party offset; check for skills
-                case 0x5d, 0x5e -> mnemonic = replaceImmediates5d(ins);
-                case 0x62 -> mnemonic = replaceImmediates62(ins);
-                // Opcodes with a hardcoded bitsplit
-                case 0x9b, 0x9c, 0x9d -> mnemonic = calculateBitsplit(ins.operation());
-                default -> mnemonic = ins.operation();
-            }
-            System.out.println(mnemonic);
+                    System.out.println(replaceImmediateValue(ins.operation()));
 
-            if (opcode == 0x58) { // long call
-                final int chunkId = chunk.getUnsignedByte(this.pointer - 3);
-                final int target = chunk.getWord(this.pointer - 2);
-                if (chunkId == 0x08) {
-                    if (target == 0x0006 || target == 0x0173) {
-                        dataJumpToAnotherBoard();
-                    }
-                    if (target == 0x0012 || target == 0x001b || target == 0x0242 || target == 0x0281) {
-                        dataGetReward();
-                    }
-                    if (target == 0x0015 || target == 0x0018 || target == 0x02d7 || target == 0x02d2) {
-                        dataReadParagraph();
-                    }
+                // Two immediates, a two-byte heap index plus a one-byte immediate
+                case 0x10, 0x18 -> System.out.println(replaceImmediates10(ins));
+
+                // Two immediates, width-dependent
+                case 0x1a -> System.out.println(replaceImmediates1a(ins));
+                case 0x1c -> System.out.println(replaceImmediates1c(ins));
+
+                // Longjump / Longcall
+                case 0x57 -> System.out.println(calculateLongTarget(ins.operation()));
+                case 0x58 -> {
+                    System.out.println(calculateLongTarget(ins.operation()));
+                    parseLongCall();
                 }
+
+                // One immediate is a party offset; check for skills
+                case 0x5d, 0x5e -> System.out.println(replaceImmediates5d(ins));
+                case 0x62 -> System.out.println(replaceImmediates62(ins));
+
+                // Opcodes that decode a string immediately following
+                case 0x77, 0x78, 0x7b -> {
+                    System.out.println(ins.operation());
+                    decodeString();
+                }
+
+                // Opcodes with a hardcoded bitsplit
+                case 0x9b, 0x9c, 0x9d -> System.out.println(calculateBitsplit(ins.operation()));
+
+                default -> System.out.println(ins.operation());
             }
-            if (STRING_OPCODES.contains(opcode)) {
-                final StringDecoder sd = new StringDecoder(charTable, chunk);
-                System.out.printf("%08x  .string ", this.pointer);
-                sd.decodeString(this.pointer);
-                System.out.println("\"" + sd.getDecodedString() + "\"");
-                this.pointer = sd.getPointer();
+        }
+    }
+
+    private void decodeItem() {
+        final Item item = new Item(this.chunk);
+        item.decode(this.pointer);
+        System.out.printf("%08x  .item", this.pointer);
+        for (Byte b : item.toBytes()) { System.out.printf(" %02x", b); }
+        System.out.println();
+        System.out.println(item);
+        this.pointer += 11;
+        this.pointer += item.getName().length();
+    }
+
+    private void decodeString() {
+        final StringDecoder sd = new StringDecoder(charTable, chunk);
+        System.out.printf("%08x  .string ", this.pointer);
+        sd.decodeString(this.pointer);
+        System.out.println("\"" + sd.getDecodedString() + "\"");
+        this.pointer = sd.getPointer();
+    }
+
+    // Some longcall methods reach back to the caller's meta stream and read data as well
+    private void parseLongCall() {
+        final int chunkId = chunk.getUnsignedByte(this.pointer - 3);
+        final int target = chunk.getWord(this.pointer - 2);
+        if (chunkId == 0x08) {
+            if (target == 0x0006 || target == 0x0173) {
+                dataJumpToAnotherBoard();
+            }
+            if (target == 0x0012 || target == 0x001b || target == 0x0242 || target == 0x0281) {
+                dataGetReward();
+            }
+            if (target == 0x0015 || target == 0x0018 || target == 0x02d7 || target == 0x02d2) {
+                dataReadParagraph();
             }
         }
     }
@@ -145,11 +208,7 @@ public class MetaprogramDecompiler {
 
         this.pointer += 0xd;
 
-        final StringDecoder sd = new StringDecoder(charTable, chunk);
-        System.out.printf("%08x  .string ", this.pointer);
-        sd.decodeString(this.pointer);
-        System.out.println("\"" + sd.getDecodedString() + "\"");
-        this.pointer = sd.getPointer();
+        decodeString();
     }
 
     private String replaceImmediates10(Instruction ins) {
@@ -520,8 +579,8 @@ public class MetaprogramDecompiler {
             endPointer = Optional.empty();
         }
 
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
         try (
+            final RandomAccessFile hints = new RandomAccessFile(basePath + "hints", "r");
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
@@ -534,7 +593,8 @@ public class MetaprogramDecompiler {
                 chunk = new Chunk(decodedMapData);
             }
             final StringDecoder.LookupTable charTable = new StringDecoder.LookupTable(exec);
-            final MetaprogramDecompiler decomp = new MetaprogramDecompiler(chunk, charTable);
+            final HintTable hintTable = new HintTable(hints);
+            final MetaprogramDecompiler decomp = new MetaprogramDecompiler(chunk, charTable, hintTable.getHints(chunkId));
 
             // decomp.printInstructions();
 

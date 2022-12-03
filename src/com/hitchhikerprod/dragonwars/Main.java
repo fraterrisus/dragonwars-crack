@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Main {
-    private static String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+    static String basePath = "/home/bcordes/Nextcloud/dragonwars/";
 
     private final RandomAccessFile executable;
     private final RandomAccessFile data1;
