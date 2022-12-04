@@ -26,6 +26,32 @@ There is a similar second array which contains one-byte pointers into the [secon
 
 Finally, after the second array, there's a string that is printed when the NPC joins your party. (There's no pointer for this; it's just 1B after the end of the inventory array.)
 
+## Chests<a name="chest">
+
+*Opcode:* `580b0c00 longcall(0b,000c)`
+
+The next word is the return address.
+
+If the following byte is `0xff`, skip it. Otherwise, read that byte and the one after it and run a bitsplit operation to get a heap index and bit. If that value is zero, ignore the chest and return immediately.
+
+A tagline string (five-bit packed) follows.
+
+After that is an array of two-byte values. The first byte is an index into the [secondary map data's](Board Data.md) Items list, indicating which items are in the chest, and the second byte is the count. If the count is `0x00`, there are an infinite number of that item in the chest (see the Purgatory Low Magic Shoppe). If the item index is `0x80`, it's a Dragon Stone (hardcoded into chunk `0x0b`). If the item index is `0xfe`, it's gold, and the other byte is the amount (in the Purchase Price format). If the item index is `0xff`, the array terminates.
+
+## Shops<a name="shop">
+
+*Opcode:* `580a0000 longcall(0a,0000)`
+
+The next word is a pointer to the tagline string (five-bit packed).
+
+After that is an array, starting with a one-byte item count. Each item contains two pointers; the first points to the category's inventory list, and the second points to the category name (five-bit packed string).
+
+Then there's one byte of extraneous data that I haven't figured out yet.
+
+The strings follow, starting with the tagline and proceeding through the category names.
+
+The inventory lists are also arrays starting with a one-byte item count. Each item is a single byte which is an index into the [secondary map data's](Board Data.md) Items list, indicating which items are for sale in that category.
+
 # 0x01 Purgatory
 
 ## Board State
@@ -68,7 +94,7 @@ Finally, after the second array, there's a string that is printed when the NPC j
 19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. Gate on `heap[04+99].0x04` to get a $1000 reward (gate-and-set `heap[04+99].0x02`) for defeating the Humbaba. Otherwise run the intro bit. Describe yourself as a beggar and you're **dealt 1d8 damage**. Refuse and you're given the Humbaba quest.
 20. `[137f]` (09,22) Statue of Namtar. Read paragraph #9. 
 21. `[1387]` (25,27) The [tavern](#tavern). Ulrik is here.
-22. `[1564]` (03,22) The magic shoppe. Gate-and-set `heap[00+b9].0x10` to read paragraph #10. Then call `{0b:000c}`.
+22. `[1564]` (03,22) The magic shoppe. Gate-and-set `heap[00+b9].0x10` to read paragraph #10. Stock includes infinite quantities of Low Magic scrolls (items `0x15-0x1a`).
 23. `[15a2]` *(12,30) The black market. {0a:0000}*
 24. `[15fc]` (11,26) The slave market. Gate-and-set `heap[00+b9].0x04` to read paragraph #67. If you sell yourself into slavery, read paragraph #58, set `heap[06+99].0x04`, then travel to the Slave Mines (13:07,08).
 25. `[113e]` (19,29) Runs fight #02 (Gladiators). If you win, display color text and pick up the Citizenship Papers, then set `heap[0c+99].0x20`. Restore the entry door `ds[0320]<-0x20` and event #11 `ds[02bc]<-0x0b`. Teleport the party outside the Arena. If you lose, display color text and lose all your Gold.

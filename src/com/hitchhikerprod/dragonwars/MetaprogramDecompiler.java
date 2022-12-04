@@ -167,23 +167,25 @@ public class MetaprogramDecompiler {
         return words;
     }
 
-/*
-    private List<Integer> decodeDataUntil(int stopByte) {
+    private List<Integer> decodeWordsUntil(int stopByte) {
         final List<Integer> words = new ArrayList<>();
         System.out.printf("%08x  .data", this.pointer);
         while(true) {
-            final int word = chunk.getUnsignedByte(this.pointer);
-            System.out.printf(" %02x", word);
+            final int word = chunk.getWord(this.pointer);
             this.pointer++;
-            if (word == 0xff) { break; }
+            if ((word & 0x00ff) == stopByte) {
+                System.out.printf(" %02x", stopByte);
+                break;
+            }
+            this.pointer++;
+            System.out.printf(" %04x", word);
             words.add(word);
         }
         System.out.println();
         return words;
     }
-*/
 
-    private List<Integer> decodeArray() {
+    private List<Integer> decodeWordArray() {
         System.out.printf("%08x  .array", this.pointer);
         final int count = chunk.getUnsignedByte(this.pointer);
         System.out.printf(" %02x :", count);
@@ -195,6 +197,22 @@ public class MetaprogramDecompiler {
         }
         this.pointer += 1;
         this.pointer += 2 * count;
+        System.out.println();
+        return words;
+    }
+
+    private List<Integer> decodeDataArray() {
+        System.out.printf("%08x  .array", this.pointer);
+        final int count = chunk.getUnsignedByte(this.pointer);
+        System.out.printf(" %02x :", count);
+        final List<Integer> words = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            final int word = chunk.getUnsignedByte(this.pointer + 1 + i);
+            System.out.printf(" %02x", word);
+            words.add(word);
+        }
+        this.pointer += 1;
+        this.pointer += count;
         System.out.println();
         return words;
     }
@@ -224,36 +242,25 @@ public class MetaprogramDecompiler {
         final int target = chunk.getWord(this.pointer - 2);
         switch(chunkId) {
             case 0x08 -> {
-                if (target == 0x0006 || target == 0x0173) {
-                    dataJumpToAnotherBoard();
-                }
-                if (target == 0x0012 || target == 0x001b || target == 0x0242 || target == 0x0281) {
-                    dataGetReward();
-                }
-                if (target == 0x0015 || target == 0x0018 || target == 0x02d7 || target == 0x02d2) {
-                    decodeWords(1);
+                switch(target) {
+                    case 0x0006, 0x0173 -> dataJumpToAnotherBoard();
+                    case 0x0012, 0x001b, 0x0242, 0x0281 -> dataGetReward();
+                    case 0x0015, 0x0018, 0x02d7, 0x02d2 -> decodeWords(1);
                 }
             }
             case 0x09 -> {
-                if (target == 0x0000) { // Tavern runner
-                    decodeWords(1);
-                    final int taglinePointer = decodeWords(1).get(0);
-                    final List<Integer> volunteers = decodeArray();
-                    final List<Integer> rumors = decodeArray();
-                    this.pointer = taglinePointer;
-                    decodeString();
-                    for (int ptr : rumors) {
-                        this.pointer = ptr;
-                        decodeString();
-                    }
-                    for (int ptr : volunteers) {
-                        final NPC npc = new NPC(chunk);
-                        this.pointer = npc.decode(ptr);
-                        // First byte = NPC identifier number
-                        System.out.printf("%08x  .npc\n    ", ptr); // %02x ", ptr, chunk.getUnsignedByte(ptr));
-                        npc.display();
-                        decodeString();
-                    }
+                if (target == 0x0000) {
+                    dataTavern();
+                }
+            }
+            case 0x0a -> {
+                if (target == 0x0000) {
+                    dataShop();
+                }
+            }
+            case 0x0b -> {
+                if (target == 0x000c || target == 0x00a2) {
+                    dataGetLoot();
                 }
             }
             case 0x11 -> {
@@ -263,12 +270,76 @@ public class MetaprogramDecompiler {
                     decodeString();
                 }
             }
-            case 0x0b -> {
-                if (target == 0x000c) {
-                    decodeWords(1);
-                    decodeData(1); // more?
-                }
-            }
+        }
+    }
+
+    private void dataGetLoot() {
+        decodeWords(1);
+        final int bitsplit = chunk.getUnsignedByte(this.pointer);
+        this.pointer++;
+        if (bitsplit != 0xff) {
+            final int heapBase = chunk.getUnsignedByte(this.pointer);
+            this.pointer++;
+            System.out.printf("%08x  .heap[%02x + %02x], 0x%02x\n", this.pointer - 2,
+                (bitsplit >> 3), heapBase, 0x80 >> (bitsplit & 0x7));
+        }
+        decodeString();
+        decodeWordsUntil(0xff);
+/*
+        if (itemByte == 0xfe) { // gold
+            final PowerInt cashValue = new PowerInt(chunk.getByte(this.pointer));
+            this.pointer++;
+        } else {
+            second byte is count (00=infinite)
+        }
+*/
+    }
+
+    private void dataShop() {
+        final int taglinePointer = decodeWords(1).get(0);
+
+        final int arrayLength = getByte();
+        System.out.printf("%08x  .array %02x :", this.pointer, arrayLength);
+        final List<Integer> stringPointers = new ArrayList<>();
+        stringPointers.add(taglinePointer);
+        final List<Integer> categoryPointers = new ArrayList<>();
+        for (int i = 0; i < arrayLength; i++) {
+            final int categoryPointer = getWord();
+            final int stringPointer = getWord();
+            System.out.printf(" (%04x,%04x)", categoryPointer, stringPointer);
+            categoryPointers.add(categoryPointer);
+            stringPointers.add(stringPointer);
+        }
+        System.out.println();
+        decodeData(1);
+        stringPointers.stream().sorted().forEach(ptr -> {
+            this.pointer = ptr;
+            decodeString();
+        });
+        categoryPointers.stream().sorted().forEach(ptr -> {
+            this.pointer = ptr;
+            decodeDataArray();
+        });
+    }
+
+    private void dataTavern() {
+        decodeWords(1);
+        final int taglinePointer = decodeWords(1).get(0);
+        final List<Integer> volunteers = decodeWordArray();
+        final List<Integer> rumors = decodeWordArray();
+        this.pointer = taglinePointer;
+        decodeString();
+        for (int ptr : rumors) {
+            this.pointer = ptr;
+            decodeString();
+        }
+        for (int ptr : volunteers) {
+            final NPC npc = new NPC(chunk);
+            this.pointer = npc.decode(ptr);
+            // First byte = NPC identifier number
+            System.out.printf("%08x  .npc\n    ", ptr); // %02x ", ptr, chunk.getUnsignedByte(ptr));
+            npc.display();
+            decodeString();
         }
     }
 
@@ -280,20 +351,9 @@ public class MetaprogramDecompiler {
     }
 
     private void dataJumpToAnotherBoard() {
-        System.out.printf("%08x  .data ", this.pointer);
-        for (int x = 0; x < 4; x++) {
-            System.out.printf("%02x ", chunk.getUnsignedByte(this.pointer + x));
-        }
-        System.out.println();
-        System.out.printf("%08x  .data %02x\n", this.pointer + 4, chunk.getUnsignedByte(this.pointer + 4));
-        System.out.printf("%08x  .data ", this.pointer + 5);
-        for (int x = 5; x < 0xd; x++) {
-            System.out.printf("%02x ", chunk.getUnsignedByte(this.pointer + x));
-        }
-        System.out.println();
-
-        this.pointer += 0xd;
-
+        decodeData(4);
+        decodeData(1);
+        decodeData(8);
         decodeString();
     }
 
