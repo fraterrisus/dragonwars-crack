@@ -45,7 +45,7 @@ public class HintTable {
     }
 
     private static final Pattern hintPattern =
-        Pattern.compile("\\{(?<chunk>[0-9a-f]+):(?<adr>[0-9a-f]+)}.(?<type>\\w+)(?<args>\\(.*\\))?.*$");
+        Pattern.compile("\\{(?<chunk>[0-9a-f]+):(?<adr>[0-9a-f]+)}.(?<type>\\w+)(\\((?<args>.*)\\))?.*$");
 
     public static void parse(Map<Integer, Map<Integer, Hint>> hintMap, Stream<String> lines) {
         lines.forEach(line -> {

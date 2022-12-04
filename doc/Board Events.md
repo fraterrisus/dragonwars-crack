@@ -1,3 +1,31 @@
+# General Events
+
+The metaprogram for each board often calls out to functions in other chunks. Some of these are common to cities and feature additional data, which is worth explaining.
+
+## Taverns<a name="tavern">
+
+*Opcode:* `58090000 longcall(09,0000)`
+
+The next word is the return address, i.e. where you want the program to resume after the party leaves the tavern.
+
+The next word is a pointer to the tavern's "tagline" string.
+
+The following byte is the number of NPC volunteers in residence, followed by an array of pointers to the NPC data. (In practice there's never more than one NPC per tavern, but there's support in the code for more than one.)
+
+The following byte is the number of rumor strings available from the tavern keeper, followed by an array of string pointers.
+
+The tagline string is (usually, although not necessarily) next, then all of the rumor strings.
+
+NPC data starts with the NPC ID number, then the character's name (unpacked, variable-length), then five bytes for the five primary attributes (STR, DEX, INT, SPR, HP).
+
+After the attributes, the next two bytes are the NPC's level.
+
+Beyond that there are a series of offset/value pairs that indicate [character](Character.md) bytes to be updated. (I'm not sure why you couldn't have put the level here instead.) The first byte of the pair is the character data offset (i.e. `0x32` for Sun Magic), and the second is the value (i.e. `01`). This is also how we load spells (bytes `3c` and up). The array of bytes ends with `ff`.
+
+There is a similar second array which contains one-byte pointers into the [secondary map data's](Board Data.md) Items list, indicating the NPC's starting inventory. If bit `0x80` is set, the item is equipped by default.
+
+Finally, after the second array, there's a string that is printed when the NPC joins your party. (There's no pointer for this; it's just 1B after the end of the inventory array.)
+
 # 0x01 Purgatory
 
 ## Board State
@@ -39,7 +67,7 @@
 18. `[1350]` City guard fight within the walls (#03); lose and you're kicked back to the staring square. Clear the square if you win.
 19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. Gate on `heap[04+99].0x04` to get a $1000 reward (gate-and-set `heap[04+99].0x02`) for defeating the Humbaba. Otherwise run the intro bit. Describe yourself as a beggar and you're **dealt 1d8 damage**. Refuse and you're given the Humbaba quest.
 20. `[137f]` (09,22) Statue of Namtar. Read paragraph #9. 
-21. `[1387]` *(25,27) The tavern. {09:0000}*
+21. `[1387]` (25,27) The [tavern](#tavern). Ulrik is here.
 22. `[1564]` (03,22) The magic shoppe. Gate-and-set `heap[00+b9].0x10` to read paragraph #10. Then call `{0b:000c}`.
 23. `[15a2]` *(12,30) The black market. {0a:0000}*
 24. `[15fc]` (11,26) The slave market. Gate-and-set `heap[00+b9].0x04` to read paragraph #67. If you sell yourself into slavery, read paragraph #58, set `heap[06+99].0x04`, then travel to the Slave Mines (13:07,08).
@@ -58,7 +86,7 @@
 37. `[0e87]` (09,21) Run fight #09 (Loons). Clear the square if you win.
 38. `[0e73]` (05,13) and (05,14) Run fight #05 (Fanatics). Clear the square if you win.
 39. `[0ea5]` (20,15) 2N of start square. Gate on Town Lore 1 to read paragraph #14.
-40. `[1517]` (29,27) Healer. (Run routine at `{11:0000}`.) **When you pay for healing, the game automatically pools your gold with the first PC.**
+40. `[1517]` (29,27) The town healer. Run routine at `{11:0000}`. **When you pay for healing, the game automatically pools your gold with the first PC.**
 41. `[1653]` (23,02) Magic refresh pool. Non-dead characters have their Power restored to max.
 
 ## Specials

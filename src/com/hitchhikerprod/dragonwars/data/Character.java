@@ -18,14 +18,14 @@ public class Character {
     final Chunk chunk;
 
     String name;
+    int strengthCur;
     int strength;
-    int strengthTemp;
+    int dexterityCur;
     int dexterity;
-    int dexterityTemp;
+    int intelligenceCur;
     int intelligence;
-    int intelligenceTemp;
+    int spiritCur;
     int spirit;
-    int spiritTemp;
     int health;
     int healthMax;
     int stun;
@@ -65,14 +65,14 @@ public class Character {
         name = new DataString(chunk, offset, 12).toString();
         chunkPointer = offset+12;
 
+        strengthCur = getUnsignedByte();
         strength = getUnsignedByte();
-        strengthTemp = getUnsignedByte();
+        dexterityCur = getUnsignedByte();
         dexterity = getUnsignedByte();
-        dexterityTemp = getUnsignedByte();
+        intelligenceCur = getUnsignedByte();
         intelligence = getUnsignedByte();
-        intelligenceTemp = getUnsignedByte();
+        spiritCur = getUnsignedByte();
         spirit = getUnsignedByte();
-        spiritTemp = getUnsignedByte();
         health = getWord();
         healthMax = getWord();
         stun = getWord();
@@ -83,13 +83,9 @@ public class Character {
         advancementPoints = getUnsignedByte();
         spells = getBytes(8);
 
-        // Something around here has to track whether you've received the Blessing of the
-        // Universal God and received your +3 attribute bonus. I bet there's also a flag
-        // for the +5 AP Irkalla bonus, although that resets with the game state.
-
         unknown = getBytes(8);
-        status = getUnsignedByte(); // 0 OK 1 dead 2 chained 4 poisoned ...?
-        npcId = getUnsignedByte(); // prevents you from adding the same NPC twice
+        status = getUnsignedByte();
+        npcId = getUnsignedByte();
         gender = Gender.of(getUnsignedByte()).orElseThrow();
         level = getWord();
         experience = getQuadWord();
@@ -228,10 +224,10 @@ public class Character {
         System.out.println();
 */
 
-        System.out.print("  STR " + strength + "/" + strengthTemp);
-        System.out.print(" DEX " + dexterity + "/" + dexterityTemp);
-        System.out.print(" INT " + intelligence + "/" + intelligenceTemp);
-        System.out.print(" SPR " + spirit + "/" + spiritTemp);
+        System.out.print("  STR " + strengthCur + "/" + strength);
+        System.out.print(" DEX " + dexterityCur + "/" + dexterity);
+        System.out.print(" INT " + intelligenceCur + "/" + intelligence);
+        System.out.print(" SPR " + spiritCur + "/" + spirit);
         System.out.println();
         System.out.print("  Hit " + health + "/" + healthMax);
         System.out.print(" Stn " + stun + "/" + stunMax);

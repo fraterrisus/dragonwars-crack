@@ -21,14 +21,13 @@ public class SummonedCreature {
     private int intelligence;
     private int spirit;
     private int health;
-    private Item weapon;
-    private Item armor;
+    private List<Item> items;
 
     public SummonedCreature(Chunk chunk) {
         this.chunk = chunk;
     }
 
-    public void decode(int offset) {
+    public int decode(int offset, int itemCount) {
         this.offset = offset;
         int thisOffset = offset;
 
@@ -41,25 +40,28 @@ public class SummonedCreature {
         this.spirit = chunk.getUnsignedByte(thisOffset + 3);
         this.health = chunk.getUnsignedByte(thisOffset + 4);
 
-        final int weaponPtr = chunk.getWord(thisOffset + 5);
-        final int armorPtr = chunk.getWord(thisOffset + 7);
-
-        this.weapon = new Item(chunk);
-        this.weapon.decode(weaponPtr);
-
-        this.armor = new Item(chunk);
-        this.armor.decode(armorPtr);
+        // final List<Integer> itemPointers = new ArrayList<>(itemCount);
+        this.items = new ArrayList<>(itemCount);
+        thisOffset += 5;
+        for (int i = 0; i < itemCount; i++) {
+            final int itemPointer = chunk.getWord(thisOffset);
+            // itemPointers.add(itemPointer);
+            final Item newItem = new Item(chunk);
+            newItem.decode(itemPointer);
+            this.items.add(newItem);
+            thisOffset += 2;
+        }
+        return thisOffset;
     }
 
     public void display() {
         System.out.println(name);
         System.out.printf("  STR %02d DEX %02d INT %02d SPR %02d HP %2d\n", strength, dexterity, intelligence, spirit, health);
-        System.out.println(weapon);
-        System.out.println(armor);
+        for (Item i : this.items) { System.out.println(i); }
     }
 
     public static void main(String[] args) {
-        final int chunkId = 0x47;
+        final int chunkId = 0x06;
 /*
         final int baseAddress;
         try {
@@ -84,22 +86,19 @@ public class SummonedCreature {
                 chunk = new Chunk(decodedMapData);
             }
 
-            int listPointer = 0x1390;
+            int listPointer = 0x0bab;
             int minPointer = 0x1000;
             final List<Integer> creaturePointers = new ArrayList<>();
-/*
             while (minPointer > listPointer) {
                 int newPointer = chunk.getWord(listPointer);
                 creaturePointers.add(newPointer);
                 if (newPointer < minPointer) { minPointer = newPointer; }
                 listPointer += 2;
             }
-*/
-            creaturePointers.add(0x14b4);
 
             for (Integer baseAddress : creaturePointers) {
                 final SummonedCreature creature = new SummonedCreature(chunk);
-                creature.decode(baseAddress);
+                creature.decode(baseAddress, 2);
                 System.out.printf("[%04x] ", baseAddress);
                 creature.display();
             }
