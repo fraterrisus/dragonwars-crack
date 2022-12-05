@@ -20,7 +20,7 @@ NPC data starts with the NPC ID number, then the character's name (unpacked, var
 
 After the attributes, the next two bytes are the NPC's level.
 
-Beyond that there are a series of offset/value pairs that indicate [character](Character.md) bytes to be updated. (I'm not sure why you couldn't have put the level here instead.) The first byte of the pair is the character data offset (i.e. `0x32` for Sun Magic), and the second is the value (i.e. `01`). This is also how we load spells (bytes `3c` and up). The array of bytes ends with `ff`.
+Beyond that there are a series of offset/value pairs that indicate [character](Character.md) bytes to be updated. (I'm not sure why you couldn't have put the level here instead.) The first byte of the pair is the character data offset (i.e. `0x32` for Sun Magic), and the second is the value (i.e. `01`). This is also how we load spells (bytes `3c` and up). The array of bytes ends with `ff`.
 
 There is a similar second array which contains one-byte pointers into the [secondary map data's](Board Data.md) Items list, indicating the NPC's starting inventory. If bit `0x80` is set, the item is equipped by default.
 
@@ -44,9 +44,9 @@ After that is an array of two-byte values. The first byte is an index into the [
 
 The next word is a pointer to the tagline string (five-bit packed).
 
-After that is an array, starting with a one-byte item count. Each item contains two pointers; the first points to the category's inventory list, and the second points to the category name (five-bit packed string).
+After that is an array of shop categories, starting with a one-byte item count. Each item contains two pointers; the first points to the category's inventory list, and the second points to the category name (five-bit packed string). If there's only one category, there's no category name (and the second pointer doesn't exist).
 
-Then there's one byte of extraneous data that I haven't figured out yet.
+The return pointer (place we jump back to after the longcall) is set after that array, so the next thing in the stream is an instruction (usually a `jmp` or `exit` or similar).
 
 The strings follow, starting with the tagline and proceeding through the category names.
 
@@ -94,8 +94,8 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. Gate on `heap[04+99].0x04` to get a $1000 reward (gate-and-set `heap[04+99].0x02`) for defeating the Humbaba. Otherwise run the intro bit. Describe yourself as a beggar and you're **dealt 1d8 damage**. Refuse and you're given the Humbaba quest.
 20. `[137f]` (09,22) Statue of Namtar. Read paragraph #9. 
 21. `[1387]` (25,27) The [tavern](#tavern). Ulrik is here.
-22. `[1564]` (03,22) The magic shoppe. Gate-and-set `heap[00+b9].0x10` to read paragraph #10. Stock includes infinite quantities of Low Magic scrolls (items `0x15-0x1a`).
-23. `[15a2]` *(12,30) The black market. {0a:0000}*
+22. `[1564]` (03,22) The [magic shoppe](#chest). Gate-and-set `heap[00+b9].0x10` to read paragraph #10. Stock includes infinite quantities of Low Magic scrolls (items `0x15-0x1a`).
+23. `[15a2]` (12,30) The [black market](#shop).
 24. `[15fc]` (11,26) The slave market. Gate-and-set `heap[00+b9].0x04` to read paragraph #67. If you sell yourself into slavery, read paragraph #58, set `heap[06+99].0x04`, then travel to the Slave Mines (13:07,08).
 25. `[113e]` (19,29) Runs fight #02 (Gladiators). If you win, display color text and pick up the Citizenship Papers, then set `heap[0c+99].0x20`. Restore the entry door `ds[0320]<-0x20` and event #11 `ds[02bc]<-0x0b`. Teleport the party outside the Arena. If you lose, display color text and lose all your Gold.
 26. `[0e78]` Run fight #06 (Bandits). Clear the square if you win.
@@ -119,6 +119,17 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 
 1. Event 5, use *Climb* or *Swim* -> `[0f75]`
 2. Event 16, use *Dexterity* or *Hiding* -> `[1337]`
+
+# 0x08 Mud Toad
+
+## Board State
+
+| Heap byte |    Bit     | Meaning               |
+| :-------: | :--------: | --------------------- |
+|  `[41]`   | `*–––––––` | Stone Arms retrieved  |
+|  `[41]`   | `–*––––––` | Stone Torso retrieved |
+|  `[41]`   | `––*–––––` | Stone Head retrieved  |
+|  `[41]`   | `–––*––––` | Stone Hands retrieved |
 
 # 0x12 Magan Underworld
 

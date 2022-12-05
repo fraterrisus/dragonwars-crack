@@ -48,13 +48,17 @@ public class MetaprogramDecompiler {
 
             final Hint hint = hints.get(startPointer);
             if (hint != null) {
-                switch (hint) {
+                switch (hint.hintType()) {
                     case DATA -> {
-                        decodeData(hint.getCount());
+                        decodeData(hint.count());
                         continue;
                     }
                     case WORD -> {
-                        decodeWords(hint.getCount());
+                        decodeWords(hint.count());
+                        continue;
+                    }
+                    case QUAD -> {
+                        decodeQuadWords(hint.count());
                         continue;
                     }
                     case ITEM -> {
@@ -137,6 +141,21 @@ public class MetaprogramDecompiler {
                 default -> System.out.println(ins.operation());
             }
         }
+    }
+
+    private List<Integer> decodeQuadWords(int count) {
+        final List<Integer> words = new ArrayList<>(count);
+        if (count > 0) {
+            System.out.printf("%08x  .data", this.pointer);
+            for (int i = 0; i < count; i++) {
+                final int word = chunk.getQuadWord(this.pointer + (4 * i));
+                System.out.printf(" %08x", word);
+                words.add(word);
+            }
+            System.out.println();
+            this.pointer += 4 * count;
+        }
+        return words;
     }
 
     private List<Integer> decodeWords(int count) {
@@ -305,13 +324,23 @@ public class MetaprogramDecompiler {
         final List<Integer> categoryPointers = new ArrayList<>();
         for (int i = 0; i < arrayLength; i++) {
             final int categoryPointer = getWord();
-            final int stringPointer = getWord();
-            System.out.printf(" (%04x,%04x)", categoryPointer, stringPointer);
+            if (arrayLength != 1) {
+                final int stringPointer = getWord();
+                stringPointers.add(stringPointer);
+                System.out.printf(" (%04x,%04x)", categoryPointer, stringPointer);
+            } else {
+                System.out.printf(" (%04x,----)", categoryPointer);
+            }
             categoryPointers.add(categoryPointer);
-            stringPointers.add(stringPointer);
         }
         System.out.println();
-        decodeData(1);
+
+        final int savePointer = this.pointer;
+        final boolean saveWidth = this.width;
+        disasm(savePointer, savePointer+1, saveWidth);
+        this.pointer = savePointer;
+        this.width = saveWidth;
+
         stringPointers.stream().sorted().forEach(ptr -> {
             this.pointer = ptr;
             decodeString();
@@ -396,27 +425,29 @@ public class MetaprogramDecompiler {
             .replace("imm:w", imm2);
     }
 
-    private String replaceImmediates5d(Instruction ins) {
-        final String imm;
-        final int offset = chunk.getUnsignedByte(this.pointer - 1);
+    private Optional<String> charDataOffsetName(int offset) {
         if (offset >= 0x0c && offset <= 0x3a) {
-            imm = Lists.REQUIREMENTS[offset - 0x0c];
+            return Optional.of(Lists.REQUIREMENTS[offset - 0x0c]);
+        } else if (offset >= 0x4c && offset <= 0x5c) {
+            return Optional.of(Lists.CHAR_FIELDS[offset - 0x4c]);
         } else {
-            imm = String.format("off:%02x", offset);
+            return Optional.empty();
         }
+    }
+
+    private String replaceImmediates5d(Instruction ins) {
+        final int offset = chunk.getUnsignedByte(this.pointer - 1);
+        final String imm = charDataOffsetName(offset)
+            .orElse(String.format("off:%02x", offset));
         return ins.operation()
             .replace("off:imm", imm);
     }
 
     private String replaceImmediates62(Instruction ins) {
-        final String imm1, imm2;
         final int offset = chunk.getUnsignedByte(this.pointer - 2);
-        if (offset >= 0x0c && offset <= 0x3a) {
-            imm1 = Lists.REQUIREMENTS[offset - 0x0c];
-        } else {
-            imm1 = String.format("off:%02x", offset);
-        }
-        imm2 = String.format("0x%02x", chunk.getUnsignedByte(this.pointer - 1));
+        final String imm1 = charDataOffsetName(offset)
+            .orElse(String.format("off:%02x", offset));
+        final String imm2 = String.format("0x%02x", chunk.getUnsignedByte(this.pointer - 1));
         return ins.operation()
             .replace("off:imm", imm1)
             .replace(">= imm", ">= " + imm2);
@@ -484,11 +515,11 @@ public class MetaprogramDecompiler {
         new Instruction("push ds", immNone),
         new Instruction("pop ds", immNone),
         new Instruction("push cs", immNone),
-        new Instruction("bx <- heap[imm]", immIndex),
-        new Instruction("bx <- imm", immByte),
-        new Instruction("bx <- 0x00", immNone),
+        new Instruction("bl <- heap[imm]", immIndex),
+        new Instruction("bl <- imm", immByte),
+        new Instruction("bl <- 0x00", immNone),
         // 08
-        new Instruction("heap[imm] <- bx", immIndex),
+        new Instruction("heap[imm] <- bl", immIndex),
         new Instruction("ax:w <- imm", immWord),
         new Instruction("ax:w <- heap[imm]", immIndex),
         new Instruction("ax:w <- heap[imm + bx]", immIndex),

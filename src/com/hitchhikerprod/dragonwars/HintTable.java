@@ -1,6 +1,7 @@
 package com.hitchhikerprod.dragonwars;
 
 import com.hitchhikerprod.dragonwars.data.Hint;
+import com.hitchhikerprod.dragonwars.data.HintType;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -37,7 +38,7 @@ public class HintTable {
         parse(hintMap, hints.stream());
     }
 
-    public Map<Integer,Hint> getHints(int chunkId) {
+    public Map<Integer, Hint> getHints(int chunkId) {
         if (hintMap.containsKey(chunkId))
             return hintMap.get(chunkId);
         else
@@ -45,7 +46,7 @@ public class HintTable {
     }
 
     private static final Pattern hintPattern =
-        Pattern.compile("\\{(?<chunk>[0-9a-f]+):(?<adr>[0-9a-f]+)}.(?<type>\\w+)(\\((?<args>.*)\\))?.*$");
+        Pattern.compile("\\{(?<chunk>[0-9a-f]+):(?<adr>[0-9a-f]+)}.(?<type>\\w+)(\\((?<args>\\d+)\\))?.*$");
 
     public static void parse(Map<Integer, Map<Integer, Hint>> hintMap, Stream<String> lines) {
         lines.forEach(line -> {
@@ -55,13 +56,10 @@ public class HintTable {
             }
             final int chunk = Integer.parseInt(matcher.group("chunk"), 16);
             final int address = Integer.parseInt(matcher.group("adr"), 16);
-            final String hintType = matcher.group("type").toUpperCase();
-            final Hint hint = Hint.valueOf(hintType);
             final String args = matcher.group("args");
-            if (args != null) {
-                final int count = Integer.parseInt(args);
-                hint.setCount(count);
-            }
+            final Hint hint = new Hint(
+                HintType.valueOf(matcher.group("type").toUpperCase()),
+                (args == null) ? 1 : Integer.parseInt(args));
             hintMap.computeIfAbsent(chunk, (c) -> new HashMap<>());
             hintMap.get(chunk).put(address, hint);
         });

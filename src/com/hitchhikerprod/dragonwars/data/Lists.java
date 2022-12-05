@@ -26,7 +26,14 @@ public class Lists {
             // S:Light Flash and M:Prison are in the manual, but never found in the game.
     };
 
-    static public final String[] REQUIREMENTS = {
+    static public final String[] CHAR_FIELDS = { // base offset 0x4c
+        "Status", "NPC ID", "Level b0", "Level b1",
+        "XP b0", "XP b1", "XP b2", "XP b3",
+        "Gold b0", "Gold b1", "Gold b2", "Gold b3",
+        "AV", "DV", "AC", "Flags"
+    };
+
+    static public final String[] REQUIREMENTS = { // base offset 0x0c
         // apostrophe -> current (potentially modified) value
         "Strength'", "Strength", "Dexterity'", "Dexterity",
         "Intelligence'", "Intelligence", "Spirit'", "Spirit",
