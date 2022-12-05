@@ -189,7 +189,7 @@ public class TextureDecoder {
     public static void main(String[] args) {
         final BufferedImage image = new BufferedImage(320, 200, BufferedImage.TYPE_INT_RGB);
 
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        final String basePath = Properties.getInstance().basePath();
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");

@@ -82,6 +82,8 @@ public class Chunk {
     }
 
     public static void main(String[] args) {
+        final String basePath = Properties.getInstance().basePath();
+
         final int chunkId;
         try {
             chunkId = Integer.parseInt(args[0].substring(2), 16);
@@ -89,7 +91,6 @@ public class Chunk {
             throw new RuntimeException("Insufficient arguments");
         }
 
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");

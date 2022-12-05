@@ -105,7 +105,7 @@ public class SpellTable {
     }
 
     public static void main(String[] args) {
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        final String basePath = Properties.getInstance().basePath();
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");

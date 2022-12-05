@@ -3,14 +3,13 @@ package com.hitchhikerprod.dragonwars.data;
 import com.hitchhikerprod.dragonwars.Chunk;
 import com.hitchhikerprod.dragonwars.ChunkTable;
 import com.hitchhikerprod.dragonwars.HuffmanDecoder;
+import com.hitchhikerprod.dragonwars.Properties;
 import com.hitchhikerprod.dragonwars.StringDecoder;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.hitchhikerprod.dragonwars.Main.basePath;
 
 public class SummonedCreature {
     private final Chunk chunk;
@@ -72,6 +71,7 @@ public class SummonedCreature {
         }
 */
 
+        final String basePath = Properties.getInstance().basePath();
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");

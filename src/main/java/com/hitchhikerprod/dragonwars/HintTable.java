@@ -14,8 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static com.hitchhikerprod.dragonwars.Main.basePath;
-
 public class HintTable {
     private final Map<Integer, Map<Integer, Hint>> hintMap;
 
@@ -66,6 +64,7 @@ public class HintTable {
     }
 
     public static void main(String[] args) {
+        final String basePath = Properties.getInstance().basePath();
 /*
         List<String> test = new ArrayList<>();
         test.add("{47:041e}.item");

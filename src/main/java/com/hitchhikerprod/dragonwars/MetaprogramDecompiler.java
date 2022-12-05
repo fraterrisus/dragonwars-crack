@@ -13,8 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static com.hitchhikerprod.dragonwars.Main.basePath;
-
 public class MetaprogramDecompiler {
     public static class DecompilationException extends RuntimeException {
         public DecompilationException() { super(); }
@@ -756,6 +754,7 @@ public class MetaprogramDecompiler {
             endPointer = Optional.empty();
         }
 
+        final String basePath = Properties.getInstance().basePath();
         try (
             final RandomAccessFile hints = new RandomAccessFile(basePath + "hints", "r");
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");

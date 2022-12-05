@@ -82,7 +82,7 @@ public class ChunkImageDecoder {
         }
 
         final Chunk chunk;
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        final String basePath = Properties.getInstance().basePath();
         try (
             final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
             final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r")

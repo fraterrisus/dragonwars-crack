@@ -20,8 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Main {
-    public static String basePath = "/home/bcordes/Nextcloud/dragonwars/";
-
     private final RandomAccessFile executable;
     private final RandomAccessFile data1;
     private final RandomAccessFile data2;
@@ -61,11 +59,30 @@ public class Main {
         final List<String> myArgs = Arrays.asList(args);
         final String command = myArgs.get(0);
         final List<String> yourArgs = myArgs.subList(1, myArgs.size());
-        if (command.equalsIgnoreCase("item")) { mainDecodeItem(yourArgs); }
-        else if (command.equalsIgnoreCase("search")) { mainSearch(yourArgs); }
-        else if (command.equalsIgnoreCase("party")) { mainDecodeParty(yourArgs); }
-        else if (command.equalsIgnoreCase("regions")) { mainRegions(yourArgs); }
-        else if (command.equalsIgnoreCase("hud")) { mainDecodeHud(yourArgs); }
+
+        final String basePath = Properties.getInstance().basePath();
+
+        try (
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r");
+        ) {
+            final Main m = new Main(exec, data1, data2);
+
+            if (command.equalsIgnoreCase("item")) {
+                m.decodeItem(yourArgs);
+            } else if (command.equalsIgnoreCase("search")) {
+                m.search(yourArgs);
+            } else if (command.equalsIgnoreCase("party")) {
+                m.decodeParty(yourArgs);
+            } else if (command.equalsIgnoreCase("regions")) {
+                m.regions(yourArgs);
+            } else if (command.equalsIgnoreCase("hud")) {
+                m.decodeHud(yourArgs);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void drawRect(Graphics2D gfx, int index, byte[] points) {
@@ -83,7 +100,7 @@ public class Main {
         gfx.drawString(String.valueOf(index), x0 + 1, y0 + 6);
     }
 
-    private static void mainRegions(List<String> args) {
+    private void regions(List<String> args) {
         final String filename = parseFilename(args);
         final byte[][] coords = new byte[14][4];
 
@@ -112,7 +129,7 @@ public class Main {
         }
     }
 
-    private static void mainDecodeHud(List<String> args) {
+    private void decodeHud(List<String> args) {
         final String filename = parseFilename(args);
 
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
@@ -142,7 +159,7 @@ public class Main {
         }
     }
 
-    private static void mainSearch(List<String> args) {
+    private void search(List<String> args) {
         final String filename = parseFilename(args);
         try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
             long offset = 0x0L;
@@ -167,7 +184,7 @@ public class Main {
         }
     }
 
-    private static void mainDecodeItem(List<String> args) {
+    private void decodeItem(List<String> args) {
         final String filename = parseFilename(args);
 
         int index = 1;
@@ -201,33 +218,40 @@ public class Main {
         }
     }
 
-    private static void mainDecodeParty(List<String> args) {
+    private void decodeParty(List<String> args) {
         final Character[] pcs = new Character[7];
 
         final String filename;
         if (args.get(0) == null) {
-            filename = basePath + "DATA1";
+            try {
+                extracted(pcs, this.data1);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             filename = args.get(0);
-        }
-
-        try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
-            final byte[] marchingOrder = new byte[7];
-            dataFile.seek(0x3c23);
-            dataFile.read(marchingOrder, 0, 7);
-
-            dataFile.seek(0x3c38);
-            final int partySize = dataFile.readUnsignedByte();
-
-            for (int i = 0; i < partySize; i++) {
-                final long offset = 0x2e19 + (marchingOrder[i] << 8);
-                pcs[i] = new Character(dataFile, offset);
-                pcs[i].decode(0);
-                pcs[i].display();
-                System.out.println();
+            try (RandomAccessFile dataFile = new RandomAccessFile(filename, "r")) {
+                extracted(pcs, dataFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        }
+    }
+
+    private static void extracted(Character[] pcs, RandomAccessFile dataFile) throws IOException {
+        final byte[] marchingOrder = new byte[7];
+        dataFile.seek(0x3c23);
+        dataFile.read(marchingOrder, 0, 7);
+
+        dataFile.seek(0x3c38);
+        final int partySize = dataFile.readUnsignedByte();
+
+        for (int i = 0; i < partySize; i++) {
+            final long offset = 0x2e19 + (marchingOrder[i] << 8);
+            pcs[i] = new Character(dataFile, offset);
+            pcs[i].decode(0);
+            pcs[i].display();
+            System.out.println();
         }
     }
 

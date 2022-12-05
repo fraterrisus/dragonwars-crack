@@ -25,8 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.hitchhikerprod.dragonwars.Main.basePath;
-
 // Largely based on fcn.55bb
 public class MapData {
     private static final Color BUSH = new Color(87, 202, 87);
@@ -644,6 +642,8 @@ public class MapData {
     }
 
     public static void main(String[] args) {
+        final String basePath = Properties.getInstance().basePath();
+
         final int boardIndex;
         try {
             boardIndex = Integer.parseInt(args[0].substring(2), 16);
