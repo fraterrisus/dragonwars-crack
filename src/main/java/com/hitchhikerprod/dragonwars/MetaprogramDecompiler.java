@@ -127,6 +127,8 @@ public class MetaprogramDecompiler {
                 case 0x5d, 0x5e -> System.out.println(replaceImmediates5d(ins));
                 case 0x62 -> System.out.println(replaceImmediates62(ins));
 
+                case 0x6a -> System.out.println(replaceImmediates6a(ins));
+
                 // Opcodes that decode a string immediately following
                 case 0x77, 0x78, 0x7b -> {
                     System.out.println(ins.operation());
@@ -451,6 +453,18 @@ public class MetaprogramDecompiler {
             .replace(">= imm", ">= " + imm2);
     }
 
+    private String replaceImmediates6a(Instruction ins) {
+        final int y0 = chunk.getUnsignedByte(this.pointer - 4);
+        final int x0 = chunk.getUnsignedByte(this.pointer - 3);
+        final int y1 = chunk.getUnsignedByte(this.pointer - 2);
+        final int x1 = chunk.getUnsignedByte(this.pointer - 1);
+        return ins.operation()
+            .replace("y0", "(" + y0)
+            .replace("x0", x0 + ")")
+            .replace("y1", "(" + y1)
+            .replace("x1", x1 + ")");
+    }
+    
     private int getWord() {
         final int w = chunk.getWord(pointer);
         pointer += 2;

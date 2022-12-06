@@ -6,6 +6,7 @@ import com.hitchhikerprod.dragonwars.data.ItemEvent;
 import com.hitchhikerprod.dragonwars.data.Monster;
 import com.hitchhikerprod.dragonwars.data.SkillEvent;
 import com.hitchhikerprod.dragonwars.data.SpecialEvent;
+import com.hitchhikerprod.dragonwars.data.SpellEvent;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -596,6 +597,11 @@ public class MapData {
                     primaryData.getUnsignedByte(pointer + 2),
                     primaryData.getUnsignedByte(pointer + 3)));
                 pointer += 4;
+            } else if (header <= 0x3c) {
+                specialEvents.add(new SpellEvent(header,
+                    primaryData.getUnsignedByte(pointer + 1),
+                    primaryData.getUnsignedByte(pointer + 2)));
+                pointer += 3;
             } else if (header >= 0x8c && header <= 0xba) {
                 specialEvents.add(new SkillEvent(header,
                     primaryData.getUnsignedByte(pointer + 1),

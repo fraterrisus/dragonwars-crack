@@ -111,15 +111,18 @@ Wall texture indices point into the arrays at `0x54a7` (texture) and `0x54b6` (m
 
 ### Wall Metadata
 
-Stored in the array at `0x54b6`, and often saved to `heap[26]`.
+Stored in the array at `0x54b6`, and often saved to `heap[26]`.
 
 |    Bits    | Meaning                                                      |
 | :--------: | ------------------------------------------------------------ |
 | `00––––––` | Wall is passable (i.e. no wall)                              |
-| `01––––––` | Wall is solid / cannot be passed (i.e. a locked door or regular wall) |
 | `10––––––` | Wall is passable, but only with Kick (i.e. an open door or secret door) |
+| `–1––––––` | Wall is solid / impassable (i.e. a locked door or regular wall) |
 | `––1–––––` | *D:Soften Stone* does *not* work on this wall                |
+| `–––1––––` | ???                                                          |
 | `––––****` | Wall specials (see below)                                    |
+
+*Purgatory*: most walls are `d1` (solid, impassable, susceptible to Soften, and ???) but the walls of the Arena are `e1` (solid, impassable, immune to Soften, and not ???).
 
 ### Wall Specials
 

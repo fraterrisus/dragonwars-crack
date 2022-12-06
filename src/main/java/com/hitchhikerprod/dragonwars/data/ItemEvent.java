@@ -21,6 +21,6 @@ public class ItemEvent extends SpecialEvent {
         fields.add(String.format("itemIndex=%02x", itemIndex & 0xff));
         fields.add(String.format("eventId=%02x", eventId & 0xff));
         fields.add(String.format("metaprogramIndex=%02x", 1 + (metaprogramIndex & 0xff)));
-        return "ItemEvent<" + String.join(",", fields) + ">";
+        return "Item<" + String.join(", ", fields) + ">";
     }
 }

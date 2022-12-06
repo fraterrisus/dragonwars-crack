@@ -3,20 +3,20 @@ package com.hitchhikerprod.dragonwars.data;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SkillEvent extends SpecialEvent {
-    final String skillName;
+public class SpellEvent extends SpecialEvent {
+    final String spellName;
 
-    public SkillEvent(int header, int eventId, int metaprogramIndex) {
+    public SpellEvent(int header, int eventId, int metaprogramIndex) {
         super(header, eventId, metaprogramIndex);
-        this.skillName = Lists.REQUIREMENTS[header - 0x8c];
+        this.spellName = Lists.SPELL_NAMES[header / 8][header % 8];
     }
 
     @Override
     public String toString() {
         final List<String> fields = new ArrayList<>();
-        fields.add(skillName);
+        fields.add(spellName);
         fields.add(String.format("eventId=%02x", eventId & 0xff));
         fields.add(String.format("metaprogramIndex=%02x", 1 + (metaprogramIndex & 0xff)));
-        return "Skill<" + String.join(", ", fields) + ">";
+        return "Spell<" + String.join(", ", fields) + ">";
     }
 }
