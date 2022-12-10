@@ -2,7 +2,7 @@
 
 Everything seems to run instruction `73`, `mov h[3e] <- h[3f]`. Heap `[3e]` and `[3f]` seem to be something like "the last special event ID"; see `{cs:44bb}`.
 
-I wonder if there's a difference between flags in the 90's and flags in the b0's. Like maybe one gets persisted when you leave the board, and one doesn't? Might need to revisit chunk `0x00`.
+I wonder if there's a difference between flags in the 90's and flags in the b0's. Like maybe one gets persisted when you leave the board, and one doesn't? Might need to revisit chunk `0x00`. Offsets from `b9` get reused across boards.
 
 ## 0x00 Dilmun
 
@@ -14,18 +14,19 @@ I wonder if there's a difference between flags in the 90's and flags in the b0'
 
 ### Board State
 
-| Heap byte |    Bit     | Meaning                                                    |
-| :-------: | :--------: | ---------------------------------------------------------- |
-|  `[9c]`   | `–*––––––` | Start square intro message has been played                 |
-|  `[9d]`   | `–––––*––` | Defeated the Humbaba                                       |
-|  `[9d]`   | `––––––*–` | Have received reward from Clopin for defeating the Humbaba |
-|  `[9f]`   | `–––––*––` | Sold yourself into slavery                                 |
-|  `[a5]`   | `––*–––––` | Won citizenship by defeating the Gladiators in the Arena   |
-|  `[b9]`   | `–*––––––` | Have been shown p3 at the statue of Irkalla                |
-|  `[b9]`   | `––*–––––` | Have been shown p4 when entering the Arena                 |
-|  `[b9]`   | `–––*––––` | Have been shown p10 when entering the Magic Shoppe         |
-|  `[b9]`   | `––––*–––` | "Dive into the harbor" message has been played             |
-|  `[b9]`   | `–––––*––` | Have been shown p67 at the slave market                    |
+| Bitsplit | Heap byte |    Bit     | Meaning                                                    |
+| :------: | :-------: | :--------: | ---------------------------------------------------------- |
+| `07,26`  |  `[26]`   | `––––––*–` | Checked when you climb through the wall                    |
+| `19,99`  |  `[9c]`   | `–*––––––` | Start square intro message has been played                 |
+| `25,99`  |  `[9d]`   | `–––––*––` | Defeated the Humbaba                                       |
+| `26,99`  |  `[9d]`   | `––––––*–` | Have received reward from Clopin for defeating the Humbaba |
+| `35,99`  |  `[9f]`   | `–––––*––` | Sold yourself into slavery                                 |
+| `62,99`  |  `[a5]`   | `––*–––––` | Won citizenship by defeating the Gladiators in the Arena   |
+| `01,b9`  |  `[b9]`   | `–*––––––` | Have been shown p3 at the statue of Irkalla                |
+| `02,b9`  |  `[b9]`   | `––*–––––` | Have been shown p4 when entering the Arena                 |
+| `03,b9`  |  `[b9]`   | `–––*––––` | Have been shown p10 when entering the Magic Shoppe         |
+| `04,b9`  |  `[b9]`   | `––––*–––` | "Dive into the harbor" message has been played             |
+| `05,b9`  |  `[b9]`   | `–––––*––` | Have been shown p67 at the slave market                    |
 
 ### Specials
 
@@ -38,7 +39,7 @@ I wonder if there's a difference between flags in the 90's and flags in the b0'
 7. `[0e69]` Run fight #ff (random). Clear the square if you win.
 8. `[113c]` (Not referenced from a square.) Clear CF and return.
 9. `[1055]` (06,13) Statue of Irkalla. Gate-and-set `heap[00+b9].0x40` to display color text. **The sacrifice works on a Spirit check (vs 1d20).** If it works, set `char[92].0x80` on every party member.
-10. `[10e3]` (07,12) Apsu Waters. Teleports you to board 0x12 (Magan Underworld) at (13,04). If you say 'N', you back up.
+10. `[10e3]` (07,12) Apsu Waters. Travel to board 0x12 (Magan Underworld) at (13,04). If you say 'N', you back up.
 11. `[112d]` (18,26) Entering the Arena. Runs the "free gear" program if you have less than **3 x your party size items** in your inventory. Then erases the entry door `ds[0320]<-0x30` and replaces this special `ds[02bc]<-0x1d` with Special #29.
 12. `[1279]` West of the Arena. Display color text.
 13. `[12a6]` South of the Arena. Display color text.
@@ -88,44 +89,49 @@ I wonder if there's a difference between flags in the 90's and flags in the b0'
 
 ### Board State
 
-| Heap byte |    Bit     | Meaning                                  |
-| :-------: | :--------: | ---------------------------------------- |
-|  `[99]`   | `–––––*––` | Have appeased the camp                   |
-|  `[99]`   | `––––––*–` | Have dealt with the sick man             |
-|  `[9d]`   | `–––––––*` | Enable the Nature Axe cache              |
-|  `[b9]`   | `–*––––––` | Have noticed the axe in the tree         |
-|  `[b9]`   | `––––––*–` | Have access to the sick man's belongings |
+| Bitsplit | Heap byte |    Bit     | Meaning                             |
+| :------: | :-------: | :--------: | ----------------------------------- |
+| `00,99`  |  `[99]`   | `*–––––––` | Have slaughtered the camp residents |
+| `01,99`  |  `[99]`   | `–*––––––` | Have appeased the camp              |
+| `03,99`  |  `[99]`   | `–––*––––` | Have impressed the wizard           |
+| `04,99`  |  `[99]`   | `––––*–––` | Have killed the guardian spirit     |
+| `05,99`  |  `[99]`   | `––––––*–` | Have dealt with the sick man        |
+| `27,99`  |  `[9d]`   | `–––––––*` | Have access to the Nature Axe cache |
+| `00,b9`  |  `[b9]`   | `*–––––––` |                                     |
+| `01,b9`  |  `[b9]`   | `–*––––––` | Have noticed the axe in the tree    |
+| `02,b9`  |  `[b9]`   | `––*–––––` | Have access to the sick man's cache |
+| `04,b9`  |  `[b9]`   | `––––*–––` | Have access to the wizard's cache   |
 
 ### Specials
 
-1. `[0497]` Near the firepit.
-2. `[04ac]` The firepit.
-3. `[037c]` "You hear someone singing."
-4. `[03a9]` Gate on `heap[00+99].0x20`. "You hear moans of pain."
-5. `[0391]` Display paragraph #68.
-6. `[0399]` Display paragraph #22.
+1. `[0497]` "You see a campfire ahead."
+2. `[04ac]` (10,11) The campfire. Read paragraph #63. Health, Stun, and Power are restored to full. Then the special is deleted from this square.
+3. `[037c]` (02,05) "You hear someone singing."
+4. `[03a9]` (10,06) Gate on `heap[00+99].0x20`. "You hear moans of pain."
+5. `[0391]` (00,06) Display paragraph #68.
+6. `[0399]` (00,16) Display paragraph #22.
 7. `[03a1]` (04,13) Display paragraph #88.
 8. `[03d2]` (08,07) The sick man. If `heap[00+99].0x20` is set, you can raid his [belongings](#chest) (`heap[00+b9].0x20`). Otherwise, there's a 1 in 20 chance the he attacks you (fight #1). If you kill him, set `heap[00+99].0x20`. If he doesn't attack you, you get color text.
 9. `[047e]` You heal the sick man. Gate on `heap[00+99].0x20` to read paragraph #19. Set `heap[00+99].0x20` and `heap[00+b9].0x20`.
-10. `[0940]` Showing off your *Lockpick* skills. Exit unless wall metadata `heap[26].0x02` is set – this is only true when facing the wizard's treasure room at (06,06). Any skill level is sufficient to unlock the door, which overwrites the map square to "open" the door (`h[41] & 0x0f | 0x20`, which should clear the "impassable" bits and set the "immune to Soften" bit).
-11. `[04e5]` You appease the camp with *Bureaucracy*; `heap[00+99].0x40` is set.
-12. `[0629]` You impress the wizard.
-13. `[0589]`
-14. `[0720]`
-15. `[0739]`
+10. `[0940]` You used *Lockpick*. The only locked door is in the wizard's house facing the wall of his treasure room at (06,06); we know this because the wall metadata has a special (`heap[26].0x02` is set). Any skill level is sufficient to unlock the door, which overwrites the wall metadata to turn the impassable wall into a regular door.
+11. `[04e5]` You appease the camp with *Bureaucracy* (set `heap[00+99].0x40` ).
+12. `[0629]` You impress the wizard (set `heap[00+99].0x10`). Unlocks his treasure room door at `[020b]<-0x21`. Set `heap[00+b9].0x08`.
+13. `[0589]` (07,05) If you barge into the wizard's house without showing off your magic skills (`heap[00+99].0x10`), he kicks you out.
+14. `[0720]` (06,06) Outside the wizard's treasure room. Checks the door texture to see if the door is locked (`0x31`), and if so, tells you.
+15. `[0739]` (06,07) The wizard's treasure. If you haven't either killed the guardian (`heap[00+99].0x08`) or impressed the wizard (`heap[00+99].0x10` ), you have to fight the Spirit Ward (encounter #2); if you win, set `heap[00+99].0x08` to mark your victory and `heap[00+b9].0x08` to get access to the treasure.
 16. `[0377]` You stepped in water. (Splash)
 17. `[0969]` (04,02) If `heap[00+b9].0x40`, get the Nature Axe.
-18. `[0975]` Gate-and-set `heap[04+99].0x01` to notice an axe stuck in a tree. Set `heap[00+b9].0x40`. Clear `heap[3d]` and `[3e]`.
-19. `[05fd]` Outside the wizard's house.
-20. `[09a6]` The chest behind the wizard's house.
-21. `[09bd]` The [tavern](#tavern). Louie is here.
-22. `[0795]` (Default.) Check if the party is within (0,0)-(17,16).
-    - If not, prompt to exit.
+18. `[0975]` You used *Forest Lore* in the right place. Gate-and-set `heap[04+99].0x01` to notice an axe stuck in a tree. Set `heap[00+b9].0x40`. Clear `heap[3d]` and `[3e]`.
+19. `[05fd]` (07,04) The wizard peers at you from within his house, unless you did this already (`heap[00+99].0x10`)
+20. `[09a6]` (07,07) The chest behind the wizard's house (difficulty 1).
+21. `[09bd]` (10,02) The [tavern](#tavern). Louie is here.
+22. `[0795]` Default handler.
+    - Check if the party is within (0,0)-(17,16). If not, prompt to exit.
       - North: (00:0b,04)
       - East, South: (00:0b,02)
       - West: (00:0a,03)
-
-    - If so, test `heap[00+b9].0x80`
+    - If this is your first time here (`00,b9` is not set), set `00,b9`. If bitsplit `00,99` is set, you already killed everyone. Delete Specials #1–12, 17, and 19, then exit. If bitsplit `01,99` is set, you're already friends, so exit. If any character has flag `0x40` (swam out of Purgatory), read paragraph #16; the camp is happy with you. Set `01,99` and exit. Otherwise, the residents are suspicious; exit (and await player action)
+    - If you've been here before and either bitsplit `01,99` or `00,99` are set, exit. Otherwise, if you stay on the perimeter of the map, the residents wait for you to leave. If you step inside (1,1)-(13,15), the camp residents attack (encounter #0). If you kill them, read paragraph #18 (shame) and set `00,99`.
 
 
 ### Events
@@ -178,6 +184,10 @@ I wonder if there's a difference between flags in the 90's and flags in the b0'
 ## 0x1b Depths of Nisir
 
 the "Dragon Wand" is new...!
+
+## 0x1d Siege Camp
+
+`Mace: Axe, 1d12, -1AV, requires Strength 17, $70`
 
 # General Events
 
