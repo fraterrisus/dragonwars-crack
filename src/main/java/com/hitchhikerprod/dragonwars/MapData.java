@@ -40,7 +40,7 @@ public class MapData {
     private static final Color WALL = Color.DARK_GRAY;
     private static final Color WATER = new Color(0x80, 0xa0, 0xff);
 
-    private static final int GRID_SCALE = 4;
+    private static final int GRID_SCALE = 8;
     private static final int GRID_SIZE = GRID_SCALE * 10;
 
     private final int mapId;
@@ -352,10 +352,10 @@ public class MapData {
                     // there's gotta be a better way to detect a locked door; where can you (U)se Lockpick?
                     gfx.setColor(Color.DARK_GRAY);
                     gfx.fill(door);
-                    gfx.setColor(Color.RED);
-                    gfx.drawString(String.format("%02x", metadata & 0xff), (int) door.getX(), (int) door.getY() - 2);
                 }
             }
+            gfx.setColor(Color.RED);
+            gfx.drawString(String.format("%02x", metadata & 0xff), (int) door.getX(), (int) door.getY() - 2);
         }
     }
 

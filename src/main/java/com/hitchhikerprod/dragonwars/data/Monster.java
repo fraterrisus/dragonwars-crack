@@ -3,6 +3,7 @@ package com.hitchhikerprod.dragonwars.data;
 import com.hitchhikerprod.dragonwars.Chunk;
 import com.hitchhikerprod.dragonwars.ChunkTable;
 import com.hitchhikerprod.dragonwars.HuffmanDecoder;
+import com.hitchhikerprod.dragonwars.Properties;
 import com.hitchhikerprod.dragonwars.StringDecoder;
 
 import java.io.FileNotFoundException;
@@ -346,7 +347,7 @@ public class Monster {
             throw new RuntimeException("Insufficient arguments");
         }
 
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        final String basePath = Properties.getInstance().basePath();
 
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");

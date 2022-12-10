@@ -281,6 +281,9 @@ public class MetaprogramDecompiler {
                 if (target == 0x000c || target == 0x00a2) {
                     dataGetLoot();
                 }
+                if (target == 0x000f || target == 0x0215) {
+                    dataOpenChest();
+                }
             }
             case 0x11 -> {
                 if (target == 0x0000) {
@@ -290,6 +293,19 @@ public class MetaprogramDecompiler {
                 }
             }
         }
+    }
+
+    private void dataOpenChest() {
+        decodeWords(1);
+        final int bitsplit = chunk.getUnsignedByte(this.pointer);
+        this.pointer++;
+        if (bitsplit != 0xff) {
+            System.out.printf("%08x  .heap[%02x + %02x], 0x%02x\n", this.pointer - 2,
+                (bitsplit >> 3), 0x99, 0x80 >> (bitsplit & 0x7));
+        }
+        final int fastFail = decodeData(1).get(0);
+
+        decodeWordsUntil(0xff);
     }
 
     private void dataGetLoot() {

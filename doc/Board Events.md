@@ -140,6 +140,8 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 | :-------: | :--------: | ---------------------------------------- |
 |  `[99]`   | `–––––*––` | Have appeased the camp                   |
 |  `[99]`   | `––––––*–` | Have dealt with the sick man             |
+|  `[9d]`   | `–––––––*` | Noticed the axe in the tree              |
+|  `[b9]`   | `–*––––––` | Noticed the axe in the tree              |
 |  `[b9]`   | `––––––*–` | Have access to the sick man's belongings |
 
 ## Events
@@ -153,15 +155,15 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 7. `[03a1]` (04,13) Display paragraph #88.
 8. `[03d2]` (08,07) The sick man. If `heap[00+99].0x20` is set, you can raid his [belongings](#chest) (`heap[00+b9].0x20`). Otherwise, there's a 1 in 20 chance the he attacks you (fight #1). If you kill him, set `heap[00+99].0x20`. If he doesn't attack you, you get color text.
 9. `[047e]` You heal the sick man. Gate on `heap[00+99].0x20` to read paragraph #19. Set `heap[00+99].0x20` and `heap[00+b9].0x20`.
-10. `[0940]` Showing off your *Lockpick* skills. Exit unless wall metadata `heap[26].0x02` is set – this is only true when facing the wizard's treasure room at (06,06). Any skill level is sufficient to unlock the door, which overwrites the map square to "open" the door (`h[41] & 0x0f | 0x20`, which should clear the "impassable" bits and set the "immune to Soften" bit).
+10. `[0940]` Showing off your *Lockpick* skills. Exit unless wall metadata `heap[26].0x02` is set – this is only true when facing the wizard's treasure room at (06,06). Any skill level is sufficient to unlock the door, which overwrites the map square to "open" the door (`h[41] & 0x0f | 0x20`, which should clear the "impassable" bits and set the "immune to Soften" bit).
 11. `[04e5]` You appease the camp with *Bureaucracy*; `heap[00+99].0x40` is set.
 12. `[0629]`
 13. `[0589]`
 14. `[0720]`
 15. `[0739]`
 16. `[0377]` You stepped in water. (Splash)
-17. `[0969]`
-18. `[0975]`
+17. `[0969]` (04,02) If `heap[00+b9].0x40`, get the Nature Axe.
+18. `[0975]` Gate-and-set `heap[04+99].0x01` to notice an axe stuck in a tree. Set `heap[00+b9].0x40`. Clear `heap[3d]` and `[3e]`.
 19. `[05fd]`
 20. `[09a6]`
 21. `[09bd]`
@@ -178,7 +180,7 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 
 1. Use *Lockpick* -> `[0940]`
 2. Use *Bureaucracy* -> `[04e5]`
-3. Event #8, use *Bandage*, or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* -> `[047e]`
+3. Event #8, use *Bandage*, or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* -> `[047e]`
 4. Event #11, use *Forest Lore* -> `[0975]`
 5. Event #13, use *Sun Magic, Druid Magic, Low Magic*, or *High Magic* -> `[0629]`
 
@@ -212,3 +214,7 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 |  `[b9]`   | `*–––––––` | Intro message has been played                            |
 |  `[b9]`   | `–*––––––` | Clam has been picked up                                  |
 |  `[b9]`   | `––––––*–` | Chest has been unlocked                                  |
+
+# 0x1b Depths of Nisir
+
+the "Dragon Wand" is new...!

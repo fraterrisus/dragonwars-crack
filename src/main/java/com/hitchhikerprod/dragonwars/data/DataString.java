@@ -1,6 +1,7 @@
 package com.hitchhikerprod.dragonwars.data;
 
 import com.hitchhikerprod.dragonwars.Chunk;
+import com.hitchhikerprod.dragonwars.Properties;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -58,7 +59,7 @@ public class DataString {
     }
 
     public static void main(String[] args) {
-        final String basePath = "/home/bcordes/Nextcloud/dragonwars/";
+        final String basePath = Properties.getInstance().basePath();
 
         try (
             final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r")
