@@ -13,7 +13,6 @@ test {}
 
 jar {
     dependsOn compileJava
-    // dependsOn 'huffman'
 
     destinationDirectory = layout.buildDirectory.dir("libs")
     archiveBaseName = 'dragonwars-crack'
@@ -23,28 +22,40 @@ jar {
     }
 }
 
-tasks.register('huffman', Jar) {
-    dependsOn compileJava
-
-    destinationDirectory = layout.buildDirectory.dir("libs")
-    archiveFileName = 'huffman-decoder.jar'
-
-    manifest {
-        attributes "Main-Class": 'com.hitchhikerprod.dragonwars.HuffmanDecoder'
-    }
-
-    from sourceSets.main.output
+tasks.register('all-jars') {
+    group = 'build'
 }
 
-tasks.register('mapdata', Jar) {
-    dependsOn compileJava
+var jars = [
+        [camel:'Chunk', snake:'raw-printer'],
+        [camel:'HuffmanDecoder', snake:'huffman-printer'],
+        [camel:'MapData', snake:'map-data'],
+        [camel:'MetaprogramDecompiler', snake:'decompiler'],
+]
 
-    destinationDirectory = layout.buildDirectory.dir("libs")
-    archiveFileName = 'map-data.jar'
+tasks.register('copy', Copy) {
+    from(layout.buildDirectory.dir("libs")) {
+        jars.forEach {j -> include "${j.snake}.jar" }
+    }
+    into '/home/bcordes/pc-games/dragonwars'
+}
 
-    manifest {
-        attributes "Main-Class": 'com.hitchhikerprod.dragonwars.MapData'
+jars.forEach { jarName ->
+    tasks.register(jarName.snake, Jar) {
+        group = 'jars'
+        dependsOn compileJava
+
+        destinationDirectory = layout.buildDirectory.dir("libs")
+        archiveFileName = "${jarName.snake}.jar"
+
+        manifest {
+            attributes "Main-Class": "com.hitchhikerprod.dragonwars.${jarName.camel}"
+        }
+
+        from sourceSets.main.output
     }
 
-    from sourceSets.main.output
+    tasks.named('all-jars') {dependsOn jarName.snake }
+    tasks.named('copy') {dependsOn jarName.snake }
 }
+

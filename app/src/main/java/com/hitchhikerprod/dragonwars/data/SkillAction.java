@@ -3,11 +3,11 @@ package com.hitchhikerprod.dragonwars.data;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SkillEvent extends SpecialEvent {
+public class SkillAction extends Action {
     final String skillName;
 
-    public SkillEvent(int header, int eventId, int metaprogramIndex) {
-        super(header, eventId, metaprogramIndex);
+    public SkillAction(int header, int specialId, int eventId) {
+        super(header, specialId, eventId);
         this.skillName = Lists.REQUIREMENTS[header - 0x8c];
     }
 
@@ -15,8 +15,8 @@ public class SkillEvent extends SpecialEvent {
     public String toString() {
         final List<String> fields = new ArrayList<>();
         fields.add(skillName);
-        fields.add(String.format("eventId=%02x", eventId & 0xff));
-        fields.add(String.format("metaprogramIndex=%02x", 1 + (metaprogramIndex & 0xff)));
+        fields.add(String.format("specialId=%02x", specialId & 0xff));
+        fields.add(String.format("eventId=%02x", 1 + (eventId & 0xff)));
         return "Skill<" + String.join(", ", fields) + ">";
     }
 }

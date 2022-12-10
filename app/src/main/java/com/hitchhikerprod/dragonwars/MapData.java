@@ -2,11 +2,11 @@ package com.hitchhikerprod.dragonwars;
 
 import com.hitchhikerprod.dragonwars.data.Encounter;
 import com.hitchhikerprod.dragonwars.data.Item;
-import com.hitchhikerprod.dragonwars.data.ItemEvent;
+import com.hitchhikerprod.dragonwars.data.ItemAction;
 import com.hitchhikerprod.dragonwars.data.Monster;
-import com.hitchhikerprod.dragonwars.data.SkillEvent;
-import com.hitchhikerprod.dragonwars.data.SpecialEvent;
-import com.hitchhikerprod.dragonwars.data.SpellEvent;
+import com.hitchhikerprod.dragonwars.data.SkillAction;
+import com.hitchhikerprod.dragonwars.data.Action;
+import com.hitchhikerprod.dragonwars.data.SpellAction;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -62,8 +62,8 @@ public class MapData {
     // private List<Integer> itemPointers;
 
     private int titleStringPtr;
-    private int metaprogramStartPtr;
-    private int specialEventsPtr;
+    private int defaultEventPtr;
+    private int actionsPtr;
     private int itemListPtr;
     private int monsterDataPtr;
     private int encountersPtr;
@@ -83,7 +83,7 @@ public class MapData {
     private final List<Byte> textureChunks5677 = new ArrayList<>();
     // 5734: list of pointers to square data rows
     private final List<Integer> rowPointers57e4 = new ArrayList<>();
-    private final List<SpecialEvent> specialEvents = new ArrayList<>();
+    private final List<Action> actions = new ArrayList<>();
     private final List<Item> items = new ArrayList<>();
     private final List<Encounter> encounters = new ArrayList<>();
     private final List<Monster> monsters = new ArrayList<>();
@@ -144,8 +144,8 @@ public class MapData {
         Collections.reverse(rowPointers57e4);
 
         primaryPointers = discoverPointers(primaryData, rowPointers57e4.get(0));
-        metaprogramStartPtr = primaryPointers.get(0);
-        specialEventsPtr = primaryPointers.get(1);
+        defaultEventPtr = primaryPointers.get(0);
+        actionsPtr = primaryPointers.get(1);
 
         monsterDataPtr = secondaryData.getWord(0);
         encountersPtr = secondaryData.getWord(2);
@@ -154,7 +154,7 @@ public class MapData {
 
         parseEncounters();
         parseItems();
-        parseSpecialEvents();
+        parseActions();
     }
 
     public int getSquare(int x, int y) {
@@ -180,6 +180,7 @@ public class MapData {
 
         gfx.setColor(GRID);
         drawGrid(image);
+        drawMarkers(gfx);
 
         for (int y = yMax; y > 0; y--) { // skip the end pointer
             for (int x = 0; x < xMax; x++) {
@@ -226,6 +227,20 @@ public class MapData {
                     image.setRGB(x, y+i, grid_blue);
                 }
             }
+        }
+    }
+
+    private void drawMarkers(Graphics2D gfx) {
+        int stringX, stringY;
+        stringX = (GRID_SIZE / 2) - GRID_SCALE;
+        stringY = 3 * (GRID_SIZE + GRID_SCALE) / 2;
+        for (int y = yMax - 1; y >= 0; y--) {
+            gfx.drawString(String.valueOf(y), (y > 9) ? stringX - (GRID_SCALE) : stringX, stringY);
+            stringY += GRID_SIZE;
+        }
+        for (int x = 0; x < xMax; x++) {
+            stringX += GRID_SIZE;
+            gfx.drawString(String.valueOf(x), (x > 9) ? stringX - (GRID_SCALE) : stringX, stringY);
         }
     }
 
@@ -398,15 +413,15 @@ public class MapData {
         System.out.println();
         System.out.printf("Primary Map Data (chunk %02x):\n", mapId + 0x46);
         System.out.printf("  Title string: [%04x]\n", titleStringPtr);
-        System.out.print("  Pointers:");
+        System.out.print("  Events:");
         for (int p : primaryPointers) {
             System.out.printf(" [%04x]", p);
         }
         System.out.println();
-        System.out.printf("  Metaprogram start: ptr[00] -> [%04x]\n", metaprogramStartPtr);
-        System.out.printf("  Special events:    ptr[01] -> [%04x]\n", specialEventsPtr);
-        for (SpecialEvent a : specialEvents) {
-            System.out.printf("    %s -> [%04x]\n", a, primaryPointers.get(a.getMetaprogramIndex() + 1));
+        System.out.printf("  Default event: ptr[00] -> [%04x]\n", defaultEventPtr);
+        System.out.printf("  Actions:       ptr[01] -> [%04x]\n", actionsPtr);
+        for (Action a : actions) {
+            System.out.printf("    %s -> [%04x]\n", a, primaryPointers.get(a.getEventId() + 1));
         }
 
         System.out.print("\nMap squares:\n");
@@ -447,8 +462,8 @@ public class MapData {
                 }
                 mpi++;
             }
-            if ((thisPointer < specialEventsPtr) & (specialEventsPtr < nextPointer)) {
-                nextPointer = specialEventsPtr;
+            if ((thisPointer < actionsPtr) & (actionsPtr < nextPointer)) {
+                nextPointer = actionsPtr;
             }
             try {
                 System.out.printf("  0x%04x:\n", thisPointer);
@@ -583,32 +598,32 @@ public class MapData {
         return new Chunk(decodedMapData);
     }
 
-    private void parseSpecialEvents() {
-        if (specialEventsPtr == 0) return;
+    private void parseActions() {
+        if (actionsPtr == 0) return;
 
-        int pointer = specialEventsPtr;
+        int pointer = actionsPtr;
         while (true) {
             final int header = primaryData.getUnsignedByte(pointer);
             if (header == 0xff) {
                 return;
             } else if (header == 0x80) {
-                specialEvents.add(new ItemEvent(
+                actions.add(new ItemAction(
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2),
                     primaryData.getUnsignedByte(pointer + 3)));
                 pointer += 4;
             } else if (header <= 0x3c) {
-                specialEvents.add(new SpellEvent(header,
+                actions.add(new SpellAction(header,
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2)));
                 pointer += 3;
             } else if (header >= 0x8c && header <= 0xba) {
-                specialEvents.add(new SkillEvent(header,
+                actions.add(new SkillAction(header,
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2)));
                 pointer += 3;
             } else {
-                specialEvents.add(new SpecialEvent(header,
+                actions.add(new Action(header,
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2)));
                 pointer += 3;

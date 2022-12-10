@@ -303,8 +303,7 @@ public class MetaprogramDecompiler {
             System.out.printf("%08x  .heap[%02x + %02x], 0x%02x\n", this.pointer - 2,
                 (bitsplit >> 3), 0x99, 0x80 >> (bitsplit & 0x7));
         }
-        final int fastFail = decodeData(1).get(0);
-
+        decodeData(1); // only run the chest if this value is 0x00
         decodeWordsUntil(0xff);
     }
 
