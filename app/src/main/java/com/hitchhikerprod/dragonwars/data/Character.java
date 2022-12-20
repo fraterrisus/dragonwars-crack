@@ -83,7 +83,6 @@ public class Character {
         skills = getBytes(27);
         advancementPoints = getUnsignedByte();
         spells = getBytes(8);
-
         unknown = getBytes(8);
         status = getUnsignedByte();
         npcId = getUnsignedByte();

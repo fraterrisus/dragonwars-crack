@@ -20,7 +20,8 @@ Here's how the data breaks down within one of those 512-byte blocks:
 | `0x044` |        | always zero                                       |
 | `0x04c` | `0x01` | **Status** bitfield                               |
 | `0x04d` | `0x01` | **NPC** Identifier                                |
-| `0x04e` | `0x02` | Experience **Level**                              |
+| `0x04e` | `0x01` | **Gender**                                        |
+| `0x04f` | `0x02` | Experience **Level**                              |
 | `0x051` | `0x04` | **XP**                                            |
 | `0x055` | `0x04` | **Gold**                                          |
 | `0x059` | `0x01` | **AV** (based on DEX and equipment, not skills)   |
@@ -28,6 +29,8 @@ Here's how the data breaks down within one of those 512-byte blocks:
 | `0x05b` | `0x01` | **Armor Class**                                   |
 | `0x05c` | `0x01` | **Flags**, see below                              |
 | `0x05d` |        | alignment bytes                                   |
+| `0x064` | `0x01` | temporary **AV** modifier (during combat)         |
+| `0x065` | `0x01` | temporary **DV** modifier (during combat)         |
 | `0x0ec` | `0x17` | **Inventory** slot A                              |
 | `0x103` | `0x17` | **Inventory** slot B                              |
 |   ...   |        |                                                   |

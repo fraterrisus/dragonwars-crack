@@ -100,6 +100,10 @@ public class NPC {
         }
     }
 
+    public int getId() {
+        return npcId;
+    }
+
     private String translateSpells(String indent, byte[] spells) {
         List<String> spellNameList = new ArrayList<>();
         int spellSegment = 0;

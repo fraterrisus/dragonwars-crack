@@ -1,6 +1,6 @@
 # Spells
 
-Spells marked with `(!)` never appear on scrolls, i.e. you can't learn them, although in some cases NPCs and/or monsters know these spells and can cast them.
+Spells marked with `(!)` never appear on scrolls, i.e. you can't learn them, although in some cases NPCs and/or monsters know these spells and can cast them.
 
 |   ID   | School | Name           | Type and code target |
 |:------:|:------:| -------------- | -------------------- |
@@ -66,12 +66,12 @@ Spells marked with `(!)` never appear on scrolls, i.e. you can't learn them, al
 | `0x3b` | Misc   | Kill Ray             | Zap (`0x05b1`) |
 | `0x3c` | Misc   | Prison (!)           | Hold (`0x08b3`) |
 
-Whenever you cast a spell, the game checks to see whether that spell triggers any [Special Events](Events.md). This is how the Magic College test works, for instance. In the case of *H:Reveal Glamour*, there are no other "illusions" in the game to dispel, so there is no impact on the game state when you cast that spell.
+Whenever you cast a spell, the game checks to see whether that spell triggers any [Special Events](Events.md). This is how the Magic College test works, for instance. In the case of *H:Reveal Glamour*, there are no other "illusions" in the game to dispel, so there is no impact on the game state when you cast that spell.
 
 ## Data
 
 - Spell names: `{0e:000a}`
-- Power cost: `{0c:0406}` (if `0x80`, cost is variable and `0x7f` indicates the skill ID)
+- Power cost: `{0c:0406}` (if `0x80`, cost is variable and `0x7f` indicates the skill ID)
 - Code target: `{06:0276}`
 - Schools: calculated by spell ID at `{06:0630}`
 - Argument byte 1: `{06:02f0}` (not used by all spells)
@@ -95,10 +95,16 @@ Similarly, zap spells vary by the number of targets, the range, and the damage.
 
 *S:Exorcism* (`0x0597`) is a special case, which first checks to make sure the target monster group are of the Undead type (`group[0e].0x08` is set)
 
+Zap spells always require a to-hit roll. Use INT instead of DEX to calculate your "AV", use your magic skill as if it were a weapon skill, and otherwise it works the same way: 1d16+3 (3–18); 3 always hits, 12 always misses. Your target is 13 + INT/4 + skill – opponent's DV; roll below that value to hit.
+
+If the to-hit roll "misses", zap spells deal half damage. Damage dice indicate damage to Stun (for PCs); Health damage is half of that. When the game reports damage ("...hits 3 of them for 8 points of damage") it is providing an *average*. So it's impossible to tell if you rolled low damage, or if you missed most of your to-hit rolls.
+
+When cast against the party, zap spells do full damage to Stun and half damage to Health. Armor Class does not reduce the damage from spells, and it doesn't look like INT matters to spell defense, either.
+
 | Value |    Bits    | Meaning                                             |
 | :---: | :--------: | --------------------------------------------------- |
 | arg1  | `**––––––` | Spell type (1:combat?)                              |
-| arg1  | `––**––––` | Targets (00:one, 01:group, 10:all)                  |
+| arg1  | `––**––––` | Targets (00:one, 01:group, 1–:all)                  |
 | arg1  | `––––****` | Range (x10')                                        |
 | arg2  | `***–****` | Damage dice                                         |
 | arg2  | `–––*––––` | if 1, power cost (and therefore damage) is variable |
@@ -131,7 +137,7 @@ Temporary party AV bonuses are written to `heap[8c]`; party DV bonuses to `heap[
 
 ### Party / Character Attributes (0x04fa, 0x050d, 0x0524, 0x0529)
 
-There is no party attribute bonus location, so for party bonuses the game just iterates over party members and applies the bonus to the character's temporary value (STR:`char[0c]`, DEX:`char[0e]`).
+There is no party attribute bonus location, so for party bonuses the game just iterates over party members and applies the bonus to the character's temporary value (STR:`char[0c]`, DEX:`char[0e]`).
 
 | Value |    Bits    | Meaning                |
 | :---: | :--------: | ---------------------- |
@@ -164,7 +170,7 @@ When the spell is cast, any monster in the target group that hasn't acted yet ha
 
 ## Travel spells (0x084e, etc.)
 
-These spells provide a long-lasting effect over game-hours, and they all have variable cost. They store a timer value in one place in game state, and their level of effect in another. Each spell has a different code target, where the storage location for the effect byte is hardcoded. *H:Sense Traps* and *S:Disarm Traps* share the same value, so they have the same effect, and although they have different "level of effect" values, there doesn't seem to be any difference between them in the code.
+These spells provide a long-lasting effect over game-hours, and they all have variable cost. They store a timer value in one place in game state, and their level of effect in another. Each spell has a different code target, where the storage location for the effect byte is hardcoded. *H:Sense Traps* and *S:Disarm Traps* share the same value, so they have the same effect, and although they have different "level of effect" values, there doesn't seem to be any difference between them in the code.
 
 | Value |    Bits    | Meaning                              |
 | :---: | :--------: | ------------------------------------ |
@@ -179,7 +185,7 @@ These spells provide a long-lasting effect over game-hours, and they all have va
 
 *M:Prison*, a spell that appears in the documentation but never in the game, places a permanent hold on a monster group by setting its speed (`group[21]`) to 0'. If monsters cast it on you, it prevents you from picking the (A)dvance action during combat (`heap[8b]`). 
 
-Neither spell seems to check its range value (`arg1.0x0f` = 60')
+Neither spell seems to check its range value (`arg1.0x0f` = 60')
 
 ## Push spells (0x08f8)
 
@@ -192,7 +198,7 @@ Neither spell seems to check its range value (`arg1.0x0f` = 60')
 
 ## Wall spells (0x03eb, 0x0409)
 
-Unsurprisingly, *D:Create Wall* and *D:Soften Stone* have to read several bytes from the map data to determine if they're allowed to do their work on the current square. Some maps don't allow *D:Create Wall*; some walls can't be removed with *D:Soften Stone*. Neither spell pays any attention to the "arguments".
+Unsurprisingly, *D:Create Wall* and *D:Soften Stone* have to read several bytes from the map data to determine if they're allowed to do their work on the current square. Some maps don't allow *D:Create Wall*; some walls can't be removed with *D:Soften Stone*. Neither spell pays any attention to the "arguments".
 
 ## Charge Item spells (0x094b)
 

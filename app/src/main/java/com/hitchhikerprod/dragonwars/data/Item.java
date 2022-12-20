@@ -22,6 +22,7 @@ public class Item {
     private List<WeaponDamage> damageDice;
     private boolean equipped;
     private boolean disposable;              // disappears when it runs out of charges
+    private boolean chargeable;
     private int itemType;
     private int ammoType;
     private String magicEffect;
@@ -42,6 +43,7 @@ public class Item {
         this.equipped =   (chunk.getByte(offset) & 0x80) > 0;
         this.disposable = (chunk.getByte(offset) & 0x40) > 0;
         this.uses =       (chunk.getByte(offset) & 0x3f);
+        this.chargeable = false;
 
         final boolean reducesAV = (chunk.getByte(offset + 1) & 0x80) > 0;
         final boolean reducesAC = (chunk.getByte(offset + 1) & 0x40) > 0;
@@ -88,12 +90,14 @@ public class Item {
         sb.append("    ");
         if (this.equipped) { sb.append("*"); }
         sb.append(this.name);
-        if (this.uses > 0) {
+        if (this.uses > 0 | chargeable) {
             if (this.uses == 63) {
-                sb.append(" [#**]");
+                sb.append(" [#**");
             } else {
-                sb.append(" [#").append(this.uses).append("]");
+                sb.append(" [#").append(this.uses);
             }
+            if (chargeable) { sb.append("+"); }
+            sb.append("]");
         }
         sb.append(": ");
 
@@ -148,37 +152,43 @@ public class Item {
     }
 
     private String parseMagicEffect(byte one, byte two) {
-        final boolean canBeRecharged = (one & 0x80) == 0; // note inverse of usual flag
-        if (canBeRecharged) {
+        if ((one & 0x80) == 0) {
+            this.chargeable = true;
             if (one == 0) {
-                return "can be Recharged";
-            }
-            final int spellId = (one & 0x3f);
-            final String spellName = Lists.SPELL_NAMES[spellId / 8][spellId % 8];
-            final int power = two;
-            if (power > 0) {
-                return "casts " + spellName + " @" + power;
+                return null;
+            } else if ((one & 0xc0) == 0) {
+                final String spellName = Lists.SPELL_NAMES[one / 8][one % 8];
+                if (two > 0) {
+                    return "casts " + spellName + " @" + two;
+                } else {
+                    return "casts " + spellName;
+                }
             } else {
-                return "casts " + spellName;
+                return String.format("effects 0x%02x 0x%02x", one, two);
             }
             // There are a handful of items that 'cast' a spell when you Use them, but they never actually work.
         } else {
-            final int effect = (one & 0x3f);
+            final int effect = (one & 0x7f);
             switch (effect) {
                 case 0 -> {
-                    return (two == 0) ? null : "flag 0x" + Integer.toHexString(two);
+                    return (two == 0) ? null : String.format("flag 0x%02x", two);
+                }
+                case 1, 2 -> {
+                    this.chargeable = true;
+                    return null;
                 }
                 case 3 -> {
+                    this.chargeable = true;
                     final int spellId = (two & 0x3f);
                     final String spellName = Lists.SPELL_NAMES[spellId / 8][spellId % 8];
                     return "teaches " + spellName;
                 }
                 case 4 -> {
-                    final int power = two;
-                    return "restores " + power + " POW";
+                    return "restores " + two + " POW";
                 }
                 default -> {
-                    return "effects 0x" + Integer.toHexString(one) + " 0x" + Integer.toHexString(two);
+                    this.chargeable = true;
+                    return String.format("effects 0x%08x 0x%08x", one, two);
                 }
             }
         }

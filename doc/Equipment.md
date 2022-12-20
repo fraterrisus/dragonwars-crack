@@ -101,14 +101,17 @@ Encoded across two bytes `[06-07]`. The first byte always means the same things:
 |  Byte `[06]`   | Recharge? | Effect                                                       |
 | :------------: | :-------: | ------------------------------------------------------------ |
 | `0b 0000 0000` |    yes    | No magical effect                                            |
-| `0b 00–– ––––` |    yes    | Item casts a [spell](Spells.md) when you **(U)se** it; spell ID is in lower six bits |
+| `0b 00–– ––––` |    yes    | Item casts a [spell](Spells.md) when you **(U)se** it; spell ID is in lower six bits,<br />and spell power is in byte `[07]` |
 | `0b 1000 0000` |    no     | No magical effect                                            |
 | `0b 1000 0001` |    yes    | No magical effect                                            |
 | `0b 1000 0010` |    yes    | No magical effect                                            |
 | `0b 1000 0011` |    yes    | Item teaches you a spell; spell ID is in byte `[07]`         |
 | `0b 1000 0100` |    no     | Item restores Power; amount restored is in byte `[07]`       |
+| `0b 1––– ––––` |    no     | Other combinations are impossible / unexpected / programming errors<br />(See jump table at `{06:01d9}`) |
 
 Note that you **can** add charges to spell scrolls with *S:Charger*. Just make sure you add two charges before you use it, or the scroll will disappear after the first use (see byte `[00].0x40`).
+
+Learning a spell from a scroll is always successful, so long as you have at least 1 rank in the associated magic skill (see `{06:01f6}`. You don't need any magic skills to learn Miscellaneous Magic scrolls; everyone is treated as if they have 1 rank in Miscellaneous Magic.
 
 If the item has no magical effect, byte `[07]` sometimes is used to hold a flag that indicates that the item has been modified. For example, the Battered Cup that you find in the Slave Mines sets this byte to `0x1` to indicate that you've filled it with water. Similarly, the Papers you're supposed to get stamped in Lansk set this byte when you do. (Interestingly, the Dead Body you collect during the end game does *not* work this way...)
 

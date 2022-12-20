@@ -172,106 +172,12 @@ Everything after that is a two-byte pointer to a Monster Group. Groups contain 3
 | `[20]` | `***–––––` | `[24]` | *Unknown* |
 | `[20]` | `–––*––––` | `[25]` | if 0, monster is immune to **Disarm** |
 | `[20]` | `––––****` | `[20]` | *Unknown* |
-|       |            | `[27]` | holds current group **AV modifier** (from buffs, etc.) |
-|       |            | `[28]` | holds current group **DV modifier** |
+|       |            | `[27]` | holds temporary group **AV** modifier (from buffs, etc.) |
+|       |            | `[28]` | holds temporary group **DV** modifier |
 
 Each individual monster's health is randomly generated: the sum of the base health at `[04]` and the health dice (in the same format as equipment damage dice) at `[08]`.
 
 If an encounter specifies a random **group size**, the group size at `[0a]` is used as a max for the roll. Regardless, this value is overwritten with the actual group size when the encounter is generated.
-
-#### Monster Attacks
-
-First, calculate the monster's **confidence level**. Roll 1d4, add byte `[1f]` from the monster group, and add the confidence level modifier from the encounter data (which may be negative.)
-
-Now determine the monster's **Bravery** level. If the raw confidence level is less than zero, we're at **HALP** (the worst value). Otherwise, calculate the average party level by summing and dividing. Subtract that from the monster's confidence level and compare:
-
-| Result | Bravery |
-| ------ | --------- |
-| -5 or worse | HALP (`0xc0`) |
-| -4 to -1    | Edgy (`0x80`) |
-| 0 to 3      | Okay (`0x40`) |
-| 4 or better | Good (`0x00`) |
-
-Group data [10-12], [13-15], [16-18], [19-1b], and [1c-1e] contain the possible actions.
-
-| Byte | Bitfield | Meaning |
-| :--: | :------: | ------- |
-| `[00]` | `**––––––` | Bravery |
-| `[00]` | `––**––––` | Sentiment |
-| `[00]` | `––––****` | Action Index |
-
-Iterate over the possible actions, looking for one that matches the Bravery. If we find a match, check the Sentiment:
-
-| Sentiment | Condition |
-| :-------: | --------- |
-| `00` | Always matches |
-| `01` | Match if monster has been damaged |
-| `10` | Match if group is within 10' of the party |
-| `11` | Match if monster has been attacked |
-
-If the condition doesn't match, go back a step.
-
-If we don't find any matches, 'improve' the sentiment by one step and try again.
-
-Once we have a match, check the monster's status. If bit `0x20` is set, run (with a 100% chance of success). Otherwise, look at the matching Action Index:
-
-| Index | Action |
-| :---: | ------ |
-| `0` | Attack |
-| `1` | Attack, ignores armor |
-| `2` | Attack, stun damage only (no health) |
-| `3` | Attack, deals 1/4 damage |
-| `4` | Attack, health only (no stun) |
-| `5` | Block |
-| `6` | Dodge |
-| `7` | Attempt to run |
-| `8` | Cast spell |
-| `9` | Breath weapon |
-| `a` | Call for help |
-| `b-f` | Pass |
-
-**Attack:** If the monster was Disarmed, they first attempt to pick up their weapon. (Some monsters are immune to Disarm.) If the weapon range is 0, it's increased to 1 (10'). If the party is out of range, monster advances instead. Damage dice indicate Stun; Health damage is 50% of that.
-
-| Byte | Bitfield | Meaning |
-| :--: | :------: | ------- |
-| `[01]` | `***-----` | Damage die sides |
-| `[01]` | `---*****` | Damage die count |
-| `[02]` | `****----` | (x10') Range ? {03:11c2} |
-
-Monster to-hit rolls seems to be the same as characters': 1d16+2 < 11 + AV + individual AV modifer - target's DV.
-
-**Block:** Disarmed monsters will attempt to recover their weapon.
-
-**Dodge:** When a monster dodges it gets +5 DV, not +3 like characters do. Bytes 1 and 2 are sometimes filled in but it's not clear why.
-
-**Attempt to run:** Make a Luck roll (on 1d100) to run successfully.
-
-| Byte | Bitfield | Meaning |
-| :--: | :------: | ------- |
-| `[01]` | `********` | Luck |
-
-**Cast a spell:** Spell range is read from the spell table at `{06:0ad0}`. If the party is out of range, monster advances instead.
-
-| Byte | Bitfield | Meaning |
-| :--: | :------: | ------- |
-| `[01]` | `*-------` | if 0, target a char; if 1, target my group |
-| `[01]` | `-*******` | Spell ID |
-| `[02]` | `********` | Power cost |
-
-**Breath weapon:** Breath weapons always hit, but the monster rolls individual to-hit rolls per target, and deals half damage on a 'miss'. Range 0 is interpreted as 160'. If the party is out of range, monster advances instead.
-
-| Byte | Bitfield | Meaning |
-| :--: | :------: | ------- |
-| `[01]` | `***-----` | Damage die sides |
-| `[01]` | `---*****` | Damage die count |
-| `[02]` | `****----` | (x10') Range |
-
-**Call for help:** Make a Luck roll (on 1d100); if successful and the Allies count is greater than 0, add a monster to the group and decrement the Allies count.
-
-| Byte | Bitfield | Meaning |
-| :--: | :------: | ------- |
-| `[01]` | `********` | Luck |
-| `[02]` | `********` | Allies count |
 
 ### Encounters
 

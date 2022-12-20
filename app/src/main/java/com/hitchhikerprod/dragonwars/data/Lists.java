@@ -1,10 +1,15 @@
 package com.hitchhikerprod.dragonwars.data;
 
 public class Lists {
-    static final String[] SKILL_NAMES = { "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",
-            "Town Lore", "Bandage", "Climb", "Fistfighting", "Hiding", "Lockpick", "Pickpocket", "Swim", "Tracker",
-            "Bureaucracy", "Druid Magic", "High Magic", "Low Magic", "Merchant" /* ?! */, "Sun Magic", "Axes", "Flails",
-            "Maces", "Swords", "Two-handers", "Bows", "Crossbows", "Thrown Weapons" };
+    static final String[] SKILL_NAMES = {
+        "Arcane Lore", "Cave Lore", "Forest Lore", "Mountain Lore",
+        "Town Lore", "Bandage", "Climb", "Fistfighting",
+        "Hiding", "Lockpick", "Pickpocket", "Swim",
+        "Tracker", "Bureaucracy", "Druid Magic", "High Magic",
+        "Low Magic", "Merchant" /* ?! */, "Sun Magic", "Axes",
+        "Flails", "Maces", "Swords", "Two-handers",
+        "Bows", "Crossbows", "Thrown Weapons"
+    };
 
     static final String[][] SPELL_NAMES = {
             { "L:Mage Fire", "L:Disarm", "L:Charm", "L:Luck", "L:Lesser Heal",
@@ -27,7 +32,7 @@ public class Lists {
     };
 
     static public final String[] CHAR_FIELDS = { // base offset 0x4c
-        "Status", "NPC ID", "Level b0", "Level b1",
+        "Status", "NPC ID", "Gender", "Level b0", "Level b1",
         "XP b0", "XP b1", "XP b2", "XP b3",
         "Gold b0", "Gold b1", "Gold b2", "Gold b3",
         "AV", "DV", "AC", "Flags"

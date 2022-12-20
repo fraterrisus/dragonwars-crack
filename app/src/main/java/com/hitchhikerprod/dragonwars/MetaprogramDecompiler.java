@@ -260,6 +260,11 @@ public class MetaprogramDecompiler {
         final int chunkId = chunk.getUnsignedByte(this.pointer - 3);
         final int target = chunk.getWord(this.pointer - 2);
         switch(chunkId) {
+            case 0x03 -> {
+                if (target == 0x06e8 || target == 0x06ec) {
+                    this.width = true;
+                }
+            }
             case 0x08 -> {
                 switch(target) {
                     case 0x0006, 0x0173 -> dataJumpToAnotherBoard();
@@ -298,11 +303,12 @@ public class MetaprogramDecompiler {
     private void dataOpenChest() {
         decodeWords(1);
         final int bitsplit = chunk.getUnsignedByte(this.pointer);
+        System.out.printf("%08x  .data %02x", this.pointer, bitsplit);
         this.pointer++;
         if (bitsplit != 0xff) {
-            System.out.printf("%08x  .heap[%02x + %02x], 0x%02x\n", this.pointer - 2,
-                (bitsplit >> 3), 0x99, 0x80 >> (bitsplit & 0x7));
+            System.out.printf("      test heap[%02x + 99], 0x%02x", (bitsplit >> 3), 0x80 >> (bitsplit & 0x7));
         }
+        System.out.println();
         decodeData(1); // only run the chest if this value is 0x00
         decodeWordsUntil(0xff);
     }
@@ -310,12 +316,13 @@ public class MetaprogramDecompiler {
     private void dataGetLoot() {
         decodeWords(1);
         final int bitsplit = chunk.getUnsignedByte(this.pointer);
+        System.out.printf("%08x  .data %02x", this.pointer, bitsplit);
         this.pointer++;
         if (bitsplit != 0xff) {
             final int heapBase = chunk.getUnsignedByte(this.pointer);
             this.pointer++;
-            System.out.printf("%08x  .heap[%02x + %02x], 0x%02x\n", this.pointer - 2,
-                (bitsplit >> 3), heapBase, 0x80 >> (bitsplit & 0x7));
+            System.out.printf(" %02x   clr heap[%02x + %02x], 0x%02x\n",
+                heapBase, (bitsplit >> 3), heapBase, 0x80 >> (bitsplit & 0x7));
         }
         decodeString();
         decodeWordsUntil(0xff);
@@ -381,7 +388,7 @@ public class MetaprogramDecompiler {
             final NPC npc = new NPC(chunk);
             this.pointer = npc.decode(ptr);
             // First byte = NPC identifier number
-            System.out.printf("%08x  .npc\n    ", ptr); // %02x ", ptr, chunk.getUnsignedByte(ptr));
+            System.out.printf("%08x  .npc %02x\n    ", ptr, npc.getId());
             npc.display();
             decodeString();
         }
@@ -443,6 +450,8 @@ public class MetaprogramDecompiler {
     private Optional<String> charDataOffsetName(int offset) {
         if (offset >= 0x0c && offset <= 0x3a) {
             return Optional.of(Lists.REQUIREMENTS[offset - 0x0c]);
+        } else if (offset == 0x3b) {
+            return Optional.of("AP");
         } else if (offset >= 0x4c && offset <= 0x5c) {
             return Optional.of(Lists.CHAR_FIELDS[offset - 0x4c]);
         } else {
@@ -569,7 +578,7 @@ public class MetaprogramDecompiler {
         new Instruction("heap[imm]:w <- imm:w", compose(immIndex, immWord)),
         new Instruction("ds:[imm]:w -> ds:[imm]:w", compose(immAddress, immAddress)),
         new Instruction("ds:[imm]:w <- imm:w", compose(immAddress, immWord)),
-        new Instruction("bufferCopy(ds:[ax], 01dd:[d1b0]:0380, dir:bl)", immNone),
+        new Instruction("bufferCopy(ds:[ax], code:[d1b0]:0700, dir:bl)", immNone),
         new Instruction("kill()", immNone),
         new Instruction("readChunkTable(file:ax)", immNone),
         // 20
@@ -663,7 +672,7 @@ public class MetaprogramDecompiler {
         new Instruction("drawCompass()", immNone),
         new Instruction("heap[imm]:4 <- rotateMapView()", immIndex),
         // 70
-        new Instruction("rotate(heap[imm]:4) ???", immIndex),
+        new Instruction("mapData <- unrotateView(heap[imm]:4)", immIndex),
         new Instruction("runSpecialEvent()", immNone),
         new Instruction("runUseItem() ?", immNone),
         new Instruction("heap[3e] <- heap[3f]", immNone),
@@ -695,12 +704,12 @@ public class MetaprogramDecompiler {
         new Instruction("*4a80(ax)", immNone), // show monster graphics?
         new Instruction("drawCurrentViewport()", immNone),
         new Instruction("runYesNoModal() ; zf <- 1 if 'y'", immNone),
-        new Instruction("*1de9()", immNone),
+        new Instruction("h[c6] <- readStringFromStdin()", immNone), // read string from keyboard into h[c6]?
         new Instruction("", immNone),
-        new Instruction("*11ab()", immNone),
+        new Instruction("h[37] <- stringToInt(h[c6])", immNone), // convert string to int?
         // 90
         new Instruction("playSoundEffect(imm)", immByte),
-        new Instruction("*1a12()", immNone),
+        new Instruction("pauseUntilKey()*", immNone),
         new Instruction("pauseUntilKeyOrTime()", immNone),
         new Instruction("push bl", immNone),
         new Instruction("pop bl", immNone),
@@ -771,9 +780,14 @@ public class MetaprogramDecompiler {
         final Optional<Integer> endPointer;
         try {
             chunkId = Integer.parseInt(args[0].substring(2), 16);
-            offset = Integer.parseInt(args[1].substring(2), 16);
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new RuntimeException("Insufficient arguments");
+        }
+
+        if (args.length > 1) {
+            offset = Integer.parseInt(args[1].substring(2), 16);
+        } else {
+            offset = 0;
         }
 
         if (args.length > 2) {
