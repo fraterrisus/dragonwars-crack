@@ -31,6 +31,7 @@ var jars = [
         [camel:'HuffmanDecoder', snake:'huffman-printer'],
         [camel:'MapData', snake:'map-data'],
         [camel:'MetaprogramDecompiler', snake:'decompiler'],
+        [camel:'MonsterImageDecoder', snake:'monster'],
 ]
 
 tasks.register('copy', Copy) {

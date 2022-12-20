@@ -39,6 +39,10 @@ public class HuffmanDecoder {
         return treeDecode(root);
     }
 
+    public Chunk decodeChunk() {
+        return new Chunk(decode());
+    }
+
     private HuffmanNode buildHuffmanTree(int run) {
         if (run == runLength()) {
             final int value = dataWord();

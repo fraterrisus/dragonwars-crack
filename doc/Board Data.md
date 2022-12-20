@@ -144,14 +144,14 @@ Everything after that is a two-byte pointer to a Monster Group. Groups contain 3
 
 | Source | Bitfield | Destination | Use |
 | :----: | :------: | :---------: | --- |
-| `[00]` | `––––––––` | `[00]` | *Unknown* |
+| `[00]` | `––––––––` | `[00]` | *Strength?* sometimes 0, never used |
 | `[01]` | `********` | `[01]` | **Dexterity** |
-| `[02]` | `––––––––` | `[02]` | *Unknown* |
-| `[03]` | `––––––––` | `[03]` | *Unknown* |
+| `[02]` | `––––––––` | `[02]` | *Intelligence?* sometimes 0, never used |
+| `[03]` | `––––––––` | `[03]` | *Spirit?* sometimes 0, never used |
 | `[04]` | `********` | `[04]` | Base **Health** (added to die roll at [08]) |
-| `[05]` | `––––––––` | `[05]` | *Unknown*, usually 0x00 |
+| `[05]` | `––––––––` | `[05]` | *Stun?* usually 0, never used |
 | `[06]` | `********` | `[06]` | **AV bonus** |
-| `[07]` | `––––––––` | `[07]` | *Unknown*, usually 0x00 |
+| `[07]` | `––––––––` | `[07]` | *DV bonus?* usually 0 |
 | `[08]` | `***–––––` | `[08]` | **Health** dice (sides) |
 | `[08]` | `–––*****` | `[08]` | **Health** dice (count) |
 | `[09]` | `****––––` | `[21]` | **Speed** (how far monster can advance in 1 turn) |
@@ -159,7 +159,7 @@ Everything after that is a two-byte pointer to a Monster Group. Groups contain 3
 | `[0a]` | `**––––––` | `[22]` | **Gender** (used for pronouns) |
 | `[0a]` | `––*–––––` | `[23]` | *Unknown* |
 | `[0a]` | `–––*****` | `[0a]` | **Group size** |
-| `[0b]` | `********` | `[0b]` | *Unknown* |
+| `[0b]` | `********` | `[0b]` | Index of **monster image** chunk (x 2 + 0x8a) |
 | `[0c]` | `********` | `[0c]` | **XP** reward (uses Purchase Price format) |
 | `[0d]` | `––––––––` | `[0d]` | *Unknown* |
 | `[0e]` | `********` | `[0e]` | Flags: |

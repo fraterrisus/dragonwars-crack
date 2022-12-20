@@ -74,7 +74,9 @@ Whenever you cast a spell, the game checks to see whether that spell triggers an
 - Power cost: `{0c:0406}` (if `0x80`, cost is variable and `0x7f` indicates the skill ID)
 - Code target: `{06:0276}`
 - Schools: calculated by spell ID at `{06:0630}`
-- Argument byte 1: `{06:02f0}` (not used by all spells)
+- Argument byte 1: `{06:02f0}`
+
+  The top two bits of byte 1 indicate the spell type, Combat (1), Misc (2), or Heal (3). The "Travel" context is indicated by bit 0x80: we can cast Misc and Heal spells. "Combat" context (0x40) only permits Combat and Heal spells.
 - Argument byte 2: `{06:032d}` (not used by all spells)
 
 ## Heal spells (0x036a)
@@ -85,7 +87,7 @@ Arguments:
 
 | Value |    Bits    | Meaning                                                      |
 | :---: | :--------: | ------------------------------------------------------------ |
-| arg1  | `**––––––` | Spell type (3:heal?)                                         |
+| arg1  | `**––––––` | Context (3:travel and combat)                                |
 | arg1  | `––*–––––` | Targets (0:one, 1:all)                                       |
 | arg2  | `********` | Healing dice; if `0xff`, this is a Cure Status spell, not a Heal HP spell |
 
@@ -103,7 +105,7 @@ When cast against the party, zap spells do full damage to Stun and half damage t
 
 | Value |    Bits    | Meaning                                             |
 | :---: | :--------: | --------------------------------------------------- |
-| arg1  | `**––––––` | Spell type (1:combat?)                              |
+| arg1  | `**––––––` | Context (1:combat only)                             |
 | arg1  | `––**––––` | Targets (00:one, 01:group, 1–:all)                  |
 | arg1  | `––––****` | Range (x10')                                        |
 | arg2  | `***–****` | Damage dice                                         |
@@ -119,10 +121,10 @@ When cast against the party, zap spells do full damage to Stun and half damage t
 
 Temporary character DV bonuses are written to `char[65]`.
 
-| Value |    Bits    | Meaning                |
-| :---: | :--------: | ---------------------- |
-| arg1  | `**––––––` | Spell type (1:combat?) |
-| arg2  | `********` | DV bonus               |
+| Value |    Bits    | Meaning                 |
+| :---: | :--------: | ----------------------- |
+| arg1  | `**––––––` | Context (1:combat only) |
+| arg2  | `********` | DV bonus                |
 
 ### Party AV, DV, AC (0x04e0, 0x04e5, 0x04ec, 0x04fe)
 
@@ -130,19 +132,19 @@ Temporary character DV bonuses are written to `char[65]`.
 
 Temporary party AV bonuses are written to `heap[8c]`; party DV bonuses to `heap[8e]`; and party AC bonuses to `heap[dd]`.
 
-| Value |    Bits    | Meaning                |
-| :---: | :--------: | ---------------------- |
-| arg1  | `**––––––` | Spell type (1:combat?) |
-| arg2  | `********` | Bonus                  |
+| Value |    Bits    | Meaning                 |
+| :---: | :--------: | ----------------------- |
+| arg1  | `**––––––` | Context (1:combat only) |
+| arg2  | `********` | Bonus                   |
 
 ### Party / Character Attributes (0x04fa, 0x050d, 0x0524, 0x0529)
 
 There is no party attribute bonus location, so for party bonuses the game just iterates over party members and applies the bonus to the character's temporary value (STR:`char[0c]`, DEX:`char[0e]`).
 
-| Value |    Bits    | Meaning                |
-| :---: | :--------: | ---------------------- |
-| arg1  | `**––––––` | Spell type (1:combat?) |
-| arg2  | `********` | Attribute bonus        |
+| Value |    Bits    | Meaning                 |
+| :---: | :--------: | ----------------------- |
+| arg1  | `**––––––` | Context (1:combat only) |
+| arg2  | `********` | Attribute bonus         |
 
 ## Debuff spells
 
@@ -152,7 +154,7 @@ There is no party attribute bonus location, so for party bonuses the game just i
 
 | Value |    Bits    | Meaning                            |
 | :---: | :--------: | ---------------------------------- |
-| arg1  | `**––––––` | Spell type (1:combat?)             |
+| arg1  | `**––––––` | Context (1:combat only)            |
 | arg2  | `********` | Applied "bonus", a negative number |
 
 ### Fear (0x045e)
@@ -165,7 +167,7 @@ When the spell is cast, any monster in the target group that hasn't acted yet ha
 
 | Value |    Bits    | Meaning                        |
 | :---: | :--------: | ------------------------------ |
-| arg1  | `**––––––` | Spell type (1:combat?)         |
+| arg1  | `**––––––` | Context (1:combat only)        |
 | arg2  | `********` | Targets (`01`:one, `ff`:group) |
 
 ## Travel spells (0x084e, etc.)
@@ -174,7 +176,7 @@ These spells provide a long-lasting effect over game-hours, and they all have va
 
 | Value |    Bits    | Meaning                              |
 | :---: | :--------: | ------------------------------------ |
-| arg1  | `**––––––` | Spell type (2:misc?)                 |
+| arg1  | `**––––––` | Context (2:travel only)              |
 | arg1  | `––––****` | Effect (range of light, AC bonus...) |
 | arg2  | `*–––––––` | always 1                             |
 | arg2  | `–*******` | Duration (hours per power point)     |
@@ -191,10 +193,10 @@ Neither spell seems to check its range value (`arg1.0x0f` = 60')
 
 *D:Whirl Wind* adds distance between the party and the monsters. (If there are multiple groups of monsters, only the casting group is pushed back!)
 
-| Value |    Bits    | Meaning                |
-| :---: | :--------: | ---------------------- |
-| arg1  | `**––––––` | Spell type (1:combat?) |
-| arg2  | `********` | Distance (x10')        |
+| Value |    Bits    | Meaning                 |
+| :---: | :--------: | ----------------------- |
+| arg1  | `**––––––` | Context (1:combat only) |
+| arg2  | `********` | Distance (x10')         |
 
 ## Wall spells (0x03eb, 0x0409)
 

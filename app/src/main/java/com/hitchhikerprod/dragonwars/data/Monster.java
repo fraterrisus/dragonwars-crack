@@ -22,8 +22,13 @@ public class Monster {
 
     private String name;
     private Gender gender;
+    private int strength; // ?
     private int dexterity;
+    private int intelligence; // ?
+    private int spirit; // ?
     private int baseHealth;
+    private int avBonus;
+    private int dvBonus; // ?
     private WeaponDamage varHealth;
     private int confidence;
     private int varGroupSize;
@@ -32,7 +37,7 @@ public class Monster {
     private List<String> flags;
     private List<Action> actions;
 
-    private int unknown0b;
+    private int baseChunk;
     private PowerInt xpReward;
 
     private List<Byte> raw;
@@ -47,21 +52,21 @@ public class Monster {
 
         raw = data.getBytes(offset, 0x21);
 
-        final int b00 = data.getUnsignedByte(offset);
+        this.strength = data.getUnsignedByte(offset);
         this.dexterity = data.getUnsignedByte(offset + 0x01);
-        final int b02 = data.getUnsignedByte(offset + 0x02);
-        final int b03 = data.getUnsignedByte(offset + 0x03);
+        this.intelligence = data.getUnsignedByte(offset + 0x02);
+        this.spirit = data.getUnsignedByte(offset + 0x03);
         this.baseHealth = data.getUnsignedByte(offset + 0x04);
         final int b05 = data.getUnsignedByte(offset + 0x05);
-        final int b06 = data.getUnsignedByte(offset + 0x06);
-        final int b07 = data.getUnsignedByte(offset + 0x07);
+        this.avBonus = data.getUnsignedByte(offset + 0x06);
+        this.dvBonus = data.getUnsignedByte(offset + 0x07);
         this.varHealth = new WeaponDamage(data.getByte(offset + 0x08));
         final int b09 = data.getUnsignedByte(offset + 0x09);
         this.speed = (b09 >> 4) & 0x0f; // g[21]; how far can this group advance in 1 round
         //this.range = b09 & 0x0f // value ignored, storage for range (distance from party)
         final int b0a = data.getUnsignedByte(offset + 0x0a);
         this.gender = Gender.of((b0a & 0xc0) >> 6).orElseThrow();
-        this.unknown0b = data.getUnsignedByte(offset + 0x0b);
+        this.baseChunk = 0x8a + (2 * data.getUnsignedByte(offset + 0x0b));
         this.xpReward = new PowerInt(data.getByte(offset + 0x0c)).plus(1);
         final int b0d = data.getUnsignedByte(offset + 0x0d);
         final int b0e = data.getUnsignedByte(offset + 0x0e);
@@ -113,13 +118,14 @@ public class Monster {
     @Override
     public String toString() {
         List<String> tokens = new ArrayList<>();
-        tokens.add(this.name);
-        tokens.add(this.gender.getPronouns());
-        tokens.add("max:" + varGroupSize);
+        tokens.add(this.name + " (" + this.gender.getPronouns() + ") [#" + varGroupSize + "]");
+        tokens.add(String.format("STR %02d DEX %02d INT %02d SPR %02d",
+            this.strength, this.dexterity, this.intelligence, this.spirit));
         tokens.add("HD:" + varHealth + "+" + baseHealth + " (" +
             (baseHealth + varHealth.getNum()) + "-" +
             (baseHealth + (varHealth.getNum() * varHealth.getSides())) + ")");
-        tokens.add("DEX:" + this.dexterity);
+        tokens.add(String.format("AV%+d DV%+d", this.avBonus, this.dvBonus));
+        tokens.add("morale:" + this.confidence);
         tokens.add("spd:" + this.speed + "0'");
         tokens.add("XP:" + xpReward.toInteger());
         tokens.addAll(this.flags);
