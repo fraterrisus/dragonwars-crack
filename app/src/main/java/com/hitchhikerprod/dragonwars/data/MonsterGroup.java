@@ -48,7 +48,7 @@ public class MonsterGroup {
     public String toString() {
         final List<String> strings = new ArrayList<>();
 
-        strings.add(String.format("cnf:0x%02x", confidence));
+        strings.add(String.format("morale:0x%02x", confidence));
         strings.add(String.format("unk:0x%02x", unknownMiddle));
 
         if (range == 0) {

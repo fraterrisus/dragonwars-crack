@@ -179,6 +179,8 @@ Each individual monster's health is randomly generated: the sum of the base heal
 
 If an encounter specifies a random **group size**, the group size at `[0a]` is used as a max for the roll. Regardless, this value is overwritten with the actual group size when the encounter is generated.
 
+Gold is given for killing monsters whose image chunk is 09 (helmet and spear), 0e (guards), 13 (bloody axe), 24 (pikemen), and 38. You get $1–$40 per kill.
+
 ### Encounters
 
 The encounter list uses the same one-byte prefix followed by two-byte pointers, although it's not clear what the single byte is for in this case.

@@ -2,69 +2,71 @@
 
 Spells marked with `(!)` never appear on scrolls, i.e. you can't learn them, although in some cases NPCs and/or monsters know these spells and can cast them.
 
-|   ID   | School | Name           | Type and code target |
-|:------:|:------:| -------------- | -------------------- |
-| `0x00` |  Low   | Mage Fire      | Zap (`0x05b1`)       |
-| `0x01` |  Low   | Disarm         | Disarm (`0x049b`)    |
-| `0x02` |  Low   | Charm          | Multiple Buff (`0x0418`) |
-| `0x03` |  Low   | Luck           | Buff Character DV (`0x04d4`) |
-| `0x04` |  Low   | Lesser Heal    | Heal (`0x036a`)      |
-|  `0x05`  |  Low   | Mage Light     | Travel / Light (`0x0860`) |
-|  `0x06`  |  High  | Fire Light     | Zap (`0x05b1`)       |
-|  `0x07`  |  High  | Elvar's Fire   | Zap (`0x05b1`)       |
-|  `0x08`  |  High  | Poog's Vortex  | Zap (`0x05b1`)       |
-|  `0x09`  |  High  | Ice Chill      | Zap (`0x05b1`)       |
-|  `0x0a`  |  High  | Big Chill      | Zap (`0x05b1`)       |
-|  `0x0b`  |  High  | Dazzle         | Lose Turn (`0x052f`) |
-|  `0x0c`  |  High  | Mystic Might   | Buff Character Attribute (`0x04fa`) |
-|  `0x0d`  |  High  | Reveal Glamour | *triggers Special Events; has no game effect* |
-|  `0x0e`  |  High  | Sala's Swift   | Buff Character Attribute (`0x0524`) |
-|  `0x0f`  |  High  | Vorn's Guard   | Buff Party AC (`0x04fe`) |
-|  `0x10`  |  High  | Cowardice      | Fear (`0x045e`)      |
-|  `0x11`  |  High  | Healing        | Heal (`0x036a`)      |
-|  `0x12`  |  High  | Group Heal     | Heal (`0x036a`)      |
-|  `0x13`  |  High  | Cloak Arcane   | Travel / AC (`0x086c`) |
-|  `0x14`  |  High  | Sense Traps    | Travel / Traps (`0x0856`) |
-|  `0x15`  |  High  | Air Summon     | Summon (`0x0b1c`)    |
-|  `0x16`  |  High  | Earth Summon   | Summon (`0x0b1c`)    |
-|  `0x17`  |  High  | Water Summon   | Summon (`0x0b1c`)    |
-|  `0x18`  |  High  | Fire Summon    | Summon (`0x0b1c`)    |
-|  `0x19`  | Druid  | Death Curse    | Zap (`0x05b1`)    |
-|  `0x1a`  | Druid  | Fire Blast     | Zap (`0x05b1`)    |
-|  `0x1b`  | Druid  | Insect Plague  | Debuff (`0x0428`)    |
-|  `0x1c`  | Druid  | Whirl Wind     | Push (`0x08f8`)      |
-|  `0x1d`  | Druid  | Scare          | Buff Party AV (`0x04e0`) |
-| `0x1e` | Druid  | Brambles             | Lose Turn (`0x052f`) |
-| `0x1f` | Druid  | Greater Healing      | Heal (`0x036a`) |
-| `0x20` | Druid  | Cure All             | Heal (`0x036a`) |
-| `0x21` | Druid  | Create Wall          | Wall (`0x03eb`) |
-| `0x22` | Druid  | Soften Stone         | Wall (`0x0409`) |
-| `0x23` | Druid  | Invoke Spirit        | Summon (`0x0b1c`) |
-| `0x24` | Druid  | Beast Call           | Summon (`0x0b1c`) |
-| `0x25` | Druid  | Wood Spirit          | Summon (`0x0b1c`) |
-| `0x26` | Sun    | Sun Stroke           | Zap (`0x05b1`) |
-| `0x27` | Sun    | Exorcism             | Zap (`0x0597`) |
-| `0x28` | Sun    | Rage of Mithras      | Zap (`0x05b1`) |
-| `0x29` | Sun    | Wrath of Mithras (!) | Zap (`0x05b1`) |
-| `0x2a` | Sun    | Fire Storm           | Zap (`0x05b1`) |
-| `0x2b` | Sun    | Inferno              | Zap (`0x05b1`) |
-| `0x2c` | Sun    | Holy Aim             | Buff Party AV (`0x04e5`) |
-| `0x2d` | Sun    | Battle Power         | Buff Party Attribute (`0x050d`) |
-| `0x2e` | Sun    | Column of Fire / Fire Column | Hold (0x0447) |
-| `0x2f` | Sun    | Mithras' Bless       | Buff Party DV (`0x04ec`) |
-| `0x30` | Sun    | Light Flash (!)      | Lose Turn (`0x052f`) |
-| `0x31` | Sun    | Armor of Light       | Buff Character DV (`0x04d4`) |
-| `0x32` | Sun    | Sun Light            | Heal (`0x036a`) |
-| `0x33` | Sun    | Heal (!)             | Heal (`0x036a`) |
-| `0x34` | Sun    | Major Healing        | Heal (`0x036a`) |
-| `0x35` | Sun    | Disarm Trap          | Travel / Traps (`0x0856`) |
-| `0x36` | Sun    | Guidance             | Travel / Compass (`0x0843`) |
-| `0x37` | Sun    | Radiance             | Travel / Light (`0x0860`) |
-| `0x38` | Sun    | Summon Salamander    | Summon (`0x0b1c`) |
-| `0x39` | Sun    | Charger              | Unique (`0x094b`) |
-| `0x3a` | Misc   | Zak's Speed          | Buff Party Attribute (`0x0529`) |
-| `0x3b` | Misc   | Kill Ray             | Zap (`0x05b1`) |
-| `0x3c` | Misc   | Prison (!)           | Hold (`0x08b3`) |
+Power costs: `{0c:0406}` If `0x80` is set, power cost is variable and `0x3f` is the magic skill id.
+
+|   ID   | Power | School | Name           | Type and code target |
+|:------:|:------:| :------------: | -------------------- | -------------------- |
+| `0x00` |  2  |  Low   | Mage Fire      | Zap (`0x05b1`)       |
+| `0x01` |  4  |  Low   | Disarm         | Disarm (`0x049b`)    |
+| `0x02` |  3  |  Low   | Charm          | Multiple Buff (`0x0418`) |
+| `0x03` |  3  |  Low   | Luck           | Buff Character DV (`0x04d4`) |
+| `0x04` |  2  |  Low   | Lesser Heal    | Heal (`0x036a`)      |
+|  `0x05`  |  var.  |  Low   | Mage Light     | Travel / Light (`0x0860`) |
+|  `0x06`  |  var.  |  High  | Fire Light     | Zap (`0x05b1`)       |
+|  `0x07`  |  6  |  High  | Elvar's Fire   | Zap (`0x05b1`)       |
+|  `0x08`  |  11  |  High  | Poog's Vortex  | Zap (`0x05b1`)       |
+|  `0x09`  |  var.  |  High  | Ice Chill      | Zap (`0x05b1`)       |
+|  `0x0a`  |  15  |  High  | Big Chill      | Zap (`0x05b1`)       |
+|  `0x0b`  |  3  |  High  | Dazzle         | Lose Turn (`0x052f`) |
+|  `0x0c`  |  4  |  High  | Mystic Might   | Buff Character Attribute (`0x04fa`) |
+|  `0x0d`  |  2  |  High  | Reveal Glamour | *triggers Special Events; has no game effect* |
+|  `0x0e`  |  5  |  High  | Sala's Swift   | Buff Character Attribute (`0x0524`) |
+|  `0x0f`  |  6  |  High  | Vorn's Guard   | Buff Party AC (`0x04fe`) |
+|  `0x10`  |  8  |  High  | Cowardice      | Fear (`0x045e`)      |
+|  `0x11`  |  3  |  High  | Healing        | Heal (`0x036a`)      |
+|  `0x12`  |  6  |  High  | Group Heal     | Heal (`0x036a`)      |
+|  `0x13`  |  var.  |  High  | Cloak Arcane   | Travel / AC (`0x086c`) |
+|  `0x14`  |  var.  |  High  | Sense Traps    | Travel / Traps (`0x0856`) |
+|  `0x15`  |  var.  |  High  | Air Summon     | Summon (`0x0b1c`)    |
+|  `0x16`  |  var.  |  High  | Earth Summon   | Summon (`0x0b1c`)    |
+|  `0x17`  |  var.  |  High  | Water Summon   | Summon (`0x0b1c`)    |
+|  `0x18`  |  var.  |  High  | Fire Summon    | Summon (`0x0b1c`)    |
+|  `0x19`  | 6 | Druid  | Death Curse    | Zap (`0x05b1`)    |
+|  `0x1a`  | 12 | Druid  | Fire Blast     | Zap (`0x05b1`)    |
+|  `0x1b`  | 4 | Druid  | Insect Plague  | Debuff (`0x0428`)    |
+|  `0x1c`  | 4 | Druid  | Whirl Wind     | Push (`0x08f8`)      |
+|  `0x1d`  | 4 | Druid  | Scare          | Buff Party AV (`0x04e0`) |
+| `0x1e` | 5 | Druid  | Brambles             | Lose Turn (`0x052f`) |
+| `0x1f` | 4 | Druid  | Greater Healing      | Heal (`0x036a`) |
+| `0x20` | 6 | Druid  | Cure All             | Heal (`0x036a`) |
+| `0x21` | 5 | Druid  | Create Wall          | Wall (`0x03eb`) |
+| `0x22` | 6 | Druid  | Soften Stone         | Wall (`0x0409`) |
+| `0x23` | var. | Druid  | Invoke Spirit        | Summon (`0x0b1c`) |
+| `0x24` | var. | Druid  | Beast Call           | Summon (`0x0b1c`) |
+| `0x25` | var. | Druid  | Wood Spirit          | Summon (`0x0b1c`) |
+| `0x26` | var. | Sun    | Sun Stroke           | Zap (`0x05b1`) |
+| `0x27` | 5   | Sun    | Exorcism             | Zap (`0x0597`) |
+| `0x28` | var. | Sun    | Rage of Mithras      | Zap (`0x05b1`) |
+| `0x29` | var. | Sun    | Wrath of Mithras (!) | Zap (`0x05b1`) |
+| `0x2a` | 20 | Sun    | Fire Storm           | Zap (`0x05b1`) |
+| `0x2b` | var. | Sun    | Inferno              | Zap (`0x05b1`) |
+| `0x2c` | 5   | Sun    | Holy Aim             | Buff Party AV (`0x04e5`) |
+| `0x2d` | 8   | Sun    | Battle Power         | Buff Party Attribute (`0x050d`) |
+| `0x2e` | 5   | Sun    | Column of Fire / Fire Column | Hold (0x0447) |
+| `0x2f` | 5   | Sun    | Mithras' Bless       | Buff Party DV (`0x04ec`) |
+| `0x30` | 6   | Sun    | Light Flash (!)      | Lose Turn (`0x052f`) |
+| `0x31` | 6   | Sun    | Armor of Light       | Buff Character DV (`0x04d4`) |
+| `0x32` | 3   | Sun    | Sun Light            | Heal (`0x036a`) |
+| `0x33` | 4   | Sun    | Heal (!)             | Heal (`0x036a`) |
+| `0x34` | 6   | Sun    | Major Healing        | Heal (`0x036a`) |
+| `0x35` | var. | Sun    | Disarm Trap          | Travel / Traps (`0x0856`) |
+| `0x36` | var. | Sun    | Guidance             | Travel / Compass (`0x0843`) |
+| `0x37` | var. | Sun    | Radiance             | Travel / Light (`0x0860`) |
+| `0x38` | var. | Sun    | Summon Salamander    | Summon (`0x0b1c`) |
+| `0x39` | 8   | Sun    | Charger              | Unique (`0x094b`) |
+| `0x3a` | 10 | Misc   | Zak's Speed          | Buff Party Attribute (`0x0529`) |
+| `0x3b` | 15 | Misc   | Kill Ray             | Zap (`0x05b1`) |
+| `0x3c` | 8  | Misc   | Prison (!)           | Hold (`0x08b3`) |
 
 Whenever you cast a spell, the game checks to see whether that spell triggers any [Special Events](Events.md). This is how the Magic College test works, for instance. In the case of *H:Reveal Glamour*, there are no other "illusions" in the game to dispel, so there is no impact on the game state when you cast that spell.
 

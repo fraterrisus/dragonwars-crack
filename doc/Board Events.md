@@ -7,6 +7,7 @@
 | `99,02`  |  `[99]`   | `––*–––––` | Slave Camp | Have dealt with the sick man        |
 | `99,03`  |  `[99]`   | `–––*––––` | Slave Camp | Have impressed the wizard           |
 | `99,04`  |  `[99]`   | `––––*–––` | Slave Camp | Have killed the guardian spirit     |
+| `99,05` | `[99]` | `–––––*––` | Tars Ruins | Have moved the stone slab |
 | `99,0d` | `[9a]` | `–––––*––` | Dwarf Ruins | Used Jade Eyes to open the Dwarf Clan Hall |
 | `99,0e` | `[9a]` | `––––––*–` | Dwarf Clan Hall | Depetrified the dwarves |
 | `99,0f` | `[9a]` | `–––––––*` | Dwarf Clan Hall | [Gave the Skull to the dwarven smith] |
@@ -16,7 +17,9 @@
 | `99,26`  |  `[9d]`   | `––––––*–` | Purgatory | Have received reward from Clopin for defeating the Humbaba |
 | `99,27`  |  `[9d]`   | `–––––––*` | Slave Camp | Have access to the Nature Axe cache |
 | `99,28` | `[9e]` | `*–––––––` | Slave Camp,<br />Dwarf Ruins | Have unlocked *either* the chest in the trees (Camp) or the Dwarf Hammer chest (Ruins) |
+| `99,2c` | `[9e]` | `––––*–––` | Guard Bridge #1 | Have access to the cache |
 | `99,35`  |  `[9f]`   | `–––––*––` | Purgatory | Sold yourself into slavery                                 |
+| `99,53` | `[a3]` | `–––*––––` | Nisir | Have unlocked the weapons chest |
 | `99,57` | `[a3]` | `–––––––*` |  | NPC ID 0 (Ulrik) is in the party |
 | `99,58` | `[a4]` | `*–––––––` |  | NPC ID 1 (—) is in the party |
 | `99,59` | `[a4]` | `–*––––––` |  | NPC ID 2 (Louie) is in the party |
@@ -188,12 +191,12 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning                             |
-| :------: | :-------: | :--------: | ----------------------------------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |                                     |
-| `b9,01`  |  `[b9]`   | `–*––––––` | Have noticed the axe in the tree    |
-| `b9,02`  |  `[b9]`   | `––*–––––` | Have access to the sick man's cache |
-| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the wizard's cache   |
+| Bitsplit | Heap byte |    Bit     | Meaning                                            |
+| :------: | :-------: | :--------: | -------------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | If 0, you haven't yet stepped into the camp proper |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Have noticed the axe in the tree                   |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have access to the sick man's cache                |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the wizard's cache                  |
 
 ### Events
 
@@ -216,9 +219,9 @@ ic,b)` -->
 17. `[0969]` (04,02) If `bitsplit(b9,01)`, get the Nature Axe.
 18. `[0975]` You used *Forest Lore* in the right place. Gate-and-set `bitsplit(99,27)` to notice an axe stuck in a tree. Set `bitsplit(b9,01)`. Clear `heap[3d]` and `[3e]`.
 19. `[05fd]` (07,04) The wizard peers at you from within his house, unless you did this already `(99,03)`
-20. `[09a6]` (07,07) The chest behind the wizard's house (`bitsplit(99,28)`, difficulty 1). *This is the same bitsplit as the chest holding the Dwarven Hammer in the Ruins on King's Isle; if you unlock this chest, you lose that one (and vice versa).*
+20. `[09a6]` (07,07) A [locked chest](#locked) behind the wizard's house (`bitsplit(99,28)`, difficulty 1). *This is the same bitsplit as the chest holding the Dwarven Hammer in the Ruins on King's Isle; if you unlock this chest, you lose that one (and vice versa).*
 21. `[09bd]` (10,02) The [tavern](#tavern). Louie is here.
-22. `[0795]` Default handler. If the party is outside (0,0)-(17,16), prompt to exit. N:`{00:11,04)` ES:`{00:11,02}` W:`{00:10,03}`
+22. `[0795]` Default handler. If the party is outside (0,0)-(17,16), prompt to exit. N:`(00:11,04)` ES:`(00:11,02)` W:`(00:10,03)`
     - If this is your first time here (`00,b9` is not set), set `00,b9`. If bitsplit `00,99` is set, you already killed everyone. Delete Events #1–12, 17, and 19, then exit. If bitsplit `01,99` is set, you're already friends, so exit. If any character has flag `0x40` (swam out of Purgatory), read paragraph #16; the camp is happy with you. Set `01,99` and exit. Otherwise, the residents are suspicious; exit (and await player action)
     - If you've been here before and either bitsplit `01,99` or `00,99` are set, exit. Otherwise, if you stay on the perimeter of the map, the residents wait for you to leave. If you step inside (1,1)-(13,15), the camp residents attack (encounter #0). If you kill them, read paragraph #18 (shame) and set `00,99`.
 
@@ -230,6 +233,97 @@ ic,b)` -->
 - Special #8, use *Bandage*, or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* -> `[047e]`
 - Special #17, use *Forest Lore* -> `[0975]`
 - Special #19, use *Sun Magic, Druid Magic, Low Magic*, or *High Magic* -> `[0629]`
+
+## 0x03 Guard Bridge #1
+
+### **Flags**
+
+- **Random Encounters:** no, but see Event #6.
+
+### Board State
+
+| Bitsplit | Heap byte |    Bit     | Meaning                                 |
+| :------: | :-------: | :--------: | --------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Showed Citizenship Papers to the guards |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Bribed the guards                       |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Read paragraph #12 on entry             |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the arms cache           |
+
+### Events
+
+1. `[00e7]` You stepped in water.
+2. `[00ec]` (04,02) If `bitsplit(b9,00)` is set, exit. Otherwise draw monster `0x0e`, then the guard demands to see your Citizenship Papers.
+3. `[0123]` (04,02) You show your Citizenship Papers to the guard. If `bitsplit(b9,00)` is not set, the guard demands a bribe of $10 per party member. If you pay it, set `bitsplit(b9,00)` and `(b9,01)`.
+4. `[023f]` (04,05) If `bitsplit(b9,00)` is set, exit. If `bitsplit(b9,01)` is set, run event #2 instead. Otherwise, the guard asks if you know where you're going; if you say yes, set `bitsplit(b9,01)` and run event #2, otherwise run away.
+5. `[02ff]` (04,05) You show your Citizenship Papers to the guard. Set `bitsplit(b9,00)` and `(b9,01)`.
+6. `[0383]` Crossing the bridge. If you've already dealt with the guards (`bitsplit(b9,00)` is set), read paragraph #13; there's a 1:10 chance of an encounter with a bunch of Rats (#01). Otherwise, you have to fight the guards (#00). If you win, set `bitsplit(b9,00)`. If you lose, you're kicked off the bridge, to (04,00) or (04,07) depending on which half of the bridge you're currently on.
+7. `[0484]` (07,02) A [chest](#chest) (`bitsplit(b9,04)`). You only get one shot at it (`bitsplit(99,2c)`).
+8. `[03c3]` (03,01) Color text `{49:03c9}` about Lanac'toor's statue. Erase this event.
+9. `[0435]` Default handler. If the party is inside (0,0)-(7,7), gate-and-set `bitsplit(b9,02)` to read paragraph #12. Otherwise, prompt to exit; if the party is in the bottom half of the map (Y coordinate < 4) exit to `(00,12,06)`, else `(00,12,08)`.
+
+## 0x04 Salvation
+
+### Flags
+
+- **Random Encounters:** yes (1 in 100)
+
+### Board State
+
+| Bitsplit | Heap byte |    Bit     | Meaning                                  |
+| :------: | :-------: | :--------: | ---------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Read paragraph #98                       |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Deduced a path through the mountain pass |
+
+### Events
+
+1. `[0343]` (13,11) Statue of the Universal God. Read paragraph #97.
+2. `[034b]` (13,11) Brandish the Sword of Freedom at the Universal God. Drop the Sword of Freedom you have, and pick up a version that casts *S:Inferno@10* but is otherwise identical. Everyone in the party gains 500 XP. Iterate over the party, gate-and-set `bitsplit(5c,03)` to gain 3 points on all four attributes.
+3. `[046c]` (03,04) Stairs down to the Underworld `(12:19,19)`
+4. `[047f]` (07,08) Run fight #05 (Guards and Stosstrupen). If you win, erase this event.
+5. `[048a]` "An alarm sounds!" Reset event #4. *Not sure how this gets triggered; event #5 doesn't exist on the map...*
+6. `[049d]` You used *Lockpick*. Locked doors on this map have wall metadata bit 0x01 set, i.e. texture index 3. (This is true for the doors at (04,08) and (08,06).) Any number of ranks is sufficient to unlock the door (sets the upper nibble of the wall to 0x20).
+7. `[04c4]` (05,07) The climber's puzzle. Color text `{04:04c5}`.
+8. `[04e6]` (05,07) You used *Mountain Lore* or *Intelligence*, which sets `bitsplit(b9,01)`.
+9. `[051c]` (05,07) You used *Climb*. If `bitsplit(b9,01)` is set, travel to (06,06). Otherwise, color text `{04:0523}`.
+10. `[05c5]` (08,03) Paragraph #55.
+11. `[0000]` *Oops?*
+12. `[05cd]` (08,03) You used the Golden Boots. If you're facing East, hop across the chasm to (0a,03).
+13. `[05f1]` (03,06) Paragraph #100.
+14. `[05f9]` Inside the mountain. Color text `{04:05fa}`.
+15. `[061c]` Color text `{04:061d}`. "No one uses the front door fool!"
+16. `[0637]` Color text `{04:063d}`. Travel to Nisir (1b:15,17).
+17. `[057c]` (10,06) Color text `{04:057d}`.
+18. `[05a5] `Fall through the chasm; travel to the Underworld `(12:20,19)`.
+19. `[047a]` (01,08) Run fight #06 (Stosstrupen + random). If you win, erase this event.
+20. `[0668]` (01,09) [Locked chest](#locked) (`bitsplit(99,53)`, difficulty 5).
+21. `[067d]` Default handler. If the party is outside (0,0)-(21,21), prompt to exit to`(00:19,20)`. Otherwise, gate-and-set `bitsplit(b9,00)` to read paragraph #98.
+
+## 0x05 Tars Ruins
+
+### Events
+
+1. `[067e]` 
+2. `[03d9]` 
+3. `[0449]`
+4. `[048b]` (15,15)
+5. `[04d8]`
+6. `[0514]` (15,15) You used *Strength*. If the stone slab has already been moved (`bitsplit(99,05)`), exit. Otherwise roll 1d40; if the value is below the PC's *Strength*, the slab moves (set `bitsplit(99,05)`) and exposes the stairs down.
+7. `[05b1]` 
+8. `[05f0]` 
+9. `[0666]` 
+10. `[05f9]` 
+11. `[05fe]` 
+12. `[0604]` 
+13. `[060a]` 
+14. `[0637]` 
+15. `[0699]` 
+16. `[0571]` 
+17. `[06e0]` 
+18. `[0728]` 
+19. `[06ca]` 
+20. `[0712]` 
+21. `[0754]`
+22. `[0693]` Default handler.
 
 ## 0x08 Mud Toad
 
@@ -264,7 +358,7 @@ ic,b)` -->
 1. `[0232]` (02,06) Color text `{55:0233}`.
 1. `[025a]` (05,04) Color text `{55:025b}`.
 1. `[0285]` (00,04) Stairs down to `(10:15,08)`.
-1. `[02d1]` (01,06) A locked chest (`bitsplit(99,28)`, difficulty 4) containing the Dwarf Hammer. *This is the same bitsplit as the chest in the Slave Camp, which unfortunately means you get to open one or the other but not both.*
+1. `[02d1]` (01,06) A [locked chest](#locked) (`bitsplit(99,28)`, difficulty 4) containing the Dwarf Hammer. *This is the same bitsplit as the chest in the Slave Camp, which unfortunately means you get to open one or the other but not both.*
 1. `[0293]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. N:`(10,22)` E:`(11,21)` S:`(10,20)` W:`(09,21)` . Otherwise, if `bitsplit(b9,00)` is not set and `bitsplit(99,0d)` is set, write `[0061]<-0x10` to open the tunnel. (*... (b9,00) isn't set anywhere on this map, though.*)
 
 
@@ -371,7 +465,7 @@ The following byte is the number of rumor strings available from the tavern keep
 
 The tagline string is (usually, although not necessarily) next, then all of the rumor strings.
 
-NPC data starts with the NPC ID number, then the character's name (unpacked, variable-length), then five bytes for the five primary attributes (STR, DEX, INT, SPR, HP). When you add an NPC to your party, `bitsplit(99,57+ID)` is set.
+NPC data starts with the NPC ID number, then the character's name (unpacked, variable-length), then five bytes for the five primary attributes (STR, DEX, INT, SPR, HP). When you add an NPC to your party, `bitsplit(99,57+ID)` is set.
 
 After the attributes, the next two bytes are the NPC's level.
 

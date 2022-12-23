@@ -112,6 +112,9 @@ public class MetaprogramDecompiler {
                 // Two immediates, a two-byte heap index plus a one-byte immediate
                 case 0x10, 0x18 -> System.out.println(replaceImmediates10(ins));
 
+                // Two indices
+                case 0x19 -> System.out.println(replaceImmediates19(ins));
+
                 // Two immediates, width-dependent
                 case 0x1a -> System.out.println(replaceImmediates1a(ins));
                 case 0x1c -> System.out.println(replaceImmediates1c(ins));
@@ -418,6 +421,13 @@ public class MetaprogramDecompiler {
             .replace("imm", imm2);
     }
 
+    // Yes, I've double-checked the ordering here.
+    private String replaceImmediates19(Instruction ins) {
+        return String.format("heap[%02x] <- heap[%02x]",
+            chunk.getUnsignedByte(this.pointer - 1),
+            chunk.getUnsignedByte(this.pointer - 2));
+    }
+
     private String replaceImmediates1a(Instruction ins) {
         final String imm1, imm2;
         if (width) {
@@ -701,7 +711,7 @@ public class MetaprogramDecompiler {
         // 88
         new Instruction("waitForEscKey()", immNone),
         new Instruction("readKeySwitch()", readKeySwitch),
-        new Instruction("*4a80(ax)", immNone), // show monster graphics?
+        new Instruction("displayMonsterImage(ax)", immNone), // show monster graphics?
         new Instruction("drawCurrentViewport()", immNone),
         new Instruction("runYesNoModal() ; zf <- 1 if 'y'", immNone),
         new Instruction("h[c6] <- readStringFromStdin()", immNone), // read string from keyboard into h[c6]?
@@ -778,6 +788,7 @@ public class MetaprogramDecompiler {
         final int chunkId;
         final int offset;
         final Optional<Integer> endPointer;
+        boolean wide = false;
         try {
             chunkId = Integer.parseInt(args[0].substring(2), 16);
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -795,6 +806,12 @@ public class MetaprogramDecompiler {
             endPointer = Optional.of(end);
         } else {
             endPointer = Optional.empty();
+        }
+
+        if (args.length > 3) {
+            if (args[3].equalsIgnoreCase("true")) {
+                wide = true;
+            }
         }
 
         final String basePath = Properties.getInstance().basePath();
@@ -818,9 +835,9 @@ public class MetaprogramDecompiler {
             // decomp.printInstructions();
 
             if (endPointer.isPresent()) {
-                decomp.disasm(offset, endPointer.get(), false);
+                decomp.disasm(offset, endPointer.get(), wide);
             } else {
-                decomp.disasm(offset, false);
+                decomp.disasm(offset, wide);
             }
         } catch (ArrayIndexOutOfBoundsException ignored) {
             System.err.println("Decoding error");

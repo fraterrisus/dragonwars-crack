@@ -6,7 +6,6 @@ import com.hitchhikerprod.dragonwars.HuffmanDecoder;
 import com.hitchhikerprod.dragonwars.Properties;
 import com.hitchhikerprod.dragonwars.StringDecoder;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -33,11 +32,17 @@ public class Monster {
     private int confidence;
     private int varGroupSize;
     private int speed;
+    private int attacksPerRound;
+
+    private int b05;
+    private int b0d;
+    private int b0f;
+    private int b20;
 
     private List<String> flags;
-    private List<Action> actions;
+    private List<CombatAction> actions;
 
-    private int baseChunk;
+    private int imageChunk;
     private PowerInt xpReward;
 
     private List<Byte> raw;
@@ -49,49 +54,71 @@ public class Monster {
 
     public Monster decode(int offset) {
         this.offset = offset;
+        this.flags = new ArrayList<>();
 
         raw = data.getBytes(offset, 0x21);
 
         this.strength = data.getUnsignedByte(offset);
+
         this.dexterity = data.getUnsignedByte(offset + 0x01);
+
         this.intelligence = data.getUnsignedByte(offset + 0x02);
+
         this.spirit = data.getUnsignedByte(offset + 0x03);
+
         this.baseHealth = data.getUnsignedByte(offset + 0x04);
-        final int b05 = data.getUnsignedByte(offset + 0x05);
+
+        this.b05 = data.getUnsignedByte(offset + 0x05);
+
         this.avBonus = data.getUnsignedByte(offset + 0x06);
+
         this.dvBonus = data.getUnsignedByte(offset + 0x07);
+
         this.varHealth = new WeaponDamage(data.getByte(offset + 0x08));
+
         final int b09 = data.getUnsignedByte(offset + 0x09);
         this.speed = (b09 >> 4) & 0x0f; // g[21]; how far can this group advance in 1 round
         //this.range = b09 & 0x0f // value ignored, storage for range (distance from party)
+
         final int b0a = data.getUnsignedByte(offset + 0x0a);
         this.gender = Gender.of((b0a & 0xc0) >> 6).orElseThrow();
-        this.baseChunk = 0x8a + (2 * data.getUnsignedByte(offset + 0x0b));
+
+        this.imageChunk = data.getUnsignedByte(offset + 0x0b);
+        switch (imageChunk) {
+            case 0x09, 0x0e, 0x13, 0x24, 0x38 -> flags.add("Gold");
+        }
+
         this.xpReward = new PowerInt(data.getByte(offset + 0x0c)).plus(1);
-        final int b0d = data.getUnsignedByte(offset + 0x0d);
+
+        this.b0d = data.getUnsignedByte(offset + 0x0d);
+
         final int b0e = data.getUnsignedByte(offset + 0x0e);
-        this.flags = new ArrayList<>();
         if ((b0e & 0x08) > 0) this.flags.add("Undead");
         if ((b0e & 0x01) > 0) this.flags.add("Vowel");
-        final int b0f = data.getUnsignedByte(offset + 0x0f);
+
+        this.b0f = data.getUnsignedByte(offset + 0x0f);
 
         this.actions = new ArrayList<>();
         for (int o = 0x10; o < 0x1f; o += 3) {
             if (data.getUnsignedByte(offset + o) != 0xff) {
-                actions.add(Action.decode(data.getBytes(offset + o, 3)));
+                actions.add(CombatAction.decode(data.getBytes(offset + o, 3)));
             }
         }
 
         final int b1f = data.getUnsignedByte(offset + 0x1f);
+        this.attacksPerRound = b1f >> 5;
         this.confidence = b1f & 0x1f;
-        final int b20 = data.getUnsignedByte(offset + 0x20);
+
+        this.b20 = data.getUnsignedByte(offset + 0x20);
+        if ((b20 & 0x80) > 0) {
+            this.flags.add("Can't be disarmed");
+        }
 
         final StringDecoder sd = new StringDecoder(this.lookupTable, this.data);
         sd.decodeString(offset + 0x21);
         this.name = sd.getDecodedString();
 
 
-        final int b22 = (b0a >> 6) & 0x03;
         final int b23 = (b0a >> 5) & 0x01;
         // overwritten by Encounter, unless that number is zero, in which case this is the random max group size
         this.varGroupSize = b0a & 0x1f;
@@ -125,14 +152,19 @@ public class Monster {
             (baseHealth + varHealth.getNum()) + "-" +
             (baseHealth + (varHealth.getNum() * varHealth.getSides())) + ")");
         tokens.add(String.format("AV%+d DV%+d", this.avBonus, this.dvBonus));
+        tokens.add("att:" + (this.attacksPerRound + 1));
         tokens.add("morale:" + this.confidence);
         tokens.add("spd:" + this.speed + "0'");
         tokens.add("XP:" + xpReward.toInteger());
         tokens.addAll(this.flags);
 
+        if (b05 != 0) { tokens.add("[05] != 0x00"); }
+        if (b0d != 0) { tokens.add("[0d] != 0x00"); }
+        if (b0f != 0) { tokens.add("[0f] != 0x00"); }
+
         StringBuilder response = new StringBuilder();
         response.append(String.join(", ", tokens));
-        for (Action a : this.actions) {
+        for (CombatAction a : this.actions) {
             response.append("\n      ");
             response.append(a.toString());
         }
@@ -183,12 +215,12 @@ public class Monster {
         }
     }
 
-    public static class Action {
+    public static class CombatAction {
         final Bravery bravery;
         final Sentiment sentiment;
         final int action;
 
-        private Action(int bravery, int sentiment, int action) {
+        private CombatAction(int bravery, int sentiment, int action) {
             this.bravery = Bravery.of(bravery).orElseThrow();
             this.sentiment = Sentiment.of(sentiment).orElseThrow();
             this.action = action;
@@ -198,13 +230,13 @@ public class Monster {
             return String.format("%s/%s:%02x", this.bravery, this.sentiment, this.action);
         }
 
-        public static Action decode(List<Byte> bytes) {
+        public static CombatAction decode(List<Byte> bytes) {
             final int b0 = bytes.get(0);
             final int bravery = (b0 & 0xc0) >> 6;
             final int sentiment = (b0 & 0x30) >> 4;
             final int action = (b0 & 0x0f);
 
-            final Action newAction;
+            final CombatAction newAction;
             switch (action) {
                 case 0, 1, 2, 3, 4 -> {
                     final WeaponDamage damageDie = new WeaponDamage(bytes.get(1));
@@ -232,7 +264,7 @@ public class Monster {
         }
     }
 
-    public static class AttackAction extends Action {
+    public static class AttackAction extends CombatAction {
         final WeaponDamage damage;
         final int range;
 
@@ -266,7 +298,7 @@ public class Monster {
         }
     }
 
-    public static class BlockAction extends Action {
+    public static class BlockAction extends CombatAction {
         public BlockAction(int bravery, int modifier) {
             super(bravery, modifier, 0x5);
         }
@@ -276,7 +308,7 @@ public class Monster {
         }
     }
 
-    public static class CallForHelpAction extends Action {
+    public static class CallForHelpAction extends CombatAction {
         final int luck;
         int numAllies;
 
@@ -291,7 +323,7 @@ public class Monster {
         }
     }
 
-    public static class CastAction extends Action {
+    public static class CastAction extends CombatAction {
         final boolean selfTarget;
         final int spellId;
         final int power;
@@ -310,7 +342,7 @@ public class Monster {
         }
     }
 
-    public static class DodgeAction extends Action {
+    public static class DodgeAction extends CombatAction {
         public DodgeAction(int bravery, int modifier) {
             super(bravery, modifier, 0x6);
         }
@@ -320,7 +352,7 @@ public class Monster {
         }
     }
 
-    public static class FleeAction extends Action {
+    public static class FleeAction extends CombatAction {
         final int luck;
 
         public FleeAction(int bravery, int modifier, int luck) {
@@ -333,7 +365,7 @@ public class Monster {
         }
     }
 
-    public static class PassAction extends Action {
+    public static class PassAction extends CombatAction {
         public PassAction(int bravery, int modifier, int action) {
             super(bravery, modifier, action);
         }

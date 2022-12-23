@@ -78,6 +78,27 @@ The game's manual refers to this as "Sex", and says its values are "Male, female
 |   `0x2`   | Sometimes | it / it                      |
 |   `0x3`   | Never     | none; uses your name instead |
 
+## XP and Level
+
+ref:`{03:0a3e}`
+
+| Level | XP (hex) | XP (decimal) |
+| :---: | :------: | :----------: |
+|   1   |  0x0064  |     100      |
+|   2   |  0x012c  |     300      |
+|   3   |  0x0258  |     600      |
+|   4   |  0x03e8  |     1000     |
+|   5   |  0x05dc  |     1500     |
+|   6   |  0x0834  |     2100     |
+|   7   |  0x0af0  |     2800     |
+|   8   |  0x0e10  |     3600     |
+|   9   |  0x1194  |     4500     |
+|  10   |  0x157c  |     5500     |
+|  11   |  0x19c8  |     6600     |
+|  12   |  0x1e78  |     7800     |
+
+You gain 2 AP every time you go up a level. (The counter saturates at 255, i.e. one byte of data.)
+
 Flags
 ---
 
