@@ -20,7 +20,7 @@ public class ItemAction extends Action {
         final List<String> fields = new ArrayList<>();
         fields.add(String.format("itemIndex=%02x", itemIndex & 0xff));
         fields.add(String.format("specialId=%02x", specialId & 0xff));
-        fields.add(String.format("eventId=%02x", 1 + (eventId & 0xff)));
+        fields.add(String.format("eventId=%02x", eventId & 0xff));
         return "Item<" + String.join(", ", fields) + ">";
     }
 }

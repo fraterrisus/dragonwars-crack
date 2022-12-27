@@ -38,6 +38,8 @@ public class Monster {
     private int b0d;
     private int b0f;
     private int b20;
+    private boolean b23;
+    private int b24;
 
     private List<String> flags;
     private List<CombatAction> actions;
@@ -81,11 +83,16 @@ public class Monster {
         //this.range = b09 & 0x0f // value ignored, storage for range (distance from party)
 
         final int b0a = data.getUnsignedByte(offset + 0x0a);
-        this.gender = Gender.of((b0a & 0xc0) >> 6).orElseThrow();
+        // **------ : gender [22]
+        // --*----- : unknown [23]
+        // ---***** : group size [0a], but only if random
+        this.gender = Gender.of(b0a >> 6).orElseThrow();
+        this.b23 = (b0a & 0x20) > 0;
+        this.varGroupSize = b0a & 0x1f;
 
         this.imageChunk = data.getUnsignedByte(offset + 0x0b);
         switch (imageChunk) {
-            case 0x09, 0x0e, 0x13, 0x24, 0x38 -> flags.add("Gold");
+            case 0x09, 0x0e, 0x13, 0x24, 0x38 -> flags.add("awards gold");
         }
 
         this.xpReward = new PowerInt(data.getByte(offset + 0x0c)).plus(1);
@@ -93,7 +100,13 @@ public class Monster {
         this.b0d = data.getUnsignedByte(offset + 0x0d);
 
         final int b0e = data.getUnsignedByte(offset + 0x0e);
+        if ((b0e & 0x80) > 0) this.flags.add("Flag [0e].0x80");
+        if ((b0e & 0x40) > 0) this.flags.add("Flag [0e].0x40");
+        if ((b0e & 0x20) > 0) this.flags.add("Flag [0e].0x20");
+        if ((b0e & 0x10) > 0) this.flags.add("Flag [0e].0x10");
         if ((b0e & 0x08) > 0) this.flags.add("Undead");
+        if ((b0e & 0x04) > 0) this.flags.add("Flag [0e].0x04");
+        if ((b0e & 0x02) > 0) this.flags.add("Flag [0e].0x02");
         if ((b0e & 0x01) > 0) this.flags.add("Vowel");
 
         this.b0f = data.getUnsignedByte(offset + 0x0f);
@@ -106,30 +119,22 @@ public class Monster {
         }
 
         final int b1f = data.getUnsignedByte(offset + 0x1f);
+        // ***----- : attacks per round [26]
+        // ---***** : morale
         this.attacksPerRound = b1f >> 5;
         this.confidence = b1f & 0x1f;
 
-        this.b20 = data.getUnsignedByte(offset + 0x20);
-        if ((b20 & 0x80) > 0) {
-            this.flags.add("Can't be disarmed");
-        }
+        final int b20 = data.getUnsignedByte(offset + 0x20);
+        // ***----- : unknown [24]
+        // ---*---- : can't be disarmed [25]
+        // ----**** : unknown [20]
+        this.b24 = b20 >> 5;
+        if ((b20 & 0x80) > 0) this.flags.add("can't be disarmed");
+        this.b20 = b20 & 0x0f;
 
         final StringDecoder sd = new StringDecoder(this.lookupTable, this.data);
         sd.decodeString(offset + 0x21);
         this.name = sd.getDecodedString();
-
-
-        final int b23 = (b0a >> 5) & 0x01;
-        // overwritten by Encounter, unless that number is zero, in which case this is the random max group size
-        this.varGroupSize = b0a & 0x1f;
-
-        final int b24 = (b20 >> 5) & 0x07;
-        final boolean b25 = ((b20 >> 4) & 0x01) > 0;
-
-        final int b26 = (b1f >> 5) & 0x07;
-
-        // final int b27 = 0x0; // storage for temp AV modifier
-        // final int b28 = 0x0; // storage for temp DV modifier
 
         return this;
     }
@@ -158,9 +163,12 @@ public class Monster {
         tokens.add("XP:" + xpReward.toInteger());
         tokens.addAll(this.flags);
 
-        if (b05 != 0) { tokens.add("[05] != 0x00"); }
-        if (b0d != 0) { tokens.add("[0d] != 0x00"); }
-        if (b0f != 0) { tokens.add("[0f] != 0x00"); }
+        if (b05 != 0) { tokens.add(String.format("[05]:0x%02d", b05)); }
+        if (b0d != 0) { tokens.add(String.format("[0d]:0x%02d", b0d)); }
+        if (b0f != 0) { tokens.add(String.format("[0f]:0x%02d", b0f)); }
+        if (b20 != 0) { tokens.add(String.format("[20]:0x%02d", b20)); }
+        if (b23)      { tokens.add("Flag [0a].0x20"); }
+        if (b24 != 0) { tokens.add(String.format("[24]:0x%02d", b24)); }
 
         StringBuilder response = new StringBuilder();
         response.append(String.join(", ", tokens));

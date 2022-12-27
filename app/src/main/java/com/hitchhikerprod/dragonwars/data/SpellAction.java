@@ -16,7 +16,7 @@ public class SpellAction extends Action {
         final List<String> fields = new ArrayList<>();
         fields.add(spellName);
         fields.add(String.format("specialId=%02x", specialId & 0xff));
-        fields.add(String.format("eventId=%02x", 1 + (eventId & 0xff)));
+        fields.add(String.format("eventId=%02x", eventId & 0xff));
         return "Spell<" + String.join(", ", fields) + ">";
     }
 }

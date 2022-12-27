@@ -17,6 +17,9 @@
 | `99,26`  |  `[9d]`   | `––––––*–` | Purgatory | Have received reward from Clopin for defeating the Humbaba |
 | `99,27`  |  `[9d]`   | `–––––––*` | Slave Camp | Have access to the Nature Axe cache |
 | `99,28` | `[9e]` | `*–––––––` | Slave Camp,<br />Dwarf Ruins | Have unlocked *either* the chest in the trees (Camp) or the Dwarf Hammer chest (Ruins) |
+| `99,29` | `[9e]` | `–*––––––` |  |  |
+| `99,2a` | `[9e]` | `––*–––––` | Tars Ruins | Killed the Guardian Serpent |
+| `99,2b` | `[9e]` | `–––*––––` |  |  |
 | `99,2c` | `[9e]` | `––––*–––` | Guard Bridge #1 | Have access to the cache |
 | `99,35`  |  `[9f]`   | `–––––*––` | Purgatory | Sold yourself into slavery                                 |
 | `99,53` | `[a3]` | `–––*––––` | Nisir | Have unlocked the weapons chest |
@@ -39,9 +42,11 @@
 
 # Board Events
 
-The third byte of map square data includes a "special ID". If this value is non-zero, it's used as an index to look up a block of code (an "event") to run when you step on that square. Multiple squares on a map can have the same special ID. Events can also be triggered by (U)sing an item, skill, or attribute; you usually have to do this while you're standing on a square with a particular Special ID, but the triggered Event is usually different than the normal Event for that Special.
+The third byte of map square data includes a "special" identifier. Every time you step on a square the game checks the ID, and if it's non-zero, it runs a block of code (hereafter an "event") that corresponds to that ID. This happens when you "start a turn" on a square, no matter how you got there; it's not tied to movement. Multiple squares on a map can have the same special ID. 
 
-For instance, in the Slave Camp, the square (04,02) is tagged with Special ID 0x11. When you step on that square, the game runs Event 0x11 `[0969]`, which checks to see if you've noticed the Nature Axe yet. But if you're standing on that square and you Use *Forest Lore*, it runs Event 0x13 `[0975]` instead. That prints some color text and sets a flag that says "yup, you found the Nature Axe". Now, the next time you run Event 0x11 (which is immediately afterwards), the game shows you the cache that contains the Nature Axe and lets you take it.
+Events can also be triggered by (U)sing an item, skill, or attribute (hereafter an "action"); you often have to do this while you're standing on a square with a particular Special ID, but the triggered Event is different than the normal Event for that Special.
+
+For instance, in the Slave Camp, the square (04,02) is tagged with Special ID 0x11. When you step on that square, the game runs Event 0x11 `[0969]`, which checks to see if you've noticed the Nature Axe yet. But if you're standing on that square and you Use *Forest Lore*, it runs Event 0x13 `[0975]` instead. That prints some color text and sets a flag that says "yup, you found the Nature Axe". Now, the next time you run Event 0x11 (which is immediately afterwards, because you're still standing on that square), the game shows you the cache that contains the Nature Axe and lets you take it.
 
 There's also a default handler that runs every time you step on every square. This is technically Event 0x00 (although there's a pointer between Event 0x00 and 0x01, it's complicated), but I've listed it last because Markdown's Ordered List tag starts at 1 whether I want it to or not.
 
@@ -178,10 +183,10 @@ ic,b)` -->
     - East or South: `(00:0d,02)`. Hilariously, this means you can exit to the east on dry land at (33,33) and wind up on the other side of the bay.
     - West: `(00:0c,04)`
 
-### Specials
+### Actions
 
-- Special #5, use *Climb* or *Swim* -> `[0f75]`
-- Special #16, use *Dexterity* or *Hiding* -> `[1337]`
+- Special #5, use *Climb* or *Swim* > Event #30
+- Special #16, use *Dexterity* or *Hiding* > Event #31
 
 ## 0x02 Slave Camp
 
@@ -226,13 +231,13 @@ ic,b)` -->
     - If you've been here before and either bitsplit `01,99` or `00,99` are set, exit. Otherwise, if you stay on the perimeter of the map, the residents wait for you to leave. If you step inside (1,1)-(13,15), the camp residents attack (encounter #0). If you kill them, read paragraph #18 (shame) and set `00,99`.
 
 
-### Specials
+### Actions
 
-- Use *Lockpick* -> `[0940]`
-- Use *Bureaucracy* -> `[04e5]`
-- Special #8, use *Bandage*, or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* -> `[047e]`
-- Special #17, use *Forest Lore* -> `[0975]`
-- Special #19, use *Sun Magic, Druid Magic, Low Magic*, or *High Magic* -> `[0629]`
+- Use *Lockpick* > Event #10
+- Use *Bureaucracy* > Event #11
+- Special #8, use *Bandage* or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* > Event #9
+- Special #17, use *Forest Lore* -> Event #18
+- Special #19, use *Sun Magic, Druid Magic, Low Magic*, or *High Magic* -> Event #12
 
 ## 0x03 Guard Bridge #1
 
@@ -260,6 +265,11 @@ ic,b)` -->
 7. `[0484]` (07,02) A [chest](#chest) (`bitsplit(b9,04)`). You only get one shot at it (`bitsplit(99,2c)`).
 8. `[03c3]` (03,01) Color text `{49:03c9}` about Lanac'toor's statue. Erase this event.
 9. `[0435]` Default handler. If the party is inside (0,0)-(7,7), gate-and-set `bitsplit(b9,02)` to read paragraph #12. Otherwise, prompt to exit; if the party is in the bottom half of the map (Y coordinate < 4) exit to `(00,12,06)`, else `(00,12,08)`.
+
+### Actions
+
+- Special #2, use Citizenship Papers > Event #3
+- Special #4, use Citizenship Papers > Event #5
 
 ## 0x04 Salvation
 
@@ -298,32 +308,60 @@ ic,b)` -->
 20. `[0668]` (01,09) [Locked chest](#locked) (`bitsplit(99,53)`, difficulty 5).
 21. `[067d]` Default handler. If the party is outside (0,0)-(21,21), prompt to exit to`(00:19,20)`. Otherwise, gate-and-set `bitsplit(b9,00)` to read paragraph #98.
 
+### Actions
+
+- Use *Lockpick* > Event #6
+- Special #1, use the Sword of Freedom > Event #2
+- Special #7, use *Mountain Lore* or *INT* > Event #8
+- Special #7, use *Climb* > Event #9
+- Special #10, use the Golden Boots > Event #12
+
 ## 0x05 Tars Ruins
+
+### Flags
+
+- **Random Encounters:** yes (1 in 100)
+
+### Board State
+
+| Bitsplit | Heap byte |    Bit     | Meaning                                     |
+| :------: | :-------: | :--------: | ------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Actively following the tracks               |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Found the slab                              |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the scrolls in the SW corner |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Have access to the Fireshield chest         |
 
 ### Events
 
-1. `[067e]` 
-2. `[03d9]` 
-3. `[0449]`
-4. `[048b]` (15,15)
-5. `[04d8]`
-6. `[0514]` (15,15) You used *Strength*. If the stone slab has already been moved (`bitsplit(99,05)`), exit. Otherwise roll 1d40; if the value is below the PC's *Strength*, the slab moves (set `bitsplit(99,05)`) and exposes the stairs down.
-7. `[05b1]` 
-8. `[05f0]` 
-9. `[0666]` 
-10. `[05f9]` 
-11. `[05fe]` 
-12. `[0604]` 
-13. `[060a]` 
-14. `[0637]` 
-15. `[0699]` 
-16. `[0571]` 
-17. `[06e0]` 
-18. `[0728]` 
-19. `[06ca]` 
-20. `[0712]` 
-21. `[0754]`
-22. `[0693]` Default handler.
+1. `[067e]` Near the water in the south part of the map. Color text `{4b:067f}`.
+2. `[03d9]` (00,08) The entry square. Color text `{4b:03df}`, then erase this event.
+3. `[0449]` (01,08) If anyone in the party has *Arcane Lore* 1, color text `{4b:0452}`, then erase this event.
+4. `[048b]` (15,15) Set `bitsplit(b9,01)`. If you're following tracks (`bitsplit(b9,00)`), clear that bit and color text `{4b:0499}`. If the slab hasn't been moved yet (`bitsplit(99,05)`= 0), color text `{4b:04b0}`. Otherwise, offer to travel to `(27:02,05)`.
+5. `[04d8]` (15,15) You examined the slab with a skill. Set `heap[3e]` to 0x00 instead of `heap[3f]` (?!). If the slab hasn't been moved yet (`bitsplit(99,05)`= 0), color text `{4b:04e1}`.
+6. `[0514]` (15,15) You used *Strength*. If the stone slab has already been moved (`bitsplit(99,05)`= 1), exit. Otherwise roll 1d40; if the value is below the PC's *Strength*, the slab moves (set `bitsplit(99,05)`) and exposes the stairs down.
+7. `[05b1]` Inside the ruined city square. Color text `{4b:05b2}`.
+8. `[05f0]` You asked your sage about the city ruins; read paragraph #23.
+9. `[0666]` (04,08) "This way!!" says your Tracker. Set `bitsplit(b9,00)` and run event #10.
+10. `[05f9]` On the path. If `bitsplit(b9,00)` is set, turn until you're facing North, then step forward.
+11. `[05fe]` ... East
+12. `[0604]` ... South
+13. `[060a]` ... West
+14. `[0637]` If you're already following the tracks (`bitsplit(b9,00)`), turn North. Otherwise, color text `{4b:063e}` says you should. 
+15. `[0699]` You stepped in water.
+16. `[0571]` (13,14) If you're following tracks (`bitsplit(b9,00)`= 1) or have already found the slab (`bitsplit(b9,01)`= 1) or have a Disarm Traps spell active (`heap[bf]`> 0), color text `{4b:059c}`. Otherwise you fall in the pit `{4b:0586}` and everyone takes 8 HP damage.
+17. `[06e0]` (01,01) A bunch of [scrolls](#chest); you only get one shot at it (`bitsplit(b9,04)`).
+18. `[0728]` (15,08) The snake's [treasure](#chest); you only get one shot at it (`bitsplit(b9,05)`).
+19. `[06ca]` (02,02) If you've cleared this encounter (`bitsplit(99,29)`= 1), exit. Otherwise, run encounter #4 (random). If you win, set `bitsplit(99,29)` and `bitsplit(b9,04)` to grant access to the treasure.
+20. `[0712]` (14,07) If you've killed the snake (`bitsplit(99,2a)`= 1), exit. Otherwise, run encounter #5 (the Guardian Snake). If you win, set `bitsplit(99,2a)` and `bitsplit(b9,05)` to grant access to the treasure.
+21. `[0754]` Run a random encounter. If you win, erase this event.
+22. `[0693]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit to `(00:20,04)`.
+
+### Actions
+
+- Special #4, use *Cave Lore, Mountain Lore, Lockpick,* or *Tracker* > Event #5
+- Special #4, use *STR* > Event #6
+- Special #7, use *Town Lore* or *Arcane Lore* > Event #8
+- Special #10-#14, use *Tracker* > Event #9
 
 ## 0x08 Mud Toad
 
@@ -362,7 +400,7 @@ ic,b)` -->
 1. `[0293]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. N:`(10,22)` E:`(11,21)` S:`(10,20)` W:`(09,21)` . Otherwise, if `bitsplit(b9,00)` is not set and `bitsplit(99,0d)` is set, write `[0061]<-0x10` to open the tunnel. (*... (b9,00) isn't set anywhere on this map, though.*)
 
 
-### Specials
+### Actions
 
 - Special #2, use Jade Eyes -> `[019e]`
 
@@ -408,7 +446,7 @@ Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0
 18. `[061d]` Gate-and-set `bitsplit(99,4e)` for the Crush Mace and Spell Staff  (`bitsplit(b9,07)`). 
 19. `[0761]` Default handler.
 
-### Specials
+### Actions
 
 - Special #4, use the Skull of Roba :arrow_right: `[0446]`
 - Special #14, cast *D:Soften Stone* :arrow_right: `[06c0]`
