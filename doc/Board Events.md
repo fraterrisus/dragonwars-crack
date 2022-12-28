@@ -8,11 +8,14 @@
 | `99,03`  |  `[99]`   | `–––*––––` | Slave Camp | Have impressed the wizard           |
 | `99,04`  |  `[99]`   | `––––*–––` | Slave Camp | Have killed the guardian spirit     |
 | `99,05` | `[99]` | `–––––*––` | Tars Ruins | Have moved the stone slab |
+|  |  |  |  |  |
 | `99,0d` | `[9a]` | `–––––*––` | Dwarf Ruins | Used Jade Eyes to open the Dwarf Clan Hall |
 | `99,0e` | `[9a]` | `––––––*–` | Dwarf Clan Hall | Depetrified the dwarves |
 | `99,0f` | `[9a]` | `–––––––*` | Dwarf Clan Hall | [Gave the Skull to the dwarven smith] |
 | `99,10` | `[9b]` | `*–––––––` | Dwarf Clan Hall | Stole from the dwarves |
+|  |  |  |  |  |
 | `99,19`  |  `[9c]`   | `–*––––––` | Purgatory | Start square intro message has been played                 |
+|  |  |  |  |  |
 | `99,25`  |  `[9d]`   | `–––––*––` | Purgatory | Defeated the Humbaba                                       |
 | `99,26`  |  `[9d]`   | `––––––*–` | Purgatory | Have received reward from Clopin for defeating the Humbaba |
 | `99,27`  |  `[9d]`   | `–––––––*` | Slave Camp | Have access to the Nature Axe cache |
@@ -21,8 +24,14 @@
 | `99,2a` | `[9e]` | `––*–––––` | Tars Ruins | Killed the Guardian Serpent |
 | `99,2b` | `[9e]` | `–––*––––` |  |  |
 | `99,2c` | `[9e]` | `––––*–––` | Guard Bridge #1 | Have access to the cache |
+| `99,2d` | `[9e]` | `–––––*––` | Phoebus | Unlocked the chest at (01,10) |
+| `99,2e` | `[9e]` | `––––––*–` | Phoebus | Unlocked the chest at (01,15) |
+| `99,2f` | `[9e]` | `–––––––*` | Phoebus | Unlocked the chest at (11,15) |
+|  |  |  |  |  |
 | `99,35`  |  `[9f]`   | `–––––*––` | Purgatory | Sold yourself into slavery                                 |
+|  |  |  |  |  |
 | `99,53` | `[a3]` | `–––*––––` | Nisir | Have unlocked the weapons chest |
+|  |  |  |  |  |
 | `99,57` | `[a3]` | `–––––––*` |  | NPC ID 0 (Ulrik) is in the party |
 | `99,58` | `[a4]` | `*–––––––` |  | NPC ID 1 (—) is in the party |
 | `99,59` | `[a4]` | `–*––––––` |  | NPC ID 2 (Louie) is in the party |
@@ -32,11 +41,20 @@
 | `99,5d` | `[a4]` | `–––––*––` |  | NPC ID 6 (—) is in the party |
 | `99,5e` | `[a4]` | `––––––*–` |  | NPC ID 7 (—) is in the party |
 | `99,5f` | `[a4]` | `–––––––*` |  | NPC ID 8 (—) is in the party |
+|  |  |  | |  |
 | `99,62`  |  `[a5]`   | `––*–––––` | Purgatory | Won citizenship by defeating the Gladiators in the Arena |
 | `99,63`  |  `[a5]`   | `–––*––––` | Dilmun | Found the cache on Forlorn           |
+|  |  |  |  |  |
 | `99,6b` | `[a6]` | `–––*––––` | Dwarf Clan Hall | [Gave the Skull to the dwarven smith] |
+|  |  |  |  |  |
+| `99,70` | `[a7]` | `*–––––––` | Nisir, Phoebus,<br />Phoebus Dungeon | Killed Mystalvision (for real) |
+| `99,71` | `[a7]` | `–*––––––` | Nisir | Killed Buck Ironhead |
+|  |  |  |  |  |
 | `99,77` | `[a7]` | `–––––––*` | Dilmun | Defeated the Guards on Forlorn, before the first bridge |
 | `99,78`  |  `[a8]`   | `*–––––––` | Dilmun,<br />Kingshome | Kingshome ambush has been triggered  |
+| `99,79` | `[a8]` | `–*––––––` |  |  |
+| `99,7a` | `[a8]` | `––*–––––` | Phoebus | Have encountered Mystalvision |
+|  |  |  |  |  |
 | `99,7e` | `[a8]` | `––––––*–` | Phoebus Dungeon, Dilmun | Phoebus has been destroyed |
 | `99,7f`  |  `[a8]`   | `–––––––*` | Dilmun | Defeated the Goblins outside Phoebus |
 
@@ -138,46 +156,89 @@ ic,b)` -->
 ### Events
 
 1. `[0dff]` Walking around inside the city walls. Color text.
+
 2. `[0e2e]` Same, southeast section near the hole. Color text.
+
 3. `[0e5d]` (23,10) Before the teeth-kicking fight. If facing South, print the color text at `{13:0251}`.
+
 4. `[0e97]` (20,13) Starting square. Gate-and-set `bitsplit(99,19)` to print the color text at `{13:0317}`.
+
 5. `[0eb2]` (25,08) The hole in the wall. Color text. Gate-and-set `bitsplit(b9,04)` to show more color text.
+
 6. `[0fca]` Swimming in the harbor but adjacent to the walls. If `heap[40].0x80`, return. Else deal 1 HP damage to each non-dead party member without *Swim*. Then print color text.
+
 7. `[0e69]` Run fight #ff (random). Clear the square if you win.
+
 8. `[113c]` (Not referenced from a square.) Clear CF and return.
+
 9. `[1055]` (06,13) Statue of Irkalla. Gate-and-set `bitsplit(b9,1b)` to display color text. **The sacrifice works on a Spirit check (vs 1d20).** If it works, set `char[92].0x80` on every party member.
+
 10. `[10e3]` (07,12) Apsu Waters. Travel to board 0x12 (Magan Underworld) at (13,04). If you say 'N', you back up.
+
 11. `[112d]` (18,26) Entering the Arena. Runs the "free gear" program if you have less than **3 x your party size items** in your inventory. Then erases the entry door `ds[0320]<-0x30` and replaces this Event `ds[02bc]<-0x1d` with Event #29.
+
 12. `[1279]` West of the Arena. Display color text.
+
 13. `[12a6]` South of the Arena. Display color text.
+
 14. `[12df]` East of the Arena. Display color text.
+
 15. `[1010]` Swimming in the harbor. Same as Event #6 but different color text.
+
 16. `[1303]` (31,10) The Morgue. Display paragraph #5.
+
 17. `[130b]` Near the Morgue. Display color text.
+
 18. `[1350]` City guard fight within the walls (#03); lose and you're kicked back to the staring square. Clear the square if you win.
+
 19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. If `bitsplit(99,25)` is not set, read paragraph #77 and either get beat up for 1d8 damage (paragraph #8) or the Humbaba quest. Otherwise, gate-and-set `bitsplit(99,26)` to get a $1000 reward for defeating the Humbaba. Otherwise, "thanks for coming".
+
 20. `[137f]` (09,22) Statue of Namtar. Read paragraph #9. 
+
 21. `[1387]` (25,27) The [tavern](#tavern). Ulrik is here.
+
 22. `[1564]` (03,22) The [magic shoppe](#chest). Gate-and-set `bitsplit(b9,03)` to read paragraph #10. Stock includes infinite quantities of Low Magic scrolls (items `0x15-0x1a`).
+
 23. `[15a2]` (12,30) The [black market](#shop).
+
 24. `[15fc]` (11,26) The slave market. Gate-and-set `bitsplit(b9,05)` to read paragraph #67. If you sell yourself into slavery, read paragraph #58, set `bitsplit(99,35)`, then travel to the Slave Mines (13:07,08).
+
 25. `[113e]` (19,29) Runs fight #02 (Gladiators). If you win, display color text and pick up the Citizenship Papers, then set `bitsplit(99,62)`. Restore the entry door `ds[0320]<-0x20` and Event #11 `ds[02bc]<-0x0b`. Teleport the party outside the Arena. If you lose, display color text and lose all your Gold.
+
 26. `[0e78]` Run fight #06 (Bandits). Clear the square if you win.
+
 27. `[0e8c]` (23,09) Run fight #01 (5 King's Guard and 6 Pikemen). Clear the square if you win.
+
 28. `[110e]` (06,12) One square shy of the Apsu Waters. Gate on Town Lore 1 to get paragraph 94. Otherwise you see "odd waters".
+
 29. `[1255]` Inside the Arena. Display color text.
+
 30. `[0f75]` Called after you Swim/Climb through the wall. Test bit `0x01` of the wall metadata (which is true for every actual wall on this map); return if zero. Display color text. Everyone in the party makes a Strength check (vs 1d20) or takes 1d10 damage. Then set character flag `0x40` and move "forward" one square.
+
 31. `[1337]` Called after you Hide/Dex in the Morgue. Read paragraph #69. Everyone in the party makes a Strength check (vs 1d20) or takes 1d10 damage. Then set character flag `0x40` and travel to Dilmun (00:13,02).
+
 32. `[100c]` Outside the city walls. Print the same color text as Event #6.
+
 33. `[136b]` (31,31) Run fight #0a (Humbaba). Clear the square and set `bitsplit(99,25)` if you win.
+
 34. `[0e6e]` (20,03) Run fight #04 (Unjust, Innocent, Cannibals). Clear the square if you win.
+
 35. `[0e7d]` (12,28) Run fight #07 (Jail Keeprs). Clear the square if you win.
+
 36. `[0e82]` (26,27) Just outside the tavern. Run fight #08. Clear the square if you win.
+
 37. `[0e87]` (09,21) Run fight #09 (Loons). Clear the square if you win.
+
 38. `[0e73]` (05,13) and (05,14) Run fight #05 (Fanatics). Clear the square if you win.
+
 39. `[0ea5]` (20,15) 2N of start square. Gate on Town Lore 1 to read paragraph #14.
-40. `[1517]` (29,27) The town healer. Run routine at `{11:0000}`. **When you pay for healing, the game automatically pools your gold with the first PC.**
+
+40. `[1517]` (29,27) The town healer. Run routine at `{11:0000}`.
+
+    > When you pay for healing, the game automatically pools your gold with the first PC. This shouldn't be a problem, unlike in some games where the max gold per PC is ridiculously low.
+
 41. `[1653]` (23,02) Magic refresh pool. Non-dead characters have their Power restored to max.
+
 42. `[1684]` Default handler. If party is outside the rectangle (0,0)-(33,33), ask to exit. Otherwise, check if we're outside (roof texture 0) or inside, and if inside, set the random encounter counter (`[0003]`) to `0x64` (1 in 100).
     - North: `(00:0f,05)` — *oops*, this really ought to be `(00:0d,05)`.
     - East or South: `(00:0d,02)`. Hilariously, this means you can exit to the east on dry land at (33,33) and wind up on the other side of the bay.
@@ -224,7 +285,9 @@ ic,b)` -->
 17. `[0969]` (04,02) If `bitsplit(b9,01)`, get the Nature Axe.
 18. `[0975]` You used *Forest Lore* in the right place. Gate-and-set `bitsplit(99,27)` to notice an axe stuck in a tree. Set `bitsplit(b9,01)`. Clear `heap[3d]` and `[3e]`.
 19. `[05fd]` (07,04) The wizard peers at you from within his house, unless you did this already `(99,03)`
-20. `[09a6]` (07,07) A [locked chest](#locked) behind the wizard's house (`bitsplit(99,28)`, difficulty 1). *This is the same bitsplit as the chest holding the Dwarven Hammer in the Ruins on King's Isle; if you unlock this chest, you lose that one (and vice versa).*
+20. `[09a6]` (07,07) A [locked chest](#locked) behind the wizard's house (`bitsplit(99,28)`, difficulty 1).
+
+    > This is the same bitsplit as the chest holding the Dwarven Hammer in the Ruins on King's Isle; if you unlock this chest, you lose that one (and vice versa).
 21. `[09bd]` (10,02) The [tavern](#tavern). Louie is here.
 22. `[0795]` Default handler. If the party is outside (0,0)-(17,16), prompt to exit. N:`(00:11,04)` ES:`(00:11,02)` W:`(00:10,03)`
     - If this is your first time here (`00,b9` is not set), set `00,b9`. If bitsplit `00,99` is set, you already killed everyone. Delete Events #1–12, 17, and 19, then exit. If bitsplit `01,99` is set, you're already friends, so exit. If any character has flag `0x40` (swam out of Purgatory), read paragraph #16; the camp is happy with you. Set `01,99` and exit. Otherwise, the residents are suspicious; exit (and await player action)
@@ -287,25 +350,47 @@ ic,b)` -->
 ### Events
 
 1. `[0343]` (13,11) Statue of the Universal God. Read paragraph #97.
+
 2. `[034b]` (13,11) Brandish the Sword of Freedom at the Universal God. Drop the Sword of Freedom you have, and pick up a version that casts *S:Inferno@10* but is otherwise identical. Everyone in the party gains 500 XP. Iterate over the party, gate-and-set `bitsplit(5c,03)` to gain 3 points on all four attributes.
+
 3. `[046c]` (03,04) Stairs down to the Underworld `(12:19,19)`
+
 4. `[047f]` (07,08) Run fight #05 (Guards and Stosstrupen). If you win, erase this event.
-5. `[048a]` "An alarm sounds!" Reset event #4. *Not sure how this gets triggered; event #5 doesn't exist on the map...*
+
+5. `[048a]` "An alarm sounds!" Reset event #4. 
+
+   > Not sure how this gets triggered, since special #5 doesn't exist on the map...
+
 6. `[049d]` You used *Lockpick*. Locked doors on this map have wall metadata bit 0x01 set, i.e. texture index 3. (This is true for the doors at (04,08) and (08,06).) Any number of ranks is sufficient to unlock the door (sets the upper nibble of the wall to 0x20).
+
 7. `[04c4]` (05,07) The climber's puzzle. Color text `{04:04c5}`.
+
 8. `[04e6]` (05,07) You used *Mountain Lore* or *Intelligence*, which sets `bitsplit(b9,01)`.
+
 9. `[051c]` (05,07) You used *Climb*. If `bitsplit(b9,01)` is set, travel to (06,06). Otherwise, color text `{04:0523}`.
+
 10. `[05c5]` (08,03) Paragraph #55.
+
 11. `[0000]` *Oops?*
+
 12. `[05cd]` (08,03) You used the Golden Boots. If you're facing East, hop across the chasm to (0a,03).
+
 13. `[05f1]` (03,06) Paragraph #100.
+
 14. `[05f9]` Inside the mountain. Color text `{04:05fa}`.
+
 15. `[061c]` Color text `{04:061d}`. "No one uses the front door fool!"
+
 16. `[0637]` Color text `{04:063d}`. Travel to Nisir (1b:15,17).
+
 17. `[057c]` (10,06) Color text `{04:057d}`.
+
 18. `[05a5] `Fall through the chasm; travel to the Underworld `(12:20,19)`.
+
 19. `[047a]` (01,08) Run fight #06 (Stosstrupen + random). If you win, erase this event.
+
 20. `[0668]` (01,09) [Locked chest](#locked) (`bitsplit(99,53)`, difficulty 5).
+
 21. `[067d]` Default handler. If the party is outside (0,0)-(21,21), prompt to exit to`(00:19,20)`. Otherwise, gate-and-set `bitsplit(b9,00)` to read paragraph #98.
 
 ### Actions
@@ -362,6 +447,76 @@ ic,b)` -->
 - Special #4, use *STR* > Event #6
 - Special #7, use *Town Lore* or *Arcane Lore* > Event #8
 - Special #10-#14, use *Tracker* > Event #9
+
+## 0x06 Phoebus
+
+### Flags
+
+- **Random encounters**: yes (1 in 100)
+
+### Board State
+
+| Bitsplit | Heap byte |    Bit     | Meaning                         |
+| :------: | :-------: | :--------: | ------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Have met the handshake machine. |
+
+### Events
+
+1. `[0419]` (08,01) Read paragraph #26.
+
+2. `[0422]` (08,03) Show monster image 0x23. Gate-and-set `bitsplit(b9,00)` to read paragraph #25.
+
+3. `[0437]` (06,07) Color text `{4c:0438}`.
+
+4. `[0475]` (06,09) Run encounter #7 (10 Stosstrupen). If you win, erase this event.
+
+5. `[0494]` Outside Mystalvision's lair. Color text `{4c:0495}`.
+
+6. `[04ad]` Outside the army grounds. Color text `{4c:04ae}`.
+
+7. `[04d7]` (13,07) Color text `{4c:04d8}`.
+
+8. `[0525]` (14,02) Gate-and-set `bitsplit(b9,01)` to read paragraph #28. Color text `{4c:05eb}`; you're joining the army. If you say yes, read paragraph #86 and travel to `(1d:03,07)`. Otherwise, color text `{4c:05a2}` and pay $50 per party member. If you decide to pay and have enough money, color text `{4c:0655}` and exit. Otherwise you've joined the army.
+
+9. `[0731]` (05,11) and (11,10) Color text `{4c:0732}`.
+
+10. `[076a]` (08,14) Meeting Mystalvision. If you've already killed Mystalvision in the Nisir (`bitsplit(99,70)` = 1), exit. Gate-and-set `bitsplit(99,7a)`. Show monster image 0x35 and read paragraph #66. Run encounter #3 (Stosstrupen and Mystalvision). Regardless of whether you win or not, color text `{4c:078f}`, blacken the screen (image 0xff), and travel to `(21:12,03)`.
+
+11. `[0466]` (13,15) Run encounter #4 (Dirty Rats). If you win, erase this event.
+
+12. `[046b]` (12,15) Run encounter #5 (Mad Dogs). If you win, erase this event.
+
+13. `[0470]` (16,03) Run encounter #6 (Soldiers). If you win, erase this event.
+
+14. `[047a]` (13,14) Run encounter #8 (Thieves). If you win, erase this event.
+
+15. `[047f]` (16,13) Run encounter #9 (random). If you win, erase this event.
+
+    > The max random encounter ID is 0, which means this should always be Guards?
+
+16. `[0484]` (08,16) Run encounter #10 (Soldiers). If you win, erase this event.
+
+17. `[0489]` (03,14) Run encounter #11 (Ominous Fellow). If you win, erase this event.
+
+18. `[07f4]` (01,10) Locked [chest](#locked) (`bitsplit(99,2d)`, difficulty 2). Scrolls.
+
+19. `[0807]` (01,15) Locked [chest](#locked) (`bitsplit(99,2e)`, difficulty 2). Tri-cross.
+
+20. `[081a]` (11,15) Locked [chest](#locked) (`bitsplit(99,2f)`, difficulty 1). Magic Plate.
+
+21. `[0461]` (02,15) Run encounter #12 (Guards, 1 Stosstrupen). If you win, erase this event.
+
+22. `[0676]` (02,13), only reachable from below. Color text `{4c:067c}`, then move to (02,14).
+
+23. `[0860]` (15,15) If you've been to the dungeon (`bitsplit(99,69)`= 1), gate and set `bitsplit(99,38)` for color text `{4c:0875}` from Berengaria. Run the [tavern](#tavern); Valar is here.
+
+24. `[045c]` (Various) Run encounter #1 (Stosstrupen). If you win, erase this event.
+
+25. `[0829]` (14,15) Color text `{4c:028a}` for the tavern.
+
+26. ` [07d0]` Default handler. If the party is outside (1,1)-(16,16), prompt to exit. N:`(00:05,12)` E:`(00:06,11)` S:`(00:05,10)` W:`(00,04,12)`.
+
+    > The map dimensions are (00,00)-(17,17), but the the walls can't be Softened, so you can really only exit to the S.
 
 ## 0x08 Mud Toad
 
