@@ -518,6 +518,39 @@ ic,b)` -->
 
     > The map dimensions are (00,00)-(17,17), but the the walls can't be Softened, so you can really only exit to the S.
 
+## 0x07 Guard Bridge #2
+
+### Flags
+
+- **Random Encounters**: no
+
+### Board State
+
+### Events
+
+1. ` [0112]` On the bridge. Color text `{4d:0113}`
+2. `[0130]` You stepped in water.
+3. `[02d5]` (03,06) N approach to the bridge.
+4. `[0135]` (03,03) S approach to the bridge.
+5. `[0371]` Inside the S building.
+6. `[040c]` (01,03) The chest inside the S building. 
+7. `[0477]`
+8. `[052e]` (04,08) Inside the N building.
+9. `[04e0]`
+10. `[0487]`
+11. `[04e7]`
+12. `[05e1]` (05,06) The trap room
+13. `[0614]` (04,06) The treasure room
+14. `[064c]` (05,07) Outside the back room.
+15. `[065d]` Default handler.
+
+### Actions
+
+- Special #5, use *Pickpocket* > Event #11 `[04e7]`
+- Special #6, use *Lockpick* > Event #7 `[0477]`
+- Special #6, use Key > Event #10 `[0487]`
+- Special #5 or #6, `header 0xfd` > Event #9 `[04e0]`
+
 ## 0x08 Mud Toad
 
 ### Board State
