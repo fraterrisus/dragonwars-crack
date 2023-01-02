@@ -222,7 +222,7 @@ public class Main {
         final Character[] pcs = new Character[7];
 
         final String filename;
-        if (args.get(0) == null) {
+        if (args.size() == 0) {
             try {
                 extracted(pcs, this.data1);
             } catch (IOException e) {

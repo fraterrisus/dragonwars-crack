@@ -4,6 +4,7 @@ import com.hitchhikerprod.dragonwars.data.Encounter;
 import com.hitchhikerprod.dragonwars.data.Item;
 import com.hitchhikerprod.dragonwars.data.ItemAction;
 import com.hitchhikerprod.dragonwars.data.Monster;
+import com.hitchhikerprod.dragonwars.data.MatchAction;
 import com.hitchhikerprod.dragonwars.data.SkillAction;
 import com.hitchhikerprod.dragonwars.data.Action;
 import com.hitchhikerprod.dragonwars.data.SpellAction;
@@ -364,7 +365,6 @@ public class MapData {
                 if (((metadata & 0x40) == 0) && gfx.getColor().equals(WALL)) {
                     drawDoor(gfx, chunkId, door);
                 } else if (visibleDoors.contains(chunkId)) {
-                    // there's gotta be a better way to detect a locked door; where can you (U)se Lockpick?
                     gfx.setColor(Color.DARK_GRAY);
                     gfx.fill(door);
                 }
@@ -485,7 +485,8 @@ public class MapData {
         }
 
         System.out.println();
-        System.out.printf("  Encounters: ptr[01]->[%04x], ptr[02]->[%04x]\n", encountersPtr, tagLinesPtr);
+        System.out.printf("  Encounters: ptr[01]->[%04x], ptr[02]->[%04x]", encountersPtr, tagLinesPtr);
+        System.out.printf("    Random max: %02x\n", secondaryData.getUnsignedByte(encountersPtr));
         for (int i = 0; i < encounters.size(); i++) {
             final Encounter enc = encounters.get(i);
             System.out.printf("    [%02x:%04x]%s", i, enc.getOffset(), enc);
@@ -598,6 +599,7 @@ public class MapData {
         return new Chunk(decodedMapData);
     }
 
+    // See mfn.72()
     private void parseActions() {
         if (actionsPtr == 0) return;
 
@@ -605,20 +607,35 @@ public class MapData {
         while (true) {
             final int header = primaryData.getUnsignedByte(pointer);
             if (header == 0xff) {
+                // 0xff indicates the end of the list of actions
                 return;
             } else if (header == 0x80) {
+                // 0x80 indicates an action triggered by using an item
+                // The item byte refers to the map data item list -- the item in your inventory
+                // must match that item perfectly to trigger the action.
                 actions.add(new ItemAction(
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2),
                     primaryData.getUnsignedByte(pointer + 3)));
                 pointer += 4;
             } else if (header <= 0x3c) {
+                // 0x00-0x3c indiciates an action triggered by casting a spell
                 actions.add(new SpellAction(header,
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2)));
                 pointer += 3;
             } else if (header >= 0x8c && header <= 0xba) {
+                // 0x8c-0xba indicates an action triggered by using a skill
                 actions.add(new SkillAction(header,
+                    primaryData.getUnsignedByte(pointer + 1),
+                    primaryData.getUnsignedByte(pointer + 2)));
+                pointer += 3;
+            } else if (header == 0xfd || header == 0xfe) {
+                // Miscellaneous "catch-all" actions; they trigger whenever you use something that
+                // wasn't caught by a previous Action.
+                // 0xfd triggers if the special ID matches the current square
+                // 0xfe always triggers
+                actions.add(new MatchAction(header,
                     primaryData.getUnsignedByte(pointer + 1),
                     primaryData.getUnsignedByte(pointer + 2)));
                 pointer += 3;

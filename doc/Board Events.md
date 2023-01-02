@@ -1,68 +1,8 @@
-# Game State
-
-| Bitsplit | Heap byte |    Bit     | Board  | Meaning                              |
-| :------: | :-------: | :--------: | :----: | ------------------------------------ |
-| `99,00`  |  `[99]`   | `*–––––––` | Slave Camp | Have slaughtered the camp residents |
-| `99,01`  |  `[99]`   | `–*––––––` | Slave Camp | Have appeased the camp              |
-| `99,02`  |  `[99]`   | `––*–––––` | Slave Camp | Have dealt with the sick man        |
-| `99,03`  |  `[99]`   | `–––*––––` | Slave Camp | Have impressed the wizard           |
-| `99,04`  |  `[99]`   | `––––*–––` | Slave Camp | Have killed the guardian spirit     |
-| `99,05` | `[99]` | `–––––*––` | Tars Ruins | Have moved the stone slab |
-|  |  |  |  |  |
-| `99,0d` | `[9a]` | `–––––*––` | Dwarf Ruins | Used Jade Eyes to open the Dwarf Clan Hall |
-| `99,0e` | `[9a]` | `––––––*–` | Dwarf Clan Hall | Depetrified the dwarves |
-| `99,0f` | `[9a]` | `–––––––*` | Dwarf Clan Hall | [Gave the Skull to the dwarven smith] |
-| `99,10` | `[9b]` | `*–––––––` | Dwarf Clan Hall | Stole from the dwarves |
-|  |  |  |  |  |
-| `99,19`  |  `[9c]`   | `–*––––––` | Purgatory | Start square intro message has been played                 |
-|  |  |  |  |  |
-| `99,25`  |  `[9d]`   | `–––––*––` | Purgatory | Defeated the Humbaba                                       |
-| `99,26`  |  `[9d]`   | `––––––*–` | Purgatory | Have received reward from Clopin for defeating the Humbaba |
-| `99,27`  |  `[9d]`   | `–––––––*` | Slave Camp | Have access to the Nature Axe cache |
-| `99,28` | `[9e]` | `*–––––––` | Slave Camp,<br />Dwarf Ruins | Have unlocked *either* the chest in the trees (Camp) or the Dwarf Hammer chest (Ruins) |
-| `99,29` | `[9e]` | `–*––––––` |  |  |
-| `99,2a` | `[9e]` | `––*–––––` | Tars Ruins | Killed the Guardian Serpent |
-| `99,2b` | `[9e]` | `–––*––––` |  |  |
-| `99,2c` | `[9e]` | `––––*–––` | Guard Bridge #1 | Have access to the cache |
-| `99,2d` | `[9e]` | `–––––*––` | Phoebus | Unlocked the chest at (01,10) |
-| `99,2e` | `[9e]` | `––––––*–` | Phoebus | Unlocked the chest at (01,15) |
-| `99,2f` | `[9e]` | `–––––––*` | Phoebus | Unlocked the chest at (11,15) |
-|  |  |  |  |  |
-| `99,35`  |  `[9f]`   | `–––––*––` | Purgatory | Sold yourself into slavery                                 |
-|  |  |  |  |  |
-| `99,53` | `[a3]` | `–––*––––` | Nisir | Have unlocked the weapons chest |
-|  |  |  |  |  |
-| `99,57` | `[a3]` | `–––––––*` |  | NPC ID 0 (Ulrik) is in the party |
-| `99,58` | `[a4]` | `*–––––––` |  | NPC ID 1 (—) is in the party |
-| `99,59` | `[a4]` | `–*––––––` |  | NPC ID 2 (Louie) is in the party |
-| `99,5a` | `[a4]` | `––*–––––` |  | NPC ID 3 (Valar) is in the party |
-| `99,5b` | `[a4]` | `–––*––––` |  | NPC ID 4 (Halifax) is in the party |
-| `99,5c` | `[a4]` | `––––*–––` |  | NPC ID 5 (—) is in the party |
-| `99,5d` | `[a4]` | `–––––*––` |  | NPC ID 6 (—) is in the party |
-| `99,5e` | `[a4]` | `––––––*–` |  | NPC ID 7 (—) is in the party |
-| `99,5f` | `[a4]` | `–––––––*` |  | NPC ID 8 (—) is in the party |
-|  |  |  | |  |
-| `99,62`  |  `[a5]`   | `––*–––––` | Purgatory | Won citizenship by defeating the Gladiators in the Arena |
-| `99,63`  |  `[a5]`   | `–––*––––` | Dilmun | Found the cache on Forlorn           |
-|  |  |  |  |  |
-| `99,6b` | `[a6]` | `–––*––––` | Dwarf Clan Hall | [Gave the Skull to the dwarven smith] |
-|  |  |  |  |  |
-| `99,70` | `[a7]` | `*–––––––` | Nisir, Phoebus,<br />Phoebus Dungeon | Killed Mystalvision (for real) |
-| `99,71` | `[a7]` | `–*––––––` | Nisir | Killed Buck Ironhead |
-|  |  |  |  |  |
-| `99,77` | `[a7]` | `–––––––*` | Dilmun | Defeated the Guards on Forlorn, before the first bridge |
-| `99,78`  |  `[a8]`   | `*–––––––` | Dilmun,<br />Kingshome | Kingshome ambush has been triggered  |
-| `99,79` | `[a8]` | `–*––––––` |  |  |
-| `99,7a` | `[a8]` | `––*–––––` | Phoebus | Have encountered Mystalvision |
-|  |  |  |  |  |
-| `99,7e` | `[a8]` | `––––––*–` | Phoebus Dungeon, Dilmun | Phoebus has been destroyed |
-| `99,7f`  |  `[a8]`   | `–––––––*` | Dilmun | Defeated the Goblins outside Phoebus |
-
 # Board Events
 
 The third byte of map square data includes a "special" identifier. Every time you step on a square the game checks the ID, and if it's non-zero, it runs a block of code (hereafter an "event") that corresponds to that ID. This happens when you "start a turn" on a square, no matter how you got there; it's not tied to movement. Multiple squares on a map can have the same special ID. 
 
-Events can also be triggered by (U)sing an item, skill, or attribute (hereafter an "action"); you often have to do this while you're standing on a square with a particular Special ID, but the triggered Event is different than the normal Event for that Special.
+Events can also be triggered by (U)sing an item, skill, or attribute (hereafter an "action"). Usually you have to Use the right thing on the right square (i.e. a square with a particular Special ID), but there are some catch-all Actions that run if you do an unexpected thing.
 
 For instance, in the Slave Camp, the square (04,02) is tagged with Special ID 0x11. When you step on that square, the game runs Event 0x11 `[0969]`, which checks to see if you've noticed the Nature Axe yet. But if you're standing on that square and you Use *Forest Lore*, it runs Event 0x13 `[0975]` instead. That prints some color text and sets a flag that says "yup, you found the Nature Axe". Now, the next time you run Event 0x11 (which is immediately afterwards, because you're still standing on that square), the game shows you the cache that contains the Nature Axe and lets you take it.
 
@@ -167,7 +107,7 @@ ic,b)` -->
 
 6. `[0fca]` Swimming in the harbor but adjacent to the walls. If `heap[40].0x80`, return. Else deal 1 HP damage to each non-dead party member without *Swim*. Then print color text.
 
-7. `[0e69]` Run fight #ff (random). Clear the square if you win.
+7. `[0e69]` Run a random combat. Clear the square if you win.
 
 8. `[113c]` (Not referenced from a square.) Clear CF and return.
 
@@ -189,7 +129,7 @@ ic,b)` -->
 
 17. `[130b]` Near the Morgue. Display color text.
 
-18. `[1350]` City guard fight within the walls (#03); lose and you're kicked back to the staring square. Clear the square if you win.
+18. `[1350]` City guard combat within the walls (#3); lose and you're kicked back to the staring square. Clear the square if you win.
 
 19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. If `bitsplit(99,25)` is not set, read paragraph #77 and either get beat up for 1d8 damage (paragraph #8) or the Humbaba quest. Otherwise, gate-and-set `bitsplit(99,26)` to get a $1000 reward for defeating the Humbaba. Otherwise, "thanks for coming".
 
@@ -203,11 +143,11 @@ ic,b)` -->
 
 24. `[15fc]` (11,26) The slave market. Gate-and-set `bitsplit(b9,05)` to read paragraph #67. If you sell yourself into slavery, read paragraph #58, set `bitsplit(99,35)`, then travel to the Slave Mines (13:07,08).
 
-25. `[113e]` (19,29) Runs fight #02 (Gladiators). If you win, display color text and pick up the Citizenship Papers, then set `bitsplit(99,62)`. Restore the entry door `ds[0320]<-0x20` and Event #11 `ds[02bc]<-0x0b`. Teleport the party outside the Arena. If you lose, display color text and lose all your Gold.
+25. `[113e]` (19,29) Runs combat #2 (Gladiators). If you win, display color text and pick up the Citizenship Papers, then set `bitsplit(99,62)`. Restore the entry door `ds[0320]<-0x20` and Event #11 `ds[02bc]<-0x0b`. Teleport the party outside the Arena. If you lose, display color text and lose all your Gold.
 
-26. `[0e78]` Run fight #06 (Bandits). Clear the square if you win.
+26. `[0e78]` Run combat #6 (Bandits). Clear the square if you win.
 
-27. `[0e8c]` (23,09) Run fight #01 (5 King's Guard and 6 Pikemen). Clear the square if you win.
+27. `[0e8c]` (23,09) Run combat #1 (5 King's Guard and 6 Pikemen). Clear the square if you win.
 
 28. `[110e]` (06,12) One square shy of the Apsu Waters. Gate on Town Lore 1 to get paragraph 94. Otherwise you see "odd waters".
 
@@ -219,21 +159,21 @@ ic,b)` -->
 
 32. `[100c]` Outside the city walls. Print the same color text as Event #6.
 
-33. `[136b]` (31,31) Run fight #0a (Humbaba). Clear the square and set `bitsplit(99,25)` if you win.
+33. `[136b]` (31,31) Run combat #10 (Humbaba). Clear the square and set `bitsplit(99,25)` if you win.
 
-34. `[0e6e]` (20,03) Run fight #04 (Unjust, Innocent, Cannibals). Clear the square if you win.
+34. `[0e6e]` (20,03) Run combat #4 (Unjust, Innocent, Cannibals). Clear the square if you win.
 
-35. `[0e7d]` (12,28) Run fight #07 (Jail Keeprs). Clear the square if you win.
+35. `[0e7d]` (12,28) Run combat #7 (Jail Keeprs). Clear the square if you win.
 
-36. `[0e82]` (26,27) Just outside the tavern. Run fight #08. Clear the square if you win.
+36. `[0e82]` (26,27) Just outside the tavern. Run combat #08. Clear the square if you win.
 
-37. `[0e87]` (09,21) Run fight #09 (Loons). Clear the square if you win.
+37. `[0e87]` (09,21) Run combat #9 (Loons). Clear the square if you win.
 
-38. `[0e73]` (05,13) and (05,14) Run fight #05 (Fanatics). Clear the square if you win.
+38. `[0e73]` (05,13) and (05,14) Run combat #5 (Fanatics). Clear the square if you win.
 
 39. `[0ea5]` (20,15) 2N of start square. Gate on Town Lore 1 to read paragraph #14.
 
-40. `[1517]` (29,27) The town healer. Run routine at `{11:0000}`.
+40. `[1517]` (29,27) The town healer ($4/hp). Run routine at `{11:0000}`.
 
     > When you pay for healing, the game automatically pools your gold with the first PC. This shouldn't be a problem, unlike in some games where the max gold per PC is ridiculously low.
 
@@ -246,8 +186,8 @@ ic,b)` -->
 
 ### Actions
 
-- Special #5, use *Climb* or *Swim* > Event #30
-- Special #16, use *Dexterity* or *Hiding* > Event #31
+- Special #5, use *Climb* or *Swim* :arrow_right: Event #30
+- Special #16, use *Dexterity* or *Hiding* :arrow_right: Event #31
 
 ## 0x02 Slave Camp
 
@@ -273,7 +213,7 @@ ic,b)` -->
 5. `[0391]` (00,06) Display paragraph #68.
 6. `[0399]` (00,16) Display paragraph #22.
 7. `[03a1]` (04,13) Display paragraph #88.
-8. `[03d2]` (08,07) The sick man. If `bitsplit(99,02)` is set, you can raid his [belongings](#chest) (`bitsplit(b9,02)`). Otherwise, there's a 1 in 20 chance the he attacks you (fight #1). If you kill him, set `bitsplit(99,02)`. If he doesn't attack you, you get color text.
+8. `[03d2]` (08,07) The sick man. If `bitsplit(99,02)` is set, you can raid his [belongings](#chest) (`bitsplit(b9,02)`). Otherwise, there's a 1 in 20 chance the he attacks you (combat #1). If you kill him, set `bitsplit(99,02)`. If he doesn't attack you, you get color text.
 9. `[047e]` You heal the sick man. Gate on `bitsplit(99,02)` to read paragraph #19. Set `bitsplit(99,02)` and `bitsplit(b9,02)`.
 10. `[0940]` You used *Lockpick*. The only locked door is in the wizard's house facing the wall of his treasure room at (06,06); we know this because the wall metadata has a special (`heap[26].0x02` is set). Any skill level is sufficient to unlock the door, which overwrites the wall metadata to turn the impassable wall into a regular door.
 11. `[04e5]` You appease the camp with *Bureaucracy* (set `bitsplit(99,01)` ).
@@ -296,11 +236,11 @@ ic,b)` -->
 
 ### Actions
 
-- Use *Lockpick* > Event #10
-- Use *Bureaucracy* > Event #11
-- Special #8, use *Bandage* or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* > Event #9
-- Special #17, use *Forest Lore* -> Event #18
-- Special #19, use *Sun Magic, Druid Magic, Low Magic*, or *High Magic* -> Event #12
+- Use *Lockpick* :arrow_right: Event #10
+- Use *Bureaucracy* :arrow_right: Event #11
+- Special #8, use *Bandage* or cast *L:Lesser Heal, H:Healing, D:Greater Healing*, or *S:Heal* :arrow_right: Event #9
+- Special #17, use *Forest Lore* :arrow_right: Event #18
+- Special #19, use *Sun Magic, Druid Magic, Low Magic*, or *High Magic* :arrow_right: Event #12
 
 ## 0x03 Guard Bridge #1
 
@@ -355,7 +295,7 @@ ic,b)` -->
 
 3. `[046c]` (03,04) Stairs down to the Underworld `(12:19,19)`
 
-4. `[047f]` (07,08) Run fight #05 (Guards and Stosstrupen). If you win, erase this event.
+4. `[047f]` (07,08) Run combat #05 (Guards and Stosstrupen). If you win, erase this event.
 
 5. `[048a]` "An alarm sounds!" Reset event #4. 
 
@@ -387,7 +327,7 @@ ic,b)` -->
 
 18. `[05a5] `Fall through the chasm; travel to the Underworld `(12:20,19)`.
 
-19. `[047a]` (01,08) Run fight #06 (Stosstrupen + random). If you win, erase this event.
+19. `[047a]` (01,08) Run combat #06 (Stosstrupen + random). If you win, erase this event.
 
 20. `[0668]` (01,09) [Locked chest](#locked) (`bitsplit(99,53)`, difficulty 5).
 
@@ -446,7 +386,7 @@ ic,b)` -->
 - Special #4, use *Cave Lore, Mountain Lore, Lockpick,* or *Tracker* > Event #5
 - Special #4, use *STR* > Event #6
 - Special #7, use *Town Lore* or *Arcane Lore* > Event #8
-- Special #10-#14, use *Tracker* > Event #9
+- Special #10-#14, use *Tracker* > Event #9
 
 ## 0x06 Phoebus
 
@@ -456,9 +396,10 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning                         |
-| :------: | :-------: | :--------: | ------------------------------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` | Have met the handshake machine. |
+| Bitsplit | Heap byte |    Bit     | Meaning                                |
+| :------: | :-------: | :--------: | -------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Have met the handshake machine.        |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Have met Buck Ironhead (paragraph #28) |
 
 ### Events
 
@@ -526,41 +467,158 @@ ic,b)` -->
 
 ### Board State
 
+| Bitsplit | Heap byte |    Bit     | Meaning                                                      |
+| :------: | :-------: | :--------: | ------------------------------------------------------------ |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Have been shown the "bridge ahead" color text                |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Have passed the Customs Inspection                           |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have touched the top half of the map or sworn fealty to Lansk |
+| `b9,03`  |  `[b9]`   | `–––*––––` | The Barracks strong box has been unlocked                    |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have been thrown out of the Armory by the bored official     |
+| `b9,05`  |  `[b9]`   | `–––––*––` | The Barracks guards woke up because you did something dumb   |
+| `b9,06`  |  `[b9]`   | `––––––*–` | Have stolen the Key from the sleeping Barracks guards        |
+| `b9,07`  |  `[b9]`   | `–––––––*` | Have found the chest (which activates the second Armory fight) |
+| `b9,08`  |  `[ba]`   | `*–––––––` | Have defeated the guards in the Armory (and can therefore access the chest) |
+
 ### Events
 
 1. ` [0112]` On the bridge. Color text `{4d:0113}`
+
 2. `[0130]` You stepped in water.
-3. `[02d5]` (03,06) N approach to the bridge.
-4. `[0135]` (03,03) S approach to the bridge.
-5. `[0371]` Inside the S building.
-6. `[040c]` (01,03) The chest inside the S building. 
-7. `[0477]`
-8. `[052e]` (04,08) Inside the N building.
-9. `[04e0]`
-10. `[0487]`
-11. `[04e7]`
-12. `[05e1]` (05,06) The trap room
-13. `[0614]` (04,06) The treasure room
-14. `[064c]` (05,07) Outside the back room.
-15. `[065d]` Default handler.
+
+3. `[02d5]` (03,06) N approach to the bridge. If `bitsplit(b9,02)`= 0, color text `{4d:02e1}`. Refuse to obey their laws and you have to fight combat #1 (3 Guards). Agree, or kill the guards, and they let you pass (set `bistsplit(b9,02)`).
+
+   > **Bug?:** This event never gets triggered. If you approach from the N, it's assumed that you've already "sworn fealty" to Lansk. If you're approaching from the S, `bitsplit(b9,02)` is set in the default handler as soon as Y=5. In theory if that check was >5 instead of >=5 it might run Event 3 before the default handler, and you'd actually get this encounter.
+
+4. `[0135]` (03,03) S approach to the bridge. If you've already passed "Customs" (`bitsplit(b9,01)`= 1), exit. Otherwise, color text `{4d:0141}`. If you refuse inspection, run combat #0 (3 Pikemen) *unless* someone in your party has at least two ranks in *Merchant*. If you submit to inspection, they take the greater of $100 or 20% of your gold. If you refuse to pay up (or can't), run combat #0. Regardless of how you end this encounter (except for running away from combat), set `bitsplit(b9,01)`.
+
+   > Of course, no one has two ranks in *Merchant*, because they took that skill out of the Level Up screen.
+
+5. `[0371]` Inside the S building. If you've already killed both sets of sleeping guards (`bitsplit(99,7d)`= 1), exit. If the guards *didn't* wake up (`bitsplit(b9,05)`= 0) and you *didn't* just walk into a wall (`bitsplit(40,01)`= 1), the guards continue to slumber. Color text `{4d:0384}` and exit. Otherwise, run combat #2 (5 Guards). If you lose, color text `{4d:03f3}` and re-run combat #2. If you win, color text `{4d:03ba}` and run combat #3 ("not easy"). Again, if you lose, color text `{4d:03f3}` and re-run combat #3. If you win, set `bitsplit(99,7d)`.
+
+6. `[040c]` (01,03) The chest inside the S building. Follow the same tree as Event #5, but when you exit there, you find the strong box in the corner. If `bitsplit(b9,03)`= 0, it's still locked; otherwise the [chest](#chest) is open.
+
+   > Something about this chest is different. The lock isn't handled with the usual mechanism `longcall(0b:000f)` and uses a local flag `bitsplit(b9,03)` instead of a global one `bitsplit(99,??)`, which seems to be why you can raid this chest repeatedly.
+
+7. `[0477]` Your lockpick tries to unlock the chest. If it's already open (`bitsplit(b9,03)`= 1), you wake up the guards (run Event #9). If you have *Lockpick* 3 or better, set `bitsplit(b9,03)`; otherwise, you wake up the guards.
+
+8. `[052e]` (04,08) Inside the N building. If `bitsplit(99,7c)`= 1, exit. Gate-and-set `bitsplit(b9,04)` for color text `{4d:0543}` and the official throws you out. If you go in a second time, run encounter #0 (Guards, etc.). If you win, set `bitsplit(b9,08)` and `bitsplit(99,7c)`.
+
+9. `[04e0]` You used something unexpected. Set `bitsplit(b9,05)` to wake up the guards.
+
+10. `[0487]` You use the key to unlock the chest. If it's already open (`bitsplit(b9,03)`= 1), you wake up the guards (run Event #9). Otherwise, drop the key and set `bitsplit(b9,03)`.
+
+11. `[04e7]` You pick a sleeping guard's pocket. If you've already killed both sets of sleeping guards (`bitsplit(99,7d)`= 1). If you already stole the key (`bitsplit(b9,06)`= 1), you wake up the guards (run Event #9). Otherwise, color text `{4d:04f6}`, pick up item #4 (the Key), and set `bitsplit(b9,06)`. (If you didn't have room to pick up the key, don't set the bit.)
+
+12. `[05e1]` (05,06) Erase this event. If you don't have a "defeat traps" spell running (`heap[bf]`= 0), color text `{4d:0x05e8}` and you fall in a pit for 1d8 damage. Otherwise color text `{4d:0x05fb}`.
+
+13. `[0614]` (04,06) Set `bitsplit(b9,07)` to activate the second Armory fight (see Event #14). Then run a [chest](#chest) `(bitsplit(b9,08)`) with several magic items, including the Axe of Kalah.
+
+14. `[064c]` (05,07) If you're on your way *out* (`bitsplit(b9,07)`= 1), run combat #3 ("not easy"). If you win, erase this event.
+
+15. `[065d]` Default handler. If the party is outside (0,0)-(7,8), prompt to exit. If you're in the lower half of the map (Y <= 4), exit to `(00:14,11)`, otherwise `(00:14,13)`.
+
+    Otherwise, gate-and-set `bitsplit(b9,00)` for color text `{4d:06a6}`. If you're in the upper half of the map (Y >= 5), set `bitsplit(b9,02)`, which prevents you from ever needing to swear fealty to Lansk.
 
 ### Actions
 
 - Special #5, use *Pickpocket* > Event #11 `[04e7]`
 - Special #6, use *Lockpick* > Event #7 `[0477]`
 - Special #6, use Key > Event #10 `[0487]`
-- Special #5 or #6, `header 0xfd` > Event #9 `[04e0]`
+- Special #5 or #6 > Event #9 `[04e0]`
 
 ## 0x08 Mud Toad
 
+### Flags
+
+- **Random Encounters:** yes (1 in 100)
+
 ### Board State
 
-| Heap byte |    Bit     | Meaning               |
-| :-------: | :--------: | --------------------- |
-|  `[41]`   | `*–––––––` | Stone Arms retrieved  |
-|  `[41]`   | `–*––––––` | Stone Torso retrieved |
-|  `[41]`   | `––*–––––` | Stone Head retrieved  |
-|  `[41]`   | `–––*––––` | Stone Hands retrieved |
+| Bitsplit | Heap byte |    Bit     | Meaning                         |
+| :------: | :-------: | :--------: | ------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Intro paragraph                 |
+| `b9,01`  |  `[b9]`   | `–*––––––` |                                 |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have access to the Golden Boots |
+| `b9,03`  |  `[b9]`   | `–––*––––` |                                 |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have found the militia's cache  |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Have met with Berengaria        |
+
+### Events
+
+1. `[03aa]` (13,06) The Souvenir [Shop](#shop). Read paragraph #30.
+
+2. `[03cc]` (07,10) Lanac'toor's statue. Loop over the four part bitsplits and set `heap[41]` accordingly. If all parts are present, offer to travel to `(22:07,09)`. If no parts are present, read paragraph #20. Otherwise, display which parts are still missing.
+
+3. `[0461]` You brought the Stone Hand (`ax := 0x03`) back to Lanac'toor's statue. If this part has been returned already ( `bitsplit(99,1a+ax)`= 1), exit. Otherwise, return the part, drop the Stone Hand, set `heap[88]=0` and `heap[41]=0`. Then loop over the four statue part bitsplits and set `heap[41]` accordingly. If there are still missing parts, color text `{4e:0490}` and exit. Otherwise, color text `{4e:04a9}` and earn 500 XP for repairing the statue. Change the decoration texture on this square from `0x04` (broken statue) to `0x05` (repaired statue).
+
+4. `[0452]` ... the Stone Arms (`ax := 0x00`)
+
+5. `[045c]` ... the Stone Head (`ax := 0x02`)
+
+6. `[0457]` ... the Stone Trunk (`ax := 0x01`)
+
+7. `[055d]` (14,10) Color text `{4e:055e}`
+
+8. `[0591]` A climbable wall. Color text `{4e:0592}`
+
+9. `[05b3]` You used *Climb*. If you're facing a wall with metadata `0x01` set (only happens on the climbable walls), you step forward 'through' the wall.
+
+10. `[05dc]` (04,13) The Priests of the Mud Toad. If `bitsplit(b9,02)`= 1, you receive the Golden Boots. Otherwise, if `bitsplit(99,56)`= 1, exit. Otherwise, if you've sealed up the leak, read paragraph #113, set `bitsplit(99,56)` and `bitsplit(b9,02)`, and receive the Boots. Otherwise, read paragraph #17 and get the leak quest.
+
+11. `[06af]` (05,12) The mud leak. Color text `{4e:06b0}`.
+
+12. `[06cf]` (02,02) The city militia. Read paragraph #32, then run combat #7 (Crazed Militiamen). If you win, erase this event.
+
+13. `[06e1]` (12,14) The [tavern](#tavern).
+
+14. `[088a]` (06,02) The militia's cache. Gate-and-set `bitsplit(99,39)`, then run the [chest](#chest) (`bitsplit(b9,04)`).
+
+15. `[08c5]` (10,04) A healer ($4/hp).
+
+16. `[0834]` (13,14) If you tried to find Berengaria in Phoebus (`bitsplit(99,38)`= 1), he's here instead; clear `bitsplit(99,38)` and run a "[chest](#chest)" (`bitsplit(b9,05)`) with a bunch of scrolls.
+
+17. `[0667]` You cast *D:Create Wall*. If you've already sealed the leak (`bitsplit(99,56)`= 1), exit. If there's already a wall in the right place (the wall texture > 0), exit. Otherwise, run the normal *Create Wall* handler to update the map state, then color text `{4e:0694}`.
+
+18. `[0943]` Run a random combat, then erase this event if you win.
+
+19. `[08f4]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. N:`(00:25,09)` E:`(00:26,08)` S:`(00:25,07)` W:`(00,24,08)`.
+
+    Gate-and-set `bitsplit(b9,00)` to read paragraph #29. If you've already sealed the leak (`bitsplit(99,56)`= 1), put a wall there. If `bitsplit(99,1a-1d)` are all set, update the decoration texture on the statue to `0x05` (repaired statue).
+
+    > Apparently this handler doesn't run when you're first dropped on the map and haven't taken an action yet.
+
+### Actions
+
+- Special #2, use Stone Hand > Event #3 `[0461]`
+- Special #2, use Stone Arms > Event #4 `[0452]`
+- Special #2, use Stone Head > Event #5 `[045c]`
+- Special #2, use Stone Trunk > Event #6 `[0457]`
+- Use *Climb* > Event #9 `[05b3]`
+- Cast *D:Create Wall* > Event #17 `[0667]`
+
+## 0x09 Byzanople
+
+### Flags
+
+## 0x0a Smuggler's Cove
+
+### Flags
+
+## 0x0b War Bridge
+
+### Flags
+
+## 0x0c Scorpion Bridge
+
+### Flags
+
+## 0x0d Bridge of Exiles
+
+### Flags
+
+## 0x0e Necropolis
+
+### Flags
 
 ## 0x0f Dwarf Ruins
 
@@ -594,7 +652,7 @@ ic,b)` -->
 
 ## 0x10 Dwarf Clan Hall
 
-Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0xe0=11100000`. Usually that texture is also an index into another list, but clearly not that one.
+> Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0xe0=11100000`. Usually that texture is also an index into another list, but clearly not that one.
 
 ### Flags
 
@@ -639,39 +697,73 @@ Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0
 - Special #4, use the Skull of Roba :arrow_right: `[0446]`
 - Special #14, cast *D:Soften Stone* :arrow_right: `[06c0]`
 
+## 0x11 Freeport
+
+### Flags
+
 ## 0x12 Magan Underworld
 
-### Board State
-
-| Heap byte |    Bit     | Meaning                           |
-| :-------: | :--------: | --------------------------------- |
-|  `[a9]`   | `–*––––––` | Have taken the 5 AP Leap of Faith |
-
-## 0x16 Sunken Ruins Underground
+### Flags
 
 ### Board State
 
-| Heap byte |    Bit     | Meaning                                                  |
-| :-------: | :--------: | -------------------------------------------------------- |
-|  `[9c]`   | `–––––––*` | Clam has been brought to surface and replaced with Skull |
-|  `[9d]`   | `*–––––––` |                                                          |
-|  `[b9]`   | `*–––––––` | Intro message has been played                            |
-|  `[b9]`   | `–*––––––` | Clam has been picked up                                  |
-|  `[b9]`   | `––––––*–` | Chest has been unlocked                                  |
+## 0x13 Slave Mines
+
+## 0x14 Lansk
+
+## 0x15 Sunken Ruins (Above)
+
+## 0x16 Sunken Ruins (Below)
+
+### Board State
+
+| Heap byte |    Bit     | Meaning                       |
+| :-------: | :--------: | ----------------------------- |
+|  `[b9]`   | `*–––––––` | Intro message has been played |
+|  `[b9]`   | `–*––––––` | Clam has been picked up       |
+|  `[b9]`   | `––––––*–` | Chest has been unlocked       |
+
+## 0x17 Mystic Wood
+
+## 0x18 Snake Pit
+
+## 0x19 Kingshome
+
+## 0x1a Pilgrim Dock
 
 ## 0x1b Depths of Nisir
 
-the "Dragon Wand" is new...!
+>  the "Dragon Wand" is new...!
+
+## 0x1c Old Dock
 
 ## 0x1d Siege Camp
 
-`Mace: Axe, 1d12, -1AV, requires Strength 17, $70`
+> `Mace: Axe, 1d12, -1AV, requires Strength 17, $70`
+
+## 0x1e Game Preserve
+
+## 0x1f Magic College
+
+## 0x20 Dragon Valley
+
+## 0x21 Phoeban Dungeon
+
+## 0x22 Lanac'toor's Lab
+
+## 0x23 Byzanople Dungeon
 
 ## 0x24 Kingshome Dungeon
 
 ### Events
 
 1. `[04ed]` Default event. Set `bitsplit(99,78)` to disable the Kingshome ambush.
+
+## 0x25 Slave Estate
+
+## 0x26 Lansk Undercity
+
+## 0x27 Tars Dungeon
 
 # General Events
 

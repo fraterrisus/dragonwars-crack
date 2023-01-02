@@ -183,7 +183,7 @@ Gold is given for killing monsters whose image chunk is 09 (helmet and spear), 0
 
 ### Encounters
 
-The encounter list uses the same one-byte prefix followed by two-byte pointers, although it's not clear what the single byte is for in this case.
+The encounter list uses the same one-byte prefix followed by two-byte pointers. The prefix byte similarly specifies the maximum random encounter that is generated if the game is told to run encounter `0xff`.
 
 Each encounter is composed of a one-byte prefix and then 1-4 three-byte group specifiers, so an encounter consumes 4-13 bytes.
 
@@ -198,10 +198,10 @@ Read bytes [03-01], [06-04], [09-07], and [0c-0a] as little-endian numbers, that
 | :------: | ------- |
 | `*––––––– –––––––– ––––––––` | "Sign" bit for confidence level |
 | `–*****–– –––––––– ––––––––` | Confidence Level modifier |
-| `––––––** **–––––– ––––––––` | Unknown |
+| `––––––** **–––––– ––––––––` | *Unknown* |
 | `–––––––– ––****–– ––––––––` | (x10) Range |
 | `–––––––– ––––––** ***–––––` | Group size |
-| `–––––––– –––––––– –––*****` | Group index |
+| `–––––––– –––––––– –––*****` | Monster index |
 
 An encounter group's Confidence Level is added to the monster's Confidence Level; see byte `[1f]` above. If bit `[0]` is 1, this value is negative.
 
