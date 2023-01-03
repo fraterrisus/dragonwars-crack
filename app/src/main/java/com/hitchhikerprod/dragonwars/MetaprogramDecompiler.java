@@ -326,6 +326,8 @@ public class MetaprogramDecompiler {
             this.pointer++;
             System.out.printf(" %02x   clr heap[%02x + %02x], 0x%02x\n",
                 heapBase, (bitsplit >> 3), heapBase, 0x80 >> (bitsplit & 0x7));
+        } else {
+            System.out.println();
         }
         decodeString();
         decodeWordsUntil(0xff);

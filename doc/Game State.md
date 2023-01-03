@@ -13,7 +13,7 @@
 | `99,04`  |  `[99]`   | `––––*–––` |              Slave Camp              | Have killed the guardian spirit                              |
 | `99,05`  |  `[99]`   | `–––––*––` |              Tars Ruins              | Have moved the stone slab                                    |
 | `99,06`  |  `[99]`   | `––––––*–` |           Smuggler's Cove            |                                                              |
-| `99,07`  |  `[99]`   | `–––––––*` |               Freeport               |                                                              |
+| `99,07`  |  `[99]`   | `–––––––*` |               Freeport               | Have revealed the fake Sword of Freedom (one way or the other) |
 | `99,08`  |  `[9a]`   | `*–––––––` |              Necropolis              |                                                              |
 | `99,09`  |  `[9a]`   | `–*––––––` |              Necropolis              |                                                              |
 | `99,0a`  |  `[9a]`   | `––*–––––` |              Necropolis              |                                                              |
@@ -39,17 +39,17 @@
 | `99,1e`  |  `[9c]`   | `––––––*–` |                                      |                                                              |
 | `99,1f`  |  `[9c]`   | `–––––––*` |            Sunken Dungeon            | Clam has been brought to surface and replaced with Skull     |
 | `99,20`  |  `[9d]`   | `*–––––––` |            Sunken Dungeon            |                                                              |
-| `99,21`  |  `[9d]`   | `–*––––––` |                                      |                                                              |
-| `99,22`  |  `[9d]`   | `––*–––––` |                                      |                                                              |
-| `99,23`  |  `[9d]`   | `–––*––––` |                                      |                                                              |
-| `99,24`  |  `[9d]`   | `––––*–––` |                                      |                                                              |
+| `99,21`  |  `[9d]`   | `–*––––––` |              Byzanople               | Kingshome wins the siege of Byzanople                        |
+| `99,22`  |  `[9d]`   | `––*–––––` |      Byzanople,<br />Siege Camp      | Byzanople wins the siege of Byzanople                        |
+| `99,23`  |  `[9d]`   | `–––*––––` |              Byzanople               | Killed the Byzanople observation party                       |
+| `99,24`  |  `[9d]`   | `––––*–––` |          Byzanople Dungeon           | Joined forces with Prince Jordan                             |
 | `99,25`  |  `[9d]`   | `–––––*––` |              Purgatory               | Defeated the Humbaba                                         |
 | `99,26`  |  `[9d]`   | `––––––*–` |              Purgatory               | Have received reward from Clopin for defeating the Humbaba   |
 | `99,27`  |  `[9d]`   | `–––––––*` |              Slave Camp              | Have access to the Nature Axe cache                          |
 | `99,28`  |  `[9e]`   | `*–––––––` |     Slave Camp,<br />Dwarf Ruins     | Have unlocked *either* the chest in the trees (Camp) or the Dwarf Hammer chest (Ruins) |
 | `99,29`  |  `[9e]`   | `–*––––––` |                                      |                                                              |
 | `99,2a`  |  `[9e]`   | `––*–––––` |              Tars Ruins              | Killed the Guardian Serpent                                  |
-| `99,2b`  |  `[9e]`   | `–––*––––` |                                      |                                                              |
+| `99,2b`  |  `[9e]`   | `–––*––––` |             Tars Dungeon             | Unlocked the scrolls chest                                   |
 | `99,2c`  |  `[9e]`   | `––––*–––` |           Guard Bridge #1            | Have access to the cache                                     |
 | `99,2d`  |  `[9e]`   | `–––––*––` |               Phoebus                | Unlocked the chest at (01,10)                                |
 | `99,2e`  |  `[9e]`   | `––––––*–` |               Phoebus                | Unlocked the chest at (01,15)                                |
@@ -76,9 +76,9 @@
 | `99,43`  |  `[a1]`   | `–––*––––` |                                      |                                                              |
 | `99,44`  |  `[a1]`   | `––––*–––` |                                      |                                                              |
 | `99,45`  |  `[a1]`   | `–––––*––` |                                      |                                                              |
-| `99,46`  |  `[a1]`   | `––––––*–` |                                      |                                                              |
+| `99,46`  |  `[a1]`   | `––––––*–` |              Byzanople               | Have unlocked the Fire Shield chest                          |
 | `99,47`  |  `[a1]`   | `–––––––*` |                                      |                                                              |
-| `99,48`  |  `[a2]`   | `*–––––––` |                                      |                                                              |
+| `99,48`  |  `[a2]`   | `*–––––––` |             Sunken Ruins             | Have access to the chest                                     |
 | `99,49`  |  `[a2]`   | `–*––––––` |                                      |                                                              |
 | `99,4a`  |  `[a2]`   | `––*–––––` |                                      |                                                              |
 | `99,4b`  |  `[a2]`   | `–––*––––` |                                      |                                                              |
@@ -91,7 +91,7 @@
 | `99,52`  |  `[a3]`   | `––*–––––` |           Lanac'toor's Lab           |                                                              |
 | `99,53`  |  `[a3]`   | `–––*––––` |                Nisir                 | Have unlocked the weapons chest                              |
 | `99,54`  |  `[a3]`   | `––––*–––` |            Game Preserve             |                                                              |
-| `99,55`  |  `[a3]`   | `–––––*––` |           Magan Underworld           |                                                              |
+| `99,55`  |  `[a3]`   | `–––––*––` |           Magan Underworld           | Scared off the fairies of death                              |
 | `99,56`  |  `[a3]`   | `––––––*–` |               Mud Toad               | Sealed the leak, received the Golden Boots                   |
 | `99,57`  |  `[a3]`   | `–––––––*` |              Purgatory               | NPC ID 0 (Ulrik) is in the party                             |
 | `99,58`  |  `[a4]`   | `*–––––––` |                                      | NPC ID 1 (—) is in the party                                 |
@@ -122,12 +122,12 @@
 | `99,71`  |  `[a7]`   | `–*––––––` |                Nisir                 | Killed Buck Ironhead                                         |
 | `99,72`  |  `[a7]`   | `––*–––––` |                                      |                                                              |
 | `99,73`  |  `[a7]`   | `–––*––––` |                                      |                                                              |
-| `99,74`  |  `[a7]`   | `––––*–––` |                                      |                                                              |
-| `99,75`  |  `[a7]`   | `–––––*––` |                                      |                                                              |
-| `99,76`  |  `[a7]`   | `––––––*–` |                                      |                                                              |
+| `99,74`  |  `[a7]`   | `––––*–––` |              Byzanople               | Killed the Hydra                                             |
+| `99,75`  |  `[a7]`   | `–––––*––` |              Byzanople               | Killed the defenders at the top of the stairs                |
+| `99,76`  |  `[a7]`   | `––––––*–` |              Byzanople               | Killed the defenders in the outer city ring                  |
 | `99,77`  |  `[a7]`   | `–––––––*` |                Dilmun                | Defeated the Guards on Forlorn, before the first bridge      |
 | `99,78`  |  `[a8]`   | `*–––––––` |        Dilmun,<br />Kingshome        | Kingshome ambush has been triggered                          |
-| `99,79`  |  `[a8]`   | `–*––––––` |                                      |                                                              |
+| `99,79`  |  `[a8]`   | `–*––––––` |           Lansk Undercity            | Have unlocked to the chest under the statue                  |
 | `99,7a`  |  `[a8]`   | `––*–––––` |               Phoebus                | Have encountered Mystalvision                                |
 | `99,7b`  |  `[a8]`   | `–––*––––` |                                      |                                                              |
 | `99,7c`  |  `[a8]`   | `––––*–––` |           Guard Bridge #2            | Have defeated the guards in the Armory                       |
@@ -142,6 +142,7 @@
 | `99,85`  |  `[a9]`   | `–––––*––` |           Magan Underworld           |                                                              |
 | `99,86`  |  `[a9]`   | `––––––*–` |           Magan Underworld           |                                                              |
 | `99,87`  |  `[a9]`   | `–––––––*` |           Scorpion Bridge            |                                                              |
+| `99,88`  |  `[aa]`   | `*–––––––` |           Tars Underground           | Have opened the Stone Arms cache                             |
 
 ## Marching Order
 

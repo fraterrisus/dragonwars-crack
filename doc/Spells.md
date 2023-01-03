@@ -2,7 +2,7 @@
 
 Spells marked with `(!)` never appear on scrolls, i.e. you can't learn them, although in some cases NPCs and/or monsters know these spells and can cast them.
 
-Power costs: `{0c:0406}` If `0x80` is set, power cost is variable and `0x3f` is the magic skill id.
+Power costs: `{0c:0406}` If `0x80` is set, power cost is variable and `0x3f` is the magic skill id.
 
 |   ID   | Power | School | Name           | Type and code target |
 |:------:|:------:| :------------: | -------------------- | -------------------- |
@@ -19,7 +19,7 @@ Power costs: `{0c:0406}` If `0x80` is set, power cost is variable and `0x3f` is
 |  `0x0a`  |  15  |  High  | Big Chill      | Zap (`0x05b1`)       |
 |  `0x0b`  |  3  |  High  | Dazzle         | Lose Turn (`0x052f`) |
 |  `0x0c`  |  4  |  High  | Mystic Might   | Buff Character Attribute (`0x04fa`) |
-|  `0x0d`  |  2  |  High  | Reveal Glamour | *triggers Special Events; has no game effect* |
+|  `0x0d`  |  2  |  High  | Reveal Glamour | *triggers Special Events; has no persistent effect* |
 |  `0x0e`  |  5  |  High  | Sala's Swift   | Buff Character Attribute (`0x0524`) |
 |  `0x0f`  |  6  |  High  | Vorn's Guard   | Buff Party AC (`0x04fe`) |
 |  `0x10`  |  8  |  High  | Cowardice      | Fear (`0x045e`)      |
@@ -68,7 +68,7 @@ Power costs: `{0c:0406}` If `0x80` is set, power cost is variable and `0x3f` is
 | `0x3b` | 15 | Misc   | Kill Ray             | Zap (`0x05b1`) |
 | `0x3c` | 8  | Misc   | Prison (!)           | Hold (`0x08b3`) |
 
-Whenever you cast a spell, the game checks to see whether that spell triggers any [Special Events](Events.md). This is how the Magic College test works, for instance. In the case of *H:Reveal Glamour*, there are no other "illusions" in the game to dispel, so there is no impact on the game state when you cast that spell.
+Whenever you cast a spell, the game first checks to see whether that spell triggers any [Special Events](Events.md). This is how the Magic College test works, for instance.
 
 ## Data
 

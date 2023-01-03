@@ -153,7 +153,7 @@ public class StringDecoder {
             exec.read(rawBytes, 0, 512);
             final Chunk chunk = new Chunk(rawBytes);
 */
-            final int chunkId = 0x0a;
+            final int chunkId = 0x36;
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             Chunk chunk = chunkTable.getChunk(chunkId);
             if (chunkId >= 0x1e) {
@@ -171,8 +171,8 @@ public class StringDecoder {
             while (i < chunk.getSize()) {
                 decoder.decodeString(i);
                 System.out.printf("0x%04x 0x%04x %s\n", i, decoder.getPointer(), decoder.getDecodedString());
-                i = decoder.getPointer();
-                // i++;
+                //i = decoder.getPointer();
+                i++;
             }
 
         } catch (IndexOutOfBoundsException e) {
