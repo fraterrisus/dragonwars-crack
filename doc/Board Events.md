@@ -323,7 +323,7 @@ ic,b)` -->
 
 8. `[04e6]` (05,07) You used *Mountain Lore* or *Intelligence*, which sets `[b9,01]`.
 
-9. `[051c]` (05,07) You used *Climb*. If `bitsplit[b9,01]` is set, travel to `(04:06,06)`. Otherwise, color text `{04:0523}`.
+9. `[051c]` (05,07) You used *Climb*. If `[b9,01]`, travel to `(04:06,06)`. Otherwise, color text `{04:0523}`.
 
 10. `[05c5]` (08,03) Paragraph #55.
 
@@ -345,9 +345,9 @@ ic,b)` -->
 
 19. `[047a]` (01,08) Run combat #06 (Stosstrupen + random). If you win, erase this event.
 
-20. `[0668]` (01,09) [Locked chest](#locked) (`bitsplit[99,53]`, difficulty 5).
+20. `[0668]` (01,09) [Locked chest](#locked) (`[99,53]`, difficulty 5).
 
-21. `[067d]` Default handler. If the party is outside (0,0)-(21,21), prompt to exit to`(00:19,20)`. Otherwise, gate-and-set `bitsplit[b9,00]` to read paragraph #98.
+21. `[067d]` Default handler. If the party is outside (0,0)-(21,21), prompt to exit to`(00:19,20)`. Otherwise, gate-and-set `[b9,00]` to read paragraph #98.
 
 ### Actions
 
@@ -379,23 +379,23 @@ ic,b)` -->
 1. `[067e]` Near the water in the south part of the map. Color text `{4b:067f}`.
 2. `[03d9]` (00,08) The entry square. Color text `{4b:03df}`, then erase this event.
 3. `[0449]` (01,08) If anyone in the party has *Arcane Lore* 1, color text `{4b:0452}`, then erase this event.
-4. `[048b]` (15,15) Set `bitsplit[b9,01]`. If you're following tracks (`bitsplit[b9,00]`), clear that bit and color text `{4b:0499}`. If the slab hasn't been moved yet (`bitsplit[99,05]`= 0), color text `{4b:04b0}`. Otherwise, offer to travel to `(27:02,05)`.
-5. `[04d8]` (15,15) You examined the slab with a skill. Set `heap[3e]` to 0x00 instead of `heap[3f]` (?!). If the slab hasn't been moved yet (`bitsplit[99,05]`= 0), color text `{4b:04e1}`.
-6. `[0514]` (15,15) You used *Strength*. If the stone slab has already been moved (`bitsplit[99,05]`= 1), exit. Otherwise roll 1d40; if the value is below the PC's *Strength*, the slab moves (set `bitsplit[99,05]`) and exposes the stairs down.
+4. `[048b]` (15,15) Set `[b9,01]`. If you're following tracks `[b9,00]`, clear that bit and color text `{4b:0499}`. If the slab hasn't been moved yet `![99,05]`, color text `{4b:04b0}`. Otherwise, offer to travel to `(27:02,05)`.
+5. `[04d8]` (15,15) You examined the slab with a skill. Set `heap[3e]` to 0x00 instead of `heap[3f]` (?!). If the slab hasn't been moved yet `![99,05]`, color text `{4b:04e1}`.
+6. `[0514]` (15,15) You used *Strength*. If the stone slab has already been moved `[99,05]`, exit. Otherwise roll 1d40; if the value is below the PC's *Strength*, the slab moves (set `[99,05]`) and exposes the stairs down.
 7. `[05b1]` Inside the ruined city square. Color text `{4b:05b2}`.
 8. `[05f0]` You asked your sage about the city ruins; read paragraph #23.
-9. `[0666]` (04,08) "This way!!" says your Tracker. Set `bitsplit[b9,00]` and run event #10.
-10. `[05f9]` On the path. If `bitsplit[b9,00]` is set, turn until you're facing North, then step forward.
+9. `[0666]` (04,08) "This way!!" says your Tracker. Set `[b9,00]` and run event #10.
+10. `[05f9]` On the path. If `[b9,00]`, turn until you're facing North, then step forward.
 11. `[05fe]` ... East
 12. `[0604]` ... South
 13. `[060a]` ... West
-14. `[0637]` If you're already following the tracks (`bitsplit[b9,00]`), turn North. Otherwise, color text `{4b:063e}` says you should. 
+14. `[0637]` If you're already following the tracks `[b9,00]`, turn North. Otherwise, color text `{4b:063e}` says you should. 
 15. `[0699]` You stepped in water.
-16. `[0571]` (13,14) If you're following tracks (`bitsplit[b9,00]`= 1) or have already found the slab (`bitsplit[b9,01]`= 1) or have a Disarm Traps spell active (`heap[bf]`> 0), color text `{4b:059c}`. Otherwise you fall in the pit `{4b:0586}` and everyone takes 8 HP damage.
-17. `[06e0]` (01,01) A bunch of [scrolls](#chest); you only get one shot at it (`bitsplit[b9,04]`).
-18. `[0728]` (15,08) The snake's [treasure](#chest); you only get one shot at it (`bitsplit[b9,05]`).
-19. `[06ca]` (02,02) If you've cleared this encounter (`bitsplit[99,29]`= 1), exit. Otherwise, run encounter #4 (random). If you win, set `bitsplit[99,29]` and `bitsplit[b9,04]` to grant access to the treasure.
-20. `[0712]` (14,07) If you've killed the snake (`bitsplit[99,2a]`= 1), exit. Otherwise, run encounter #5 (the Guardian Snake). If you win, set `bitsplit[99,2a]` and `bitsplit[b9,05]` to grant access to the treasure.
+16. `[0571]` (13,14) If you're following tracks `[b9,00]` or have already found the slab `[b9,01]` or have a Disarm Traps spell active (`heap[bf]`> 0), color text `{4b:059c}`. Otherwise you fall in the pit `{4b:0586}` and everyone takes 8 HP damage.
+17. `[06e0]` (01,01) A bunch of [scrolls](#chest) (`[b9,04]`).
+18. `[0728]` (15,08) The snake's [treasure](#chest) (`[b9,05]`).
+19. `[06ca]` (02,02) If you've cleared this encounter `[99,29]`, exit. Otherwise, run encounter #4 (random). If you win, set `[99,29]` and `[b9,04]` to grant access to the treasure.
+20. `[0712]` (14,07) If you've killed the snake `[99,2a]`, exit. Otherwise, run encounter #5 (the Guardian Snake). If you win, set `[99,2a]` and `[b9,05]` to grant access to the treasure.
 21. `[0754]` Run a random encounter. If you win, erase this event.
 22. `[0693]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit to `(00:20,04)`.
 
@@ -425,7 +425,7 @@ ic,b)` -->
 
 1. `[0419]` (08,01) Read paragraph #26.
 
-2. `[0422]` (08,03) Show monster image 0x23. Gate-and-set `bitsplit[b9,00]` to read paragraph #25.
+2. `[0422]` (08,03) Show monster image 0x23. Gate-and-set `[b9,00]` to read paragraph #25.
 
 3. `[0437]` (06,07) Color text `{4c:0438}`.
 
@@ -437,11 +437,11 @@ ic,b)` -->
 
 7. `[04d7]` (13,07) Color text `{4c:04d8}`.
 
-8. `[0525]` (14,02) Gate-and-set `bitsplit[b9,01]` to read paragraph #28. Color text `{4c:05eb}`; you're joining the army. If you say yes, read paragraph #86 and travel to `(1d:03,07)`. Otherwise, color text `{4c:05a2}` and pay $50 per party member. If you decide to pay and have enough money, color text `{4c:0655}` and exit. Otherwise you've joined the army.
+8. `[0525]` (14,02) Gate-and-set `[b9,01]` to read paragraph #28. Color text `{4c:05eb}`; you're joining the army. If you say yes, read paragraph #86 and travel to `(1d:03,07)`. Otherwise, color text `{4c:05a2}` and pay $50 per party member. If you decide to pay and have enough money, color text `{4c:0655}` and exit. Otherwise you've joined the army.
 
 9. `[0731]` (05,11) and (11,10) Color text `{4c:0732}`.
 
-10. `[076a]` (08,14) Meeting Mystalvision. If you've already killed Mystalvision in the Nisir (`bitsplit[99,70]` = 1), exit. Gate-and-set `bitsplit[99,7a]`. Show monster image 0x35 and read paragraph #66. Run encounter #3 (Stosstrupen and Mystalvision). Regardless of whether you win or not, color text `{4c:078f}`, blacken the screen (image 0xff), and travel to `(21:12,03)`.
+10. `[076a]` (08,14) Meeting Mystalvision. If you've already killed Mystalvision in the Nisir `[99,70]`, exit. Gate-and-set `[99,7a]`. Show monster image 0x35 and read paragraph #66. Run encounter #3 (Stosstrupen and Mystalvision). Regardless of whether you win or not, color text `{4c:078f}`, blacken the screen (image 0xff), and travel to `(21:12,03)`.
 
 11. `[0466]` (13,15) Run encounter #4 (Dirty Rats). If you win, erase this event.
 
@@ -459,17 +459,17 @@ ic,b)` -->
 
 17. `[0489]` (03,14) Run encounter #11 (Ominous Fellow). If you win, erase this event.
 
-18. `[07f4]` (01,10) Locked [chest](#locked) (`bitsplit[99,2d]`, difficulty 2). Scrolls.
+18. `[07f4]` (01,10) Locked [chest](#locked) (`[99,2d]`, difficulty 2). Scrolls.
 
-19. `[0807]` (01,15) Locked [chest](#locked) (`bitsplit[99,2e]`, difficulty 2). Tri-cross.
+19. `[0807]` (01,15) Locked [chest](#locked) (`[99,2e]`, difficulty 2). Tri-cross.
 
-20. `[081a]` (11,15) Locked [chest](#locked) (`bitsplit[99,2f]`, difficulty 1). Magic Plate.
+20. `[081a]` (11,15) Locked [chest](#locked) (`[99,2f]`, difficulty 1). Magic Plate.
 
 21. `[0461]` (02,15) Run encounter #12 (Guards, 1 Stosstrupen). If you win, erase this event.
 
 22. `[0676]` (02,13), only reachable from below. Color text `{4c:067c}`, then move to (02,14).
 
-23. `[0860]` (15,15) If you've been to the dungeon (`bitsplit[99,69]`= 1), gate and set `bitsplit[99,38]` for color text `{4c:0875}` from Berengaria. Run the [tavern](#tavern); Valar is here.
+23. `[0860]` (15,15) If you've been to the dungeon `[99,69]`, gate and set `[99,38]` for color text `{4c:0875}` from Berengaria. Run the [tavern](#tavern); Valar is here.
 
 24. `[045c]` (Various) Run encounter #1 (Stosstrupen). If you win, erase this event.
 
@@ -505,39 +505,39 @@ ic,b)` -->
 
 2. `[0130]` You stepped in water.
 
-3. `[02d5]` (03,06) N approach to the bridge. If `bitsplit[b9,02]`= 0, color text `{4d:02e1}`. Refuse to obey their laws and you have to fight combat #1 (3 Guards). Agree, or kill the guards, and they let you pass (set `bistsplit[b9,02]`).
+3. `[02d5]` (03,06) N approach to the bridge. If `![b9,02]`, color text `{4d:02e1}`. Refuse to obey their laws and you have to fight combat #1 (3 Guards). Agree, or kill the guards, and they let you pass (set `bistsplit[b9,02]`).
 
-   > **Bug?:** This event never gets triggered. If you approach from the N, it's assumed that you've already "sworn fealty" to Lansk. If you're approaching from the S, `bitsplit[b9,02]` is set in the default handler as soon as Y=5. In theory if that check was >5 instead of >=5 it might run Event 3 before the default handler, and you'd actually get this encounter.
+   > **Bug?:** This event never gets triggered. If you approach from the N, it's assumed that you've already "sworn fealty" to Lansk. If you're approaching from the S, `[b9,02]` is set in the default handler as soon as Y=5. In theory if that check was >5 instead of >=5 it might run Event 3 before the default handler, and you'd actually get this encounter.
 
-4. `[0135]` (03,03) S approach to the bridge. If you've already passed "Customs" (`bitsplit[b9,01]`= 1), exit. Otherwise, color text `{4d:0141}`. If you refuse inspection, run combat #0 (3 Pikemen) *unless* someone in your party has at least two ranks in *Merchant*. If you submit to inspection, they take the greater of $100 or 20% of your gold. If you refuse to pay up (or can't), run combat #0. Regardless of how you end this encounter (except for running away from combat), set `bitsplit[b9,01]`.
+4. `[0135]` (03,03) S approach to the bridge. If you've already passed "Customs" `[b9,01]`, exit. Otherwise, color text `{4d:0141}`. If you refuse inspection, run combat #0 (3 Pikemen) *unless* someone in your party has at least two ranks in *Merchant*. If you submit to inspection, they take the greater of $100 or 20% of your gold. If you refuse to pay up (or can't), run combat #0. Regardless of how you end this encounter (except for running away from combat), set `[b9,01]`.
 
    > Of course, no one has two ranks in *Merchant*, because they took that skill out of the Level Up screen.
 
-5. `[0371]` Inside the S building. If you've already killed both sets of sleeping guards (`bitsplit[99,7d]`= 1), exit. If the guards *didn't* wake up (`bitsplit[b9,05]`= 0) and you *didn't* just walk into a wall (`bitsplit(40,01)`= 1), the guards continue to slumber. Color text `{4d:0384}` and exit. Otherwise, run combat #2 (5 Guards). If you lose, color text `{4d:03f3}` and re-run combat #2. If you win, color text `{4d:03ba}` and run combat #3 ("not easy"). Again, if you lose, color text `{4d:03f3}` and re-run combat #3. If you win, set `bitsplit[99,7d]`.
+5. `[0371]` Inside the S building. If you've already killed both sets of sleeping guards `[99,7d]`, exit. If the guards *didn't* wake up `![b9,05]` and you *didn't* just walk into a wall `!(40,01)`, the guards continue to slumber. Color text `{4d:0384}` and exit. Otherwise, run combat #2 (5 Guards). If you lose, color text `{4d:03f3}` and re-run combat #2. If you win, color text `{4d:03ba}` and run combat #3 ("not easy"). Again, if you lose, color text `{4d:03f3}` and re-run combat #3. If you win, set `[99,7d]`.
 
-6. `[040c]` (01,03) The chest inside the S building. Follow the same tree as Event #5, but when you exit there, you find the strong box in the corner. If `bitsplit[b9,03]`= 0, it's still locked; otherwise the [chest](#chest) is open.
+6. `[040c]` (01,03) The chest inside the S building. Follow the same tree as Event #5, but when you exit there, you find the strong box in the corner. If `![b9,03]`, it's still locked; otherwise the [chest](#chest) is open.
 
-   > Something about this chest is different. The lock isn't handled with the usual mechanism `longcall(0b:000f)` and uses a local flag `bitsplit[b9,03]` instead of a global one `bitsplit(99,??)`, which seems to be why you can raid this chest repeatedly.
+   > Something about this chest is different. The lock isn't handled with the usual mechanism `longcall(0b:000f)` and uses a local flag `[b9,03]` instead of a global one `(99,??)`, which seems to be why you can raid this chest repeatedly.
 
-7. `[0477]` Your lockpick tries to unlock the chest. If it's already open (`bitsplit[b9,03]`= 1), you wake up the guards (run Event #9). If you have *Lockpick* 3 or better, set `bitsplit[b9,03]`; otherwise, you wake up the guards.
+7. `[0477]` Your lockpick tries to unlock the chest. If it's already open `[b9,03]`, you wake up the guards (run Event #9). If you have *Lockpick* 3 or better, set `[b9,03]`; otherwise, you wake up the guards.
 
-8. `[052e]` (04,08) Inside the N building. If `bitsplit[99,7c]`= 1, exit. Gate-and-set `bitsplit[b9,04]` for color text `{4d:0543}` and the official throws you out. If you go in a second time, run encounter #0 (Guards, etc.). If you win, set `bitsplit[b9,08]` and `bitsplit[99,7c]`.
+8. `[052e]` (04,08) Inside the N building. If `[99,7c]`, exit. Gate-and-set `[b9,04]` for color text `{4d:0543}` and the official throws you out. If you go in a second time, run encounter #0 (Guards, etc.). If you win, set `[b9,08]` and `[99,7c]`.
 
-9. `[04e0]` You used something unexpected. Set `bitsplit[b9,05]` to wake up the guards.
+9. `[04e0]` You used something unexpected. Set `[b9,05]` to wake up the guards.
 
-10. `[0487]` You use the key to unlock the chest. If it's already open (`bitsplit[b9,03]`= 1), you wake up the guards (run Event #9). Otherwise, drop the key and set `bitsplit[b9,03]`.
+10. `[0487]` You use the key to unlock the chest. If it's already open `[b9,03]`, you wake up the guards (run Event #9). Otherwise, drop the key and set `[b9,03]`.
 
-11. `[04e7]` You pick a sleeping guard's pocket. If you've already killed both sets of sleeping guards (`bitsplit[99,7d]`= 1). If you already stole the key (`bitsplit[b9,06]`= 1), you wake up the guards (run Event #9). Otherwise, color text `{4d:04f6}`, pick up item #4 (the Key), and set `bitsplit[b9,06]`. (If you didn't have room to pick up the key, don't set the bit.)
+11. `[04e7]` You pick a sleeping guard's pocket. If you've already killed both sets of sleeping guards `[99,7d]`. If you already stole the key `[b9,06]`, you wake up the guards (run Event #9). Otherwise, color text `{4d:04f6}`, pick up item #4 (the Key), and set `[b9,06]`. (If you didn't have room to pick up the key, don't set the bit.)
 
 12. `[05e1]` (05,06) Erase this event. If you don't have a "defeat traps" spell running (`heap[bf]`= 0), color text `{4d:0x05e8}` and you fall in a pit for 1d8 damage. Otherwise color text `{4d:0x05fb}`.
 
-13. `[0614]` (04,06) Set `bitsplit[b9,07]` to activate the second Armory fight (see Event #14). Then run a [chest](#chest) `(bitsplit[b9,08]`) with several magic items, including the Axe of Kalah.
+13. `[0614]` (04,06) Set `[b9,07]` to activate the second Armory fight (see Event #14). Then run a [chest](#chest) (`[b9,08]`) with several magic items, including the Axe of Kalah.
 
-14. `[064c]` (05,07) If you're on your way *out* (`bitsplit[b9,07]`= 1), run combat #3 ("not easy"). If you win, erase this event.
+14. `[064c]` (05,07) If you're on your way *out* `[b9,07]`, run combat #3 ("not easy"). If you win, erase this event.
 
 15. `[065d]` Default handler. If the party is outside (0,0)-(7,8), prompt to exit. If you're in the lower half of the map (Y <= 4), exit to `(00:14,11)`, otherwise `(00:14,13)`.
 
-    Otherwise, gate-and-set `bitsplit[b9,00]` for color text `{4d:06a6}`. If you're in the upper half of the map (Y >= 5), set `bitsplit[b9,02]`, which prevents you from ever needing to swear fealty to Lansk.
+    Otherwise, gate-and-set `[b9,00]` for color text `{4d:06a6}`. If you're in the upper half of the map (Y >= 5), set `[b9,02]`, which prevents you from ever needing to swear fealty to Lansk.
 
 ### Actions
 
@@ -569,13 +569,13 @@ ic,b)` -->
 
 2. `[03cc]` (07,10) Lanac'toor's statue. Loop over the four part bitsplits and set `heap[41]` accordingly. If all parts are present, offer to travel to `(22:07,09)`. If no parts are present, read paragraph #20. Otherwise, display which parts are still missing.
 
-3. `[0461]` You brought the Stone Hand (`ax := 0x03`) back to Lanac'toor's statue. If this part has been returned already ( `bitsplit(99,1a+ax)`= 1), exit. Otherwise, return the part, drop the Stone Hand, set `heap[88]=0` and `heap[41]=0`. Then loop over the four statue part bitsplits and set `heap[41]` accordingly. If there are still missing parts, color text `{4e:0490}` and exit. Otherwise, color text `{4e:04a9}` and earn 500 XP for repairing the statue. Change the decoration texture on this square from `0x04` (broken statue) to `0x05` (repaired statue).
+3. `[0461]` You brought the Stone Hand (`ax:=0x03`) back to Lanac'toor's statue. If this part has been returned already `[99,1a+ax]`, exit. Otherwise, return the part, drop the Stone Hand, set `heap[88]=0` and `heap[41]=0`. Then loop over the four statue part bitsplits and set `heap[41]` accordingly. If there are still missing parts, color text `{4e:0490}` and exit. Otherwise, color text `{4e:04a9}` and earn 500 XP for repairing the statue. Change the decoration texture on this square from `0x04` (broken statue) to `0x05` (repaired statue).
 
-4. `[0452]` ... the Stone Arms (`ax := 0x00`)
+4. `[0452]` ... the Stone Arms (`ax:=0x00`)
 
-5. `[045c]` ... the Stone Head (`ax := 0x02`)
+5. `[045c]` ... the Stone Head (`ax:=0x02`)
 
-6. `[0457]` ... the Stone Trunk (`ax := 0x01`)
+6. `[0457]` ... the Stone Trunk (`ax:=0x01`)
 
 7. `[055d]` (14,10) Color text `{4e:055e}`
 
@@ -583,7 +583,7 @@ ic,b)` -->
 
 9. `[05b3]` You used *Climb*. If you're facing a wall with metadata `0x01` set (only happens on the climbable walls), you step forward 'through' the wall.
 
-10. `[05dc]` (04,13) The Priests of the Mud Toad. If `bitsplit[b9,02]`= 1, you receive the Golden Boots. Otherwise, if `bitsplit[99,56]`= 1, exit. Otherwise, if you've sealed up the leak, read paragraph #113, set `bitsplit[99,56]` and `bitsplit[b9,02]`, and receive the Boots. Otherwise, read paragraph #17 and get the leak quest.
+10. `[05dc]` (04,13) The Priests of the Mud Toad. If `[b9,02]`, you receive the Golden Boots. Otherwise, if `[99,56]`, exit. Otherwise, if you've sealed up the leak, read paragraph #113, set `[99,56]` and `[b9,02]` and receive the Boots. Otherwise, read paragraph #17 and get the leak quest.
 
 11. `[06af]` (05,12) The mud leak. Color text `{4e:06b0}`.
 
@@ -591,19 +591,19 @@ ic,b)` -->
 
 13. `[06e1]` (12,14) The [tavern](#tavern).
 
-14. `[088a]` (06,02) The militia's cache. Gate-and-set `bitsplit[99,39]`, then run the [chest](#chest) (`bitsplit[b9,04]`).
+14. `[088a]` (06,02) The militia's cache. Gate-and-set `[99,39]`, then run the [chest](#chest) (`[b9,04]`).
 
 15. `[08c5]` (10,04) A healer ($4/hp).
 
-16. `[0834]` (13,14) If you tried to find Berengaria in Phoebus (`bitsplit[99,38]`= 1), he's here instead; clear `bitsplit[99,38]` and run a "[chest](#chest)" (`bitsplit[b9,05]`) with a bunch of scrolls.
+16. `[0834]` (13,14) If you tried to find Berengaria in Phoebus `[99,38]`, he's here instead; clear `[99,38]` and run a "[chest](#chest)" (`[b9,05]`) with a bunch of scrolls.
 
-17. `[0667]` You cast *D:Create Wall*. If you've already sealed the leak (`bitsplit[99,56]`= 1), exit. If there's already a wall in the right place (the wall texture > 0), exit. Otherwise, run the normal *Create Wall* handler to update the map state, then color text `{4e:0694}`.
+17. `[0667]` You cast *D:Create Wall*. If you've already sealed the leak `[99,56]`, exit. If there's already a wall in the right place (the wall texture > 0), exit. Otherwise, run the normal *Create Wall* handler to update the map state, then color text `{4e:0694}`.
 
 18. `[0943]` Run a random combat, then erase this event if you win.
 
 19. `[08f4]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. N:`(00:25,09)` E:`(00:26,08)` S:`(00:25,07)` W:`(00,24,08)`.
 
-    Gate-and-set `bitsplit[b9,00]` to read paragraph #29. If you've already talked to the priests after sealing the leak (`bitsplit[99,56]`= 1), put a wall there. If `bitsplit(99,1a-1d)` are all set, update the decoration texture on the statue to `0x05` (repaired statue).
+    Gate-and-set `[b9,00]` to read paragraph #29. If you've already talked to the priests after sealing the leak `[99,56]`, put a wall there. If `[99,1a-1d]` are all set, update the decoration texture on the statue to `0x05` (repaired statue).
 
     > Apparently this handler doesn't run when you're first dropped on the map and haven't taken an action yet.
 
@@ -637,9 +637,9 @@ ic,b)` -->
 
 2. `[038e]` (03,09) Outside the front door; color text `{4f:0394}`.
 
-3. `[0465]` (01,01) If you've dealt with the giant boulder (`bitsplit[b9,01]`= 1), offer travel to `(23:09,01)`. Otherwise, color text `{4f:047b}`.
+3. `[0465]` (01,01) If you've dealt with the giant boulder `[b9,01]`, offer travel to `(23:09,01)`. Otherwise, color text `{4f:047b}`.
 
-4. `[04bf]` (09,01) You moved or *Softened* the giant boulder. If you already dealt with it (`bitsplit[b9,01]`= 1), exit. Otherwise, if you have **STR 18** or cast *D:Soften Stone*, color text `{4f:04cd}` and set `bitsplit[b9,01]`. Otherwise, color text `{4f:04fe}` and it doesn't work.
+4. `[04bf]` (09,01) You moved or *Softened* the giant boulder. If you already dealt with it `[b9,01]`, exit. Otherwise, if you have **STR 18** or cast *D:Soften Stone*, color text `{4f:04cd}` and set `[b9,01]`. Otherwise, color text `{4f:04fe}` and it doesn't work.
 
    > It tests `heap[86] >= 0x12`, so I presume that if you cast a spell instead, this byte is `0xff` or something.
 
@@ -657,13 +657,13 @@ ic,b)` -->
 
 11. `[056e]` The inner courtyard. Color text `{4f:056f}`.
 
-12. `[0591]` (02,01) If you haven't killed the defenders (`bitsplit[99,23]`= 0), read paragraph #21.
+12. `[0591]` (02,01) If you haven't killed the defenders `![99,23]`, read paragraph #21.
 
-13. `[059f]` (03,01) If you haven't killed the defenders (`bitsplit[99,23]`= 0), you're offered the choice to Attack or Hail them (color text `{4f:05ab}`). Attack them and they fall easily; set `bitsplit[99,23]`. Hail them to meet Princess Myrilla (paragraph #36) and travel to `(23:07,11)`.
+13. `[059f]` (03,01) If you haven't killed the defenders `![99,23]`, you're offered the choice to Attack or Hail them (color text `{4f:05ab}`). Attack them and they fall easily; set `[99,23]`. Hail them to meet Princess Myrilla (paragraph #36) and travel to `(23:07,11)`.
 
-14. `[066b]` You unlocked (**requires *Lockpick 2***, but only from the inside) or *Softened* the front door. Read paragraph #71; Buck Ironhead throws you in the Kingshome Dungeon `(24:00,15)`. Set `bitsplit[99,21]` (and the Carry flag).
+14. `[066b]` You unlocked (**requires *Lockpick 2***, but only from the inside) or *Softened* the front door. Read paragraph #71; Buck Ironhead throws you in the Kingshome Dungeon `(24:00,15)`. Set `[99,21]` (and the Carry flag).
 
-15. `[0688]` (06,09) Stairs up from the Resistance HQ. If `bitsplit[99,24]`= 0, `bitsplit[99,21]`= 1, or `bitsplit[99,22]`= 1, offer stairs down to `(23:06,09)`. Otherwise, read paragraph #110 and travel to the fight against Kingshome `(1d:02,05)`.
+15. `[0688]` (06,09) Stairs up from the Resistance HQ. If `![99,24]`, `[99,21]`, or `[99,22]`, offer stairs down to `(23:06,09)`. Otherwise, read paragraph #110 and travel to the fight against Kingshome `(1d:02,05)`.
 
 16. `[06c1]` (07,11) [Marik's Armory](#shop).
 
@@ -673,7 +673,7 @@ ic,b)` -->
 
 19. `[0783]` (08,10) Sign for Bart's `{4f:0787}`
 
-20. `[07b7]` (13,04) Fire Shield [chest](#locked) (`bitsplit[99,46]`, difficulty 3)
+20. `[07b7]` (13,04) Fire Shield [chest](#locked) (`[99,46]`, difficulty 3)
 
 21. `[08b9]` (09,11) Alchemist Boris, the healer ($4/hp)
 
@@ -681,15 +681,15 @@ ic,b)` -->
 
 23. `[07c2]` (09,07) Offer travel to `(1d:02,05)` (see Event #15)
 
-24. `[08de]` (09,02) If you haven't killed the Hydra yet (`bitsplit[99,74]`), do it now (combat #3).
+24. `[08de]` (09,02) If you haven't killed the Hydra yet `![99,74]`, do it now (combat #3).
 
-25. `[08f1]` (07,09) If you haven't already beat this fight (`bitsplit[99,75]`= 0) and you *didn't* join up with Prince Jordan (`bitsplit[99,24]`= 0), fight a random combat. If you win, set `bitsplit[99,75]`.
+25. `[08f1]` (07,09) If you haven't already beat this fight `![99,75]` and you *didn't* join up with Prince Jordan `![99,24]`, fight a random combat. If you win, set `[99,75]`.
 
-26. `[0908]` (05,11) If you haven't already beat this fight (`bitsplit[99,76]`= 0) and you *didn't* join up with Prince Jordan (`bitsplit[99,24]`= 0), fight a random combat. If you win, set `bitsplit[99,76]`.
+26. `[0908]` (05,11) If you haven't already beat this fight `![99,76]` and you *didn't* join up with Prince Jordan `![99,24]`, fight a random combat. If you win, set `[99,76]`.
 
 27. `[0801]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit to `(00:07,26)`.
 
-    Gate-and-set `bitsplit[b9,00]`= 1. If Kingshome has won (`bitsplit[99,21]`= 1), erase events #1, #2, #5, #6, #7, #9, #11, #12, #13, #14, #16, #17, #21, #25, and #26. If Byzanople has won (`bitsplit[99,22]`= 1), erase events #1, #2, #5, #6, #7, #9, #12, #13, #14, #25, and #26. If you've already met Prince Jordan and joined up with him (`bitsplit[99,24]`= 1), exit. Otherwise, read paragraph #33.
+    Gate-and-set `[b9,00]`. If Kingshome has won `[99,21]`, erase events #1, #2, #5, #6, #7, #9, #11, #12, #13, #14, #16, #17, #21, #25, and #26. If Byzanople has won `[99,22]`, erase events #1, #2, #5, #6, #7, #9, #12, #13, #14, #25, and #26. If you've already met Prince Jordan and joined up with him `[99,24]`, exit. Otherwise, read paragraph #33.
 
 ### Actions
 
@@ -708,34 +708,32 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
-| `b9,02`  |  `[b9]`   | `––*–––––` |         |
-| `b9,03`  |  `[b9]`   | `–––*––––` |         |
-| `b9,04`  |  `[b9]`   | `––––*–––` |         |
-| `b9,05`  |  `[b9]`   | `–––––*––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                       |
+| :------: | :-------: | :--------: | --------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Read intro paragraph                          |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Successfully bribed the pirates               |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Have been thrown out of the Pirate's Den once |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Read Irkalla paragraph #3                     |
 
-### Events (chunk 0x50)
+### Events
 
-1. `[0552]`
-1. `[04ba]`
-1. `[0000]`
-1. `[0557]`
-1. `[00f2]`
-1. `[01d2]`
-1. `[027e]`
-1. `[02b5]`
-1. `[03ee]`
-1. `[04b4]`
-1. `[0562]` Default handler.
+1. `[0552]` You stepped in the water.
+1. `[04ba]` (06,05) A statue of Irkalla. Praying to her here is identical to doing so in Purgatory (see Event #9).
+1. `[0000]` *Er...*
+1. `[0557]` (06,01) Run combat #1 (Serpent Swimmer). If you win, erase this event.
+1. `[00f2]` (03,03) If you've already killed `[99,06]` or bribed the pirates `[b9,01]`, exit. Otherwise, color text `{50:0104}` and `{50:017c}`, get thrown out, and set `[b9,03]`.
+1. `[01d2]` (04,03) You're speaking the pirates' language. If `[99,06]`, you already bribed them `[b9,01]`, or you aren't facing the door, exit. Otherwise, color text `{50:01e6}` prompts for a bribe. If you offer less than $50, color text `{50:0239}`. If you don't have enough money to pay your bribe, color text `{50:025f}`. Otherwise, read paragraph #41, set `[b9,01]`, and step inside.
+1. `[027e]` (04,03) If you've already tried to force your way in `[b9,03]` but haven't either killed `![99,06]` or bribed the pirates `![b9,01]`, color text `{50:0291}`.
+1. `[02b5]` (01,02) If you already killed the pirates `[99,06]`, exit. Otherwise, color text `{50:02c1}` and `{50:031f}` and run combat #0 (Pirate crew). If you lose, you jump right back into combat until they *kill* you. If you win, set `[99,06]`, read paragraph #24, and open a [locked chest](#locked) (`[99,3a]`, difficulty 2).
+1. `[03ee]` (02,01) If you already killed the pirates `[99,06]`, exit. Otherwise, color text `{50:03fa}`, paragraph #43, and color text `{50:0453}` as Ugly maroons you on the isle of the Necropolis. Travel to `(0e:07,13)`.
+1. `[04b4]` (01,01) [Boat dock](#boat).
+1. `[0562]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit to `(00:25,13)`. Otherwise, gate-and-set `[b9,00]` to read paragraph #39.
 
 ### Actions
 
 | Special | Skill, Item, or Spell  | Event | Handler  |
 | :-----: | :--------------------: | :---: | :------: |
-|   #7    | *Bureaucracy, Hiding, Lockpick, Merchant,* or *Pickpocket* | #6 | `[01d2]` |
+|   #7    | *Bureaucracy, Hiding, Lockpick, Merchant, Pickpocket* | #6 | `[01d2]` |
 
 ## 0x0b War Bridge
 
@@ -745,22 +743,22 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
-| `b9,02`  |  `[b9]`   | `––*–––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                  |
+| :------: | :-------: | :--------: | ---------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Smelled the curious odor                 |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Killed the ladies of the Visitors Bureau |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Dealt the bridge guards                  |
 
-### Events (chunk 0x51)
+### Events
 
-1. `[00ee]`
-1. `[0113]`
-1. `[0135]`
-1. `[016c]`
-1. `[017f]`
-1. `[00e9]`
-1. `[01ff]`
-1. `[0196]` Default handler.
+1. `[00ee]` (06,06) Exit if `[b9,01]`. There's a 1 in 5 chance that the ladies of the Visitors Information Bureau attack you (combat #1); if you win, set `[b9,01]`. If they don't attack you, read paragraph #47 and display monster `0x11` (Wild Women).
+1. `[0113]` (06,04) Color text `{51:0114}`.
+1. `[0135]` (02,03),(04,03) Guards demand your pass. Display monster `0x24` (Pikemen), then color text `{51:013f}`.
+1. `[016c]` (03,03) If `![b9,02]`, run combat #0 (Guards and Pikemen). If you win, set `[b9,02]`.
+1. `[017f]`(02,03),(04,03) You show your pass. Set `[b9,02]`.
+1. `[00e9]` You stepped in the water.
+1. `[01ff]` (07,03) Run combat #2 (Murk Tree). If you win, erase this event.
+1. `[0196]` Default handler. If the party is outside (0,0)-(7,7), offer to exit to `(00:17,12)` if you're on the west side of the bridge (X<4) or `(00:19,12)` otherwise. If the party is inside that range and on the west side of the bridge (X<4), gate-and-set `[b9,00]` for color text `{51:01e6}`.
 
 ### Actions
 
@@ -776,25 +774,36 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
-| `b9,02`  |  `[b9]`   | `––*–––––` |         |
-| `b9,04`  |  `[b9]`   | `––––*–––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                       |
+| :------: | :-------: | :--------: | --------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` |                                               |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Appeased or killed the Scorpions              |
+| `b9,02`  |  `[b9]`   | `––*–––––` | The Scorpions block you from using the bridge |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the chest at (04,06)           |
 
-### Events (chunk 0x52)
+### Events
 
-1. `[00ed]`
-1. `[00f2]`
-1. `[0162]`
-1. `[01c5]`
-1. `[01e4]`
-1. `[01e9]`
-1. `[01ee]`
-1. `[01f3]`
-1. `[01fe]`
-1. `[0225]` Default handler.
+1. `[00ed]` You stepped in the water.
+
+1. `[00f2]` (02,03),(02,04) If you've already showed the Totem `[b9,01]`, killed the Scorpions `[99,87]`, or you aren't facing the bridge, exit. Otherwise, set `[b9,02]`, display monster `0x27` (scorpion guards), and color text `{52:010c}`.
+
+1. `[0162]` You display Enkidu's Totem. Exit if you killed the Scorpions `[99,87]`. Otherwise, color text `{52:0169}`, set `[b9,01]` and `![b9,02]`.
+
+1. `[01c5]` (03,03),(03,04) Exit if the Scorpions *aren't* angry `![b9,02]` or you killed them already `[99,87]`. Otherwise, run combat #0 (Scorpions). If you win, set `[99,87]`, `[b9,01]`, and `![b9,02]`.
+
+1. `[01e4]` (04,03),(04,04) Run combat #1 (Evil Spirits). If you win, erase this event.
+
+1. `[01e9]` (04,02),(04,05) Run combat #2 (Bears). If you win, erase this event.
+
+1. `[01ee]` (04,01) Run combat #3 (Dogs). If you win, erase this event.
+
+1. `[01f3]` (05,03),(05,04) Run combat #4 (Wolves). If you win, erase this event.
+
+1. `[01fe]` (04,06) If `![99,47]`, run combat #4 (Wolves). If you win, set `[99,47]` and open a [chest](#chest) (`[b9,04]`).
+
+1. `[0225]` Default handler. If the party is outside (0,0)-(7,7), offer to exit to `(00:30,19)` if you're on the west side of the bridge (X<4) or `(00:32,19)` otherwise.
+
+   Gate-and-set `[b9,00]`. If you're on the west side of the bridge (X<4), get paragraph #48, otherwise color text `{52:0275}`.
 
 ### Actions
 
@@ -810,17 +819,19 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                                |
+| :------: | :-------: | :--------: | ------------------------------------------------------ |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Intro text                                             |
+| `b9,01`  |  `[b9]`   | `–*––––––` | You touched the west side of the bridge (doors erased) |
 
-### Events (chunk 0x53)
+### Events
 
 1. `[00e1]` You stepped in water.
-2. `[020b]`
-3. `[0279]`
-4. `[00e6]` Default handler.
+2. `[020b]` (02,04) If you're facing the door, color text `{53:0218}`.
+3. `[0279]` (01,04) If `![b9,01]`, read paragraph #50, erase both doors, set `[b9,01]`, and erase this event.
+4. `[00e6]` Default handler. If the party is outside (0,0)-(7,7), offer to exit to `(00:06,18)` if you're on the west side of the bridge (X<4) or `(00:08,18)` otherwise.
+
+   Gate-and-set `[b9,00]`. If you're on the east side of the bridge (X>=4), color text `{53:013b}`. Otherwise, color text `{53:01d0}`, erase both doors, and set `[b9,01]`.
 
 ## 0x0e Necropolis
 
@@ -830,29 +841,42 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,04`  |  `[b9]`   | `––––*–––` |         |
-| `b9,06`  |  `[b9]`   | `––––––*–` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                          |
+| :------: | :-------: | :--------: | -------------------------------- |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the guarded chest |
+| `b9,06`  |  `[b9]`   | `––––––*–` | Have access to Nergal's treasure |
 
-### Events (chunk 0x54)
+### Events
 
-1. `[039c]`
-1. `[03a3]`
-1. `[03a8]`
-1. `[03c0]`
-1. `[03ff]`
-1. `[040a]`
-1. `[0421]`
-1. `[0445]`
-1. `[0464]`
-1. `[04e0]`
-1. `[061e]`
-1. `[065f]`
-1. `[06a7]`
-1. `[03b2]`
-1. `[03fa]`
-1. `[06f5]` Default handler.
+1. `[039c]` (07,14) [Boat dock](#dock).
+1. `[03a3]` You stepped in the water.
+1. `[03a8]` Run a random combat. If you win, erase this event.
+1. `[03c0]` (01,12) Gate-and-set `[99,08]` for access to the [chest](#chest) (`[b9,04]`) with the Stone Trunk.
+1. `[03ff]` (02,11),(02,13) Run combat #12 (Grim Guardians). If you win, erase this event.
+1. `[040a]` If you haven't burned out the spiders `![99,09]`, run combat #13 (Spiders). If you win, replace this with Event #7.
+1. `[0421]` If you haven't burned out the spiders `![99,09]`, color text `{54:0429}`.
+1. `[0445]` You burn out the spiders. Color text `{54:0446}` and set `[99,09]`.
+1. `[0464]` (05,07) Meet Nergal. If you haven't already fought his goons `![99,0a]`, display monster `0x2b`, read paragraph #114, and run combat #14. If you win, set `[99,0a]` and Nergal demands tribute (paragraph #115).
+
+   If you have fought his goons (either before or just now) but haven't fed him yet `![99,0b]`, display monster `0x2b` and color text `{54:0498}`, then exit while he waits for you to feed him.
+
+   If you have fought his goons `[99,0a]` and fed him `[99,0b]`, Nergal [leaves behind](#chest) (`[b9,06]`) the silver key and some important scrolls.
+1. `[04e0]` You give the Mushrooms to Nergal. Color text `{54:04e1}`, then pick a party member to have his head bitten off (paragraph #93). Color text `{54:052d}`,`{54:055a}`,`{54:0581}`, `{54:05d9}`. Set `[99,0b]` and `[b9,06]`
+1. `[061e]` (15,10) Color text `{54:061f}` (portal of power)
+1. `[065f]` (15,10) You use Arcane Lore; color text `{54:0660}` (portals are random)
+1. `[06a7]` (15,11) If the boat is here (`heap[bd]=0x1`), the teleporter takes you back to the dock `(07,14)`. Otherwise it picks a random location:
+
+   - Dilmun, 1N of Purgatory `(00:13,05)`
+   - Dilmun, 1S of the Slave Camp `(00:11,02)`
+   - The Forlorn/Sun guard bridge `(03:02,02)`
+   - The entrance to Mud Toad `(08:07,01)`
+   - The statue of Irkalla at Smuggler's Cove `(0a:06,05)`
+   - The E edge of the Bridge of Exiles `(0d:07,04)`
+   - The Necropolis boat dock `(0e:07,14)`
+
+1. `[03b2]` (00,07) Offer stairs down to the Well of Souls `(12:27,14)`.
+1. `[03fa]` (07,06) Run combat #11 (Stone Demon). If you win, erase this event.
+1. `[06f5]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. NE:`(00:28,15)` S:`(00:27,14)` W:`(00,26,15)`.
 
 ### Actions
 
@@ -876,20 +900,20 @@ ic,b)` -->
 
 ### Events
 
-1. `[00e9]` (02,04) Color text: if `bitsplit[99,0d]` is set, the stairs down are accessible `{55:0116}`. If not, the tunnel is blocked `{55:00f1}`.
-1. `[0137]` (04,04) Color text: a proud statue `{55:01e3}`. If `bitsplit[99,0d]` is not set, "the statue has no eyes" `{55:0185}`
-1. `[019e]` You use the Jade Eyes on the statue. Set `bitsplit[99,0d]` and write `[0061]<-0x10`, which opens the tunnel to access the stairs.
+1. `[00e9]` (02,04) Color text: if `[99,0d]`, the stairs down are accessible `{55:0116}`. If not, the tunnel is blocked `{55:00f1}`.
+1. `[0137]` (04,04) Color text: a proud statue `{55:01e3}`. If `![99,0d]`, "the statue has no eyes" `{55:0185}`
+1. `[019e]` You use the Jade Eyes on the statue. Set `[99,0d]` and write `[0061]<-0x10`, which opens the tunnel to access the stairs.
 1. `[01e2]` (04,01) Color text `{55:01e3}`.
 1. `[01fe]` (07,01) Color text `{55:01ff}`.
 1. `[0232]` (02,06) Color text `{55:0233}`.
 1. `[025a]` (05,04) Color text `{55:025b}`.
 1. `[0285]` (00,04) Stairs down to `(10:15,08)`.
-1. `[02d1]` (01,06) A [locked chest](#locked) (`bitsplit[99,28]`, difficulty 4) containing the Dwarf Hammer.
+1. `[02d1]` (01,06) A [locked chest](#locked) (`[99,28]`, difficulty 4) containing the Dwarf Hammer.
 
    > This is the same bitsplit as the chest in the Slave Camp, which unfortunately means you get to open one or the other but not both.
-1. `[0293]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. N:`(10,22)` E:`(11,21)` S:`(10,20)` W:`(09,21)` .
+1. `[0293]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. N:`(00:10,22)` E:`(00:11,21)` S:`(00:10,20)` W:`(00:09,21)` .
 
-   If `bitsplit[b9,00]` is not set and `bitsplit[99,0d]` is set, write `[0061]<-0x10` to open the tunnel.
+   If `![b9,00]` and `[99,0d]` is set, write `[0061]<-0x10` to open the tunnel.
 
    > ... [b9,00] isn't set anywhere on this map, though.
 
@@ -901,7 +925,7 @@ ic,b)` -->
 
 ## 0x10 Dwarf Clan Hall
 
-> Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0xe0=11100000`. Usually that texture is also an index into another list, but clearly not that one.
+> Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0xe0=11100000`. Usually that texture is also an index into another list, but clearly not that one. Maybe `0x7f` is literal, though?
 
 ### Flags
 
@@ -927,19 +951,19 @@ ic,b)` -->
 4. `[03e6]` (05,08) If the dwarves have been revived `[99,0e]`, color text `{56:03ee}` the smith is working. Otherwise color text `{56:040f}` the forge is empty.
 5. `[03d8]` (00,08) Stairs down to `(12:10,21)`.
 6. `[034a]` (01,08) Color text `{56:034b}`.
-7. `[0446]` You show the Skull of Roba to the smith. If the dwarves have been revived `[99,0e]`, get color text `{56:044d}` and set `bitsplit[99,0f]` and `bitsplit[99,6b]`.
+7. `[0446]` You show the Skull of Roba to the smith. If the dwarves have been revived `[99,0e]`, get color text `{56:044d}` and set `[99,0f]` and `[99,6b]`.
 8. `[04b6]` (06,05) Color text `{56:04b7}`.
 9. `[04f2]` (09,04) If the dwarves have *not* been revived `![99,0e]` or you stole from them `[99,10]`, run combat #1 (Gorgon). If you win (or the bits were set the other way), erase this event.
 10. `[0513]` (09,06) Color text `{56:0514}` warning you about the Gorgon fight, even if it isn't actually there.
 11. `[0534]` (08,15) If the dwarves have *not* been revived `![99,0e]` or you stole from them `[99,10]`, run combat #0 (Automata). If you win (or the bits were set the other way), erase this event.
 12. `[0545]` (07,11) If the dwarves have been revived `[99,0e]`, erase this event. Otherwise, if you *just* stole from them `[b9,01]`, run combat #0 (Automata) and erase this event if you win. Otherwise, read paragraph #118.
-13. `[0564]` (06,13) Gate-and-set `bitsplit[99,4c]` for the Bombs and Spiked Flail (`bitsplit[b9,03]`). If the dwarves have not been revived `[99,0e]`, you're stealing; set `bitsplit[99,10]`. Gate-and-set `bitsplit[b9,02]` for color text that indicates that you woke up the Automata. (also sets `bitsplit[b9,01]`).
+13. `[0564]` (06,13) Gate-and-set `[99,4c]` for the Bombs and Spiked Flail chest (`[b9,03]`). If the dwarves have not been revived `[99,0e]`, you're stealing; set `[99,10]`. Gate-and-set `[b9,02]` for color text that indicates that you woke up the Automata. (also sets `[b9,01]`).
 14. `[0663]` (09,12) and room. If the dwarves have not been revived `![99,0e]`, read paragraph #119. Otherwise, if you stole from them `[99,10]`, color text `{56:0678}` they don't like you. (*There's an Encounter all set where the dwarves attack you, but it never gets called. They even have a 2d4 breath weapon.*) Otherwise, color text `{56:069a}` they're rebuilding.
-15. `[06c0]` You depetrify the dwarves (so long as you didn't do that already); set `bitsplit[99,0e]` and read paragraph #38. If you haven't stolen from them `![99,10]`, **gain 500 XP** and color text `{56:06d8}` the dwarves give you access to their treasure. Otherwise color text `{56:0739}` they're pissed at you.
+15. `[06c0]` You depetrify the dwarves (so long as you didn't do that already); set `[99,0e]` and read paragraph #38. If you haven't stolen from them `![99,10]`, **gain 500 XP** and color text `{56:06d8}` the dwarves give you access to their treasure. Otherwise color text `{56:0739}` they're pissed at you.
 16. `[0761]` Do nothing.
-17. `[05eb]` Gate-and-set `bitsplit[99,4d]` for the Dragon Horn (`bitsplit[b9,06]`). 
-18. `[061d]` Gate-and-set `bitsplit[99,4e]` for the Crush Mace and Spell Staff  (`bitsplit[b9,07]`). 
-19. `[0761]` Default handler.
+17. `[05eb]` Gate-and-set `[99,4d]` for the Dragon Horn (`[b9,06]`). 
+18. `[061d]` Gate-and-set `[99,4e]` for the Crush Mace and Spell Staff (`[b9,07]`). 
+19. `[0761]` Default handler; do nothing.
 
 ### Actions
 
@@ -956,43 +980,49 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                               |
+| :------: | :-------: | :--------: | ----------------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Set upon entering the town and checking for the Sword |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Freeport has been deserted                            |
 
 ### Events (chunk 0x57)
 
-1. `[0386]`
-1. `[038d]`
-1. `[03b2]`
-1. `[03c6]`
-1. `[03ce]`
-1. `[03fa]`
-1. `[0392]`
-1. `[06ec]` (xx,xx)
-1. `[08f8]` (xx,xx) Gate-and-set `[99,07]`; you reveal the illusion, color text `{57:08ff}` and `{57:096e}`.
-1. `[09a1]`
-1. `[0a77]`
-1. `[0455]`
-1. `[0402]`
-1. `[0412]`
-1. `[0423]`
-1. `[0438]`
-1. `[0468]`
-1. `[0476]`
-1. `[048d]`
-1. `[04e1]`
-1. `[053f]`
-1. `[058b]`
-1. `[05e4]`
-1. `[0a3e]`
-1. `[0a4c]`
-1. `[0a51]`
-1. `[06d8]`
-1. `[08f6]`
-1. `[08f6]`
-1. `[0a9a]` Default handler.
+1. `[0386]` (14,15) [Boat dock](#boat).
+1. `[038d]` You stepped in the water.
+1. `[03b2]` (10,03) Color text `{57:03b6}` "Tars City Council"
+1. `[03c6]` (11,03) Read paragraph #56.
+1. `[03ce]` (02,12) Color text `{57:03d2}` "Freeport City Council"
+1. `[03fa]` (01,12) Read paragraph #57.
+1. `[0392]` Color text `{57:0393}` (harbor bridge).
+1. `[06ec]` (03,04) Exit if the Sword of Freedom has already been revealed `[99,07]`. Read paragraph 0x1b, color text `{57:0700}` with the world's most annoying apostrophe typo. Pick a player to take the sword. If you don't hit ESC to cancel, color text `{57:073f}`,`{57:079e}`,`{57:07b1}`,`{57:07d5}`,`{57:0819}`,`{57:0831}`, and finally `{57:084e}` and `{57:08e1}`. The player you picked is killed (0 Stn, 0 HP, flag 0x1). Set `[99,07]`.
+
+   > You know, you *have* a "personal pronoun" function. You aren't *obligated* to print the PC's name over and over again.
+1. `[08f8]` (03,04) Gate-and-set `[99,07]`; color text `{57:08ff}` and `{57:096e}` to reveal the illusionary sword.
+1. `[09a1]` (02,05) If the Sword has been revealed `[99,07]`, gate-and-set `[b9,01]`. Color text `{57:09b7}`; Freeport is a ghost town. Erase events #4, #6, and #19-24.
+
+   > Weird that this only takes place if you happen to step on the NW corner of the island after revealing the fake sword.
+1. `[0a77]` (14,08) If you haven't beaten them already `![99,4b]`, run combat #5 (Order of the Sword). If you win, set `[99,4b]` and there's a [locked chest](#locked) (`[99,4a]`, difficulty 4) with the Stone Hands.
+1. `[0455]` (03,15) Color text `{57:0459}` "The Temple Faith"
+1. `[0402]` (05,15) Color text `{57:0406}` "Ryan's Armor"
+1. `[0412]` (05,09) Color text `{57:0416}` "Freeport Arms"
+1. `[0423]` (13,07) Color text `{57:0427}` "The Brew's Brothers"
+1. `[0438]` (03,02) Color text `{57:043c}` "Bewitching Potions and Exilers"
+1. `[0468]` (07,02) Color text `{57:046c}` "Magic Inc."
+1. `[0476]` (13,08) Color text `{57:047a}` "The Order of the Sword"
+1. `[048d]` (07,01) High Magic [shop](#shop)
+1. `[04e1]` (04,09) Weapon [shop](#shop)
+1. `[053f]` (05,14) Armor [shop](#shop)
+1. `[058b]` (03,01) Dragon Stone [shop](#shop)
+1. `[05e4]` (14,07) [The Brew's Brothers](#tavern). Halifax is here.
+1. `[0a3e]` (02,07) If the Sword hasn't been revealed `![99,07]`, read paragraph #52.
+1. `[0a4c]` If you're facing S, hop across the bay `{57:0a5b}` .
+1. `[0a51]` ... N
+1. `[06d8]` (03,16) Temple ($4/hp).
+1. `[08f6]` Do nothing.
+1. `[08f6]` Do nothing.
+1. `[0a9a]` Default handler. If the party is outside (0,0)-(15,16), prompt to exit. NE:`(00:43,24)` S:`(00:43,22)` W:`(00:42,23)` . Gate-and-set `[b9,00]` to read paragraph #51 and run Event #10 (is Freeport a ghost town?)
+
+   > This is almost certainly a logic bug. If you enter the city, it immediately sets `[b9,00]`. Then when you touch the Sword, it sets `[b9,01]`. The next time you take a step, the default handler *should* clear out the city and print the "ghost town" message, but it doesn't, because `[b9,00]` was already set.
 
 ### Actions
 
@@ -1345,9 +1375,9 @@ ic,b)` -->
 
 | Special | Skill, Item, or Spell  | Event | Handler  |
 | :-----: | :--------------------: | :---: | :------: |
-| #7 |  item #9  |  0x8  | `[0428]` |
-| #10 |  Signet Ring  |  0xc  | `[0565]` |
-| #17 |  Branches, *Druid Magic*  |  0x13  | `[073b]` |
+| #7 |  item #9  |  #8  | `[0428]` |
+| #10 |  Signet Ring  |  #12  | `[0565]` |
+| #17 |  Branches, *Druid Magic*  |  #19  | `[073b]` |
 
 > Well, this is a poser... there *is no* item #9. It's clearly supposed to be the Jade Eyes, given paragraph #81 and the result is for the dwarf to encourage you to return them to the statue to reawaken the other dwarves. But if you bring the Eyes here and try to Use them on the Dwarf, it doesn't work.
 
@@ -1633,7 +1663,7 @@ ic,b)` -->
 1. `[046b]` (Room 4) Read paragraph #143 (philistine)
 1. `[0472]` (04,01) Set `heap[8a]=0xff` to prevent magic use. Run combat #0 (Philistine), then clear `heap[8a]`. If you lose, color text `{65:04e9}` and you're dumped outside `(04,06)`. If you win, color text `{65:0486}` and travel to `(05,01)`.
 
-   > Note that at this point, the walls around (06,02) are invisible and allow you to walk through them (metadata 22), and the door is visible. Also, I think this is the only place that `h[8a]` is ever used to create an anti-magic field.
+   > Note that at this point, the walls around (06,02) are invisible and allow you to walk through them (metadata 22), and the door is visible. Also, I think this is the only place that `h[8a]` is ever used to create an anti-magic field.
 1. `[051b]` (Room 5) Read paragraph #144 (granite block)
 1. `[0522]` (06,02) Color text `{65:0528}` (smashed to bits), then `{65:0574}`. You're dumped outside `(04,06)`.
 1. `[05aa]` (Room 5) Color text `{65:05ab}` (destroyed the block). Travel to `(06,03)`, as below.
@@ -2069,7 +2099,7 @@ The following byte is the number of rumor strings available from the tavern keep
 
 The tagline string is (usually, although not necessarily) next, then all of the rumor strings.
 
-NPC data starts with the NPC ID number, then the character's name (unpacked, variable-length), then five bytes for the five primary attributes (STR, DEX, INT, SPR, HP). When you add an NPC to your party, `bitsplit(99,57+ID)` is set.
+NPC data starts with the NPC ID number, then the character's name (unpacked, variable-length), then five bytes for the five primary attributes (STR, DEX, INT, SPR, HP). When you add an NPC to your party, `[99,57+ID]` is set.
 
 After the attributes, the next two bytes are the NPC's level.
 
@@ -2121,7 +2151,9 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 
 ## Sailing the Boat<a name="boat">
 
-There are five destinations. You pass in the index of your current location so that one isn't show on the list of choices.
+There are five destinations. You pass in the index of your current location so that one isn't shown on the list of choices.
+
+Your "parking space" is stored in `heap[bd]`. If you approach a dock that isn't the same as where you left the boat, you can't use the dock. (This is how Ugly drops you at the Necropolis; the parking space is still 0, the Necropolis dock, index 1, doesn't work.)
 
 - Pirate's Cove `(0a:01,01)`
 - Necropolis `(0e:07,14)`
@@ -2129,4 +2161,3 @@ There are five destinations. You pass in the index of your current location so t
 - Sunken Ruins `(00:39,14)`
 - Rustic `(00:29,28)`
 
-Your "parking space" is stored in `heap[bd]`.

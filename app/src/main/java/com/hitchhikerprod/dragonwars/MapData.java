@@ -25,6 +25,7 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 // Largely based on fcn.55bb
@@ -48,7 +49,7 @@ public class MapData {
     // private final RandomAccessFile executable;
     private final ChunkTable chunkTable;
     private final HintTable hintTable;
-    private final Chunk primaryData;
+    private Chunk primaryData;
     private final Chunk secondaryData;
     private final StringDecoder.LookupTable stringDecoderLookupTable;
 
@@ -103,9 +104,13 @@ public class MapData {
         this.hintTable = hintTable;
     }
 
+    public void parseDirty() throws IOException {
+        this.primaryData = this.chunkTable.getChunk(0x10);
+        parse();
+    }
 
-    public void parse(int offset) throws IOException {
-        chunkPointer = offset;
+    public void parse() throws IOException {
+        chunkPointer = 0;
         this.xMax = primaryData.getByte(chunkPointer);
         // for some reason this is one larger than it should be; see below
         this.yMax = primaryData.getByte(chunkPointer + 1);
@@ -135,7 +140,7 @@ public class MapData {
         titleString = sd.getDecodedString();
         // System.out.printf("Title string: %04x - %04x\n", titleStringAdr, sd.getPointer());
 
-        int ptr = chunkPointer - offset;
+        int ptr = chunkPointer;
         int xInc = xMax * 3;
         for (int y = 0; y <= yMax; y++) {
             rowPointers57e4.add(ptr);
@@ -579,7 +584,8 @@ public class MapData {
         if ((flags & 0x08) == 0) flagStrings.add("needs light");
         if ((flags & 0x04) == 0) flagStrings.add("needs compass");
         if ((flags & 0x02) > 0) flagStrings.add("wraps");
-        if ((flags & 0x01) > 0) flagStrings.add("0x01"); // Kingshome Dungeon
+        // Kingshome Dungeon; Slave Mines, but only after you break your chains
+        if ((flags & 0x01) > 0) flagStrings.add("0x01");
         return String.join(", ", flagStrings);
     }
 
@@ -679,15 +685,18 @@ public class MapData {
         }
     }
 
+    /**
+     * Run without arguments to parse the dirty primary map data from chunk 0x10.
+     * Otherwise, run with a board index like "0x05" (NOT a chunk index).
+     */
     public static void main(String[] args) {
         final String basePath = Properties.getInstance().basePath();
 
-        final int boardIndex;
-        try {
-            boardIndex = Integer.parseInt(args[0].substring(2), 16);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new RuntimeException("Insufficient arguments");
-        }
+        final Optional<Integer> boardIndex;
+        if (args.length > 1)
+            boardIndex = Optional.of(Integer.parseInt(args[0].substring(2), 16));
+        else
+            boardIndex = Optional.empty();
 
         try (
             final RandomAccessFile hints = new RandomAccessFile(basePath + "hints", "r");
@@ -697,8 +706,18 @@ public class MapData {
         ) {
             final ChunkTable chunkTable = new ChunkTable(data1, data2);
             final HintTable hintTable = new HintTable(hints);
-            final MapData mapData = new MapData(exec, chunkTable, boardIndex, hintTable);
-            mapData.parse(0);
+            final MapData mapData;
+
+            if (boardIndex.isPresent()) {
+                mapData = new MapData(exec, chunkTable, boardIndex.get(), hintTable);
+                mapData.parse();
+            } else {
+                System.out.println("Parsing dirty board data...\n");
+                data1.seek(0x3c1b);
+                final int mapId = data1.readUnsignedByte();
+                mapData = new MapData(exec, chunkTable, mapId, hintTable);
+                mapData.parseDirty();
+            }
             mapData.display();
             mapData.draw();
 

@@ -12,12 +12,12 @@
 | `99,03`  |  `[99]`   | `–––*––––` |              Slave Camp              | Have impressed the wizard                                    |
 | `99,04`  |  `[99]`   | `––––*–––` |              Slave Camp              | Have killed the guardian spirit                              |
 | `99,05`  |  `[99]`   | `–––––*––` |              Tars Ruins              | Have moved the stone slab                                    |
-| `99,06`  |  `[99]`   | `––––––*–` |           Smuggler's Cove            |                                                              |
+| `99,06`  |  `[99]`   | `––––––*–` |           Smuggler's Cove            | Killed the pirate crew                                       |
 | `99,07`  |  `[99]`   | `–––––––*` |               Freeport               | Have revealed the fake Sword of Freedom (one way or the other) |
-| `99,08`  |  `[9a]`   | `*–––––––` |              Necropolis              |                                                              |
-| `99,09`  |  `[9a]`   | `–*––––––` |              Necropolis              |                                                              |
-| `99,0a`  |  `[9a]`   | `––*–––––` |              Necropolis              |                                                              |
-| `99,0b`  |  `[9a]`   | `–––*––––` |              Necropolis              |                                                              |
+| `99,08`  |  `[9a]`   | `*–––––––` |              Necropolis              | Have access to the chest in the Guardian room                |
+| `99,09`  |  `[9a]`   | `–*––––––` |              Necropolis              | Burned out the Spiders' nest                                 |
+| `99,0a`  |  `[9a]`   | `––*–––––` |              Necropolis              | Beat Nergal's guards                                         |
+| `99,0b`  |  `[9a]`   | `–––*––––` |              Necropolis              | Fed Nergal Mushrooms                                         |
 | `99,0c`  |  `[9a]`   | `––––*–––` |                  —                   |                                                              |
 | `99,0d`  |  `[9a]`   | `–––––*––` |             Dwarf Ruins              | Used Jade Eyes to open the Dwarf Clan Hall                   |
 | `99,0e`  |  `[9a]`   | `––––––*–` |           Dwarf Clan Hall            | Depetrified the dwarves                                      |
@@ -64,7 +64,7 @@
 | `99,37`  |  `[9f]`   | `–––––––*` |                                      |                                                              |
 | `99,38`  |  `[a0]`   | `*–––––––` |          Phoebus, Mud Toad           | Attempted to meet Berengaria at the Icarus<br />(If 0, you don't get to meet him in Mud Toad) |
 | `99,39`  |  `[a0]`   | `–*––––––` |               Mud Toad               | Have access to the militia's cache                           |
-| `99,3a`  |  `[a0]`   | `––*–––––` |                                      |                                                              |
+| `99,3a`  |  `[a0]`   | `––*–––––` |           Smuggler's Cove            | Unlocked the pirate's treasure chest                         |
 | `99,3b`  |  `[a0]`   | `–––*––––` |                                      |                                                              |
 | `99,3c`  |  `[a0]`   | `––––*–––` |                                      |                                                              |
 | `99,3d`  |  `[a0]`   | `–––––*––` |                                      |                                                              |
@@ -77,11 +77,11 @@
 | `99,44`  |  `[a1]`   | `––––*–––` |                                      |                                                              |
 | `99,45`  |  `[a1]`   | `–––––*––` |                                      |                                                              |
 | `99,46`  |  `[a1]`   | `––––––*–` |              Byzanople               | Have unlocked the Fire Shield chest                          |
-| `99,47`  |  `[a1]`   | `–––––––*` |                                      |                                                              |
+| `99,47`  |  `[a1]`   | `–––––––*` |           Scorpion Bridge            | Have access to the chest                                     |
 | `99,48`  |  `[a2]`   | `*–––––––` |             Sunken Ruins             | Have access to the chest                                     |
 | `99,49`  |  `[a2]`   | `–*––––––` |                                      |                                                              |
-| `99,4a`  |  `[a2]`   | `––*–––––` |                                      |                                                              |
-| `99,4b`  |  `[a2]`   | `–––*––––` |                                      |                                                              |
+| `99,4a`  |  `[a2]`   | `––*–––––` |               Freeport               | Have unlocked the Order's chest                              |
+| `99,4b`  |  `[a2]`   | `–––*––––` |               Freeport               | Have defeated the Order of the Sword                         |
 | `99,4c`  |  `[a2]`   | `––––*–––` |                                      |                                                              |
 | `99,4d`  |  `[a2]`   | `–––––*––` |                                      |                                                              |
 | `99,4e`  |  `[a2]`   | `––––––*–` |                                      |                                                              |
@@ -141,7 +141,7 @@
 | `99,84`  |  `[a9]`   | `––––*–––` |           Magan Underworld           |                                                              |
 | `99,85`  |  `[a9]`   | `–––––*––` |           Magan Underworld           |                                                              |
 | `99,86`  |  `[a9]`   | `––––––*–` |           Magan Underworld           |                                                              |
-| `99,87`  |  `[a9]`   | `–––––––*` |           Scorpion Bridge            |                                                              |
+| `99,87`  |  `[a9]`   | `–––––––*` |           Scorpion Bridge            | Killed the Scorpion guards                                   |
 | `99,88`  |  `[aa]`   | `*–––––––` |           Tars Underground           | Have opened the Stone Arms cache                             |
 
 ## Marching Order
