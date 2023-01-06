@@ -4,37 +4,38 @@ Active character data is stored in `DATA1` in consecutive 512-byte blocks starti
 
 Here's how the data breaks down within one of those 512-byte blocks:
 
-| Offset  |  Size  | Meaning                                           |
-| :-----: | :----: | ------------------------------------------------- |
-| `0x000` | `0x12` | Character **Name**                                |
-| `0x00c` | `0x02` | **Strength** (current, normal)                    |
-| `0x00e` | `0x02` | **Dexterity** (current, normal)                   |
-| `0x010` | `0x02` | **Intelligence** (current, normal)                |
-| `0x012` | `0x02` | **Spirit** (current, normal)                      |
-| `0x014` | `0x04` | **Health** (current, normal)                      |
-| `0x018` | `0x04` | **Stun** (current, normal)                        |
-| `0x01c` | `0x04` | **Power** (current, normal)                       |
-| `0x020` | `0x1b` | **[Skills](Skills.md)**, one byte each            |
-| `0x03b` | `0x01` | **AP** available to spend on new skills           |
-| `0x03c` | `0x08` | **[Spells](Spells.md)**, as a series of bitfields |
-| `0x044` |        | always zero                                       |
-| `0x04c` | `0x01` | **Status** bitfield                               |
-| `0x04d` | `0x01` | **NPC** Identifier                                |
-| `0x04e` | `0x01` | **Gender**                                        |
-| `0x04f` | `0x02` | Experience **Level**                              |
-| `0x051` | `0x04` | **XP**                                            |
-| `0x055` | `0x04` | **Gold**                                          |
-| `0x059` | `0x01` | **AV** (based on DEX and equipment, not skills)   |
-| `0x05a` | `0x01` | **DV**                                            |
-| `0x05b` | `0x01` | **Armor Class**                                   |
-| `0x05c` | `0x01` | **Flags**, see below                              |
-| `0x05d` |        | alignment bytes                                   |
-| `0x064` | `0x01` | temporary **AV** modifier (during combat)         |
-| `0x065` | `0x01` | temporary **DV** modifier (during combat)         |
-| `0x0ec` | `0x17` | **Inventory** slot A                              |
-| `0x103` | `0x17` | **Inventory** slot B                              |
-|   ...   |        |                                                   |
-| `0x1e9` | `0x17` | **Inventory** slot M                              |
+| Offset  |  Size  | Meaning                                                     |
+| :-----: | :----: | ----------------------------------------------------------- |
+| `0x000` | `0x12` | Character **Name**                                          |
+| `0x00c` | `0x02` | **Strength** (current, normal)                              |
+| `0x00e` | `0x02` | **Dexterity** (current, normal)                             |
+| `0x010` | `0x02` | **Intelligence** (current, normal)                          |
+| `0x012` | `0x02` | **Spirit** (current, normal)                                |
+| `0x014` | `0x04` | **Health** (current, normal)                                |
+| `0x018` | `0x04` | **Stun** (current, normal)                                  |
+| `0x01c` | `0x04` | **Power** (current, normal)                                 |
+| `0x020` | `0x1b` | **[Skills](Skills.md)**, one byte each                      |
+| `0x03b` | `0x01` | **AP** available to spend on new skills                     |
+| `0x03c` | `0x08` | **[Spells](Spells.md)**, as a series of bitfields           |
+| `0x044` |        | always zero                                                 |
+| `0x04c` | `0x01` | **Status** bitfield                                         |
+| `0x04d` | `0x01` | **NPC** Identifier                                          |
+| `0x04e` | `0x01` | **Gender**                                                  |
+| `0x04f` | `0x02` | Experience **Level**                                        |
+| `0x051` | `0x04` | **XP**                                                      |
+| `0x055` | `0x04` | **Gold**                                                    |
+| `0x059` | `0x01` | **AV** (based on DEX and equipment, not skills)             |
+| `0x05a` | `0x01` | **DV**                                                      |
+| `0x05b` | `0x01` | **Armor Class**                                             |
+| `0x05c` | `0x01` | **Flags**, see below                                        |
+| `0x05d` |        | alignment bytes                                             |
+| `0x064` | `0x01` | temporary **AV** modifier (during combat)                   |
+| `0x065` | `0x01` | temporary **DV** modifier (during combat)                   |
+| `0x066` | `0x01` | if summoned creature, number of hours of lifespan remaining |
+| `0x0ec` | `0x17` | **Inventory** slot A                                        |
+| `0x103` | `0x17` | **Inventory** slot B                                        |
+|   ...   |        |                                                             |
+| `0x1e9` | `0x17` | **Inventory** slot M                                        |
 
 **Attributes** like Strength are stored as two values: the current value as modified by magical effects, and the character's base value. Temporary magical effects that last the duration of a battle are also sometimes stored in the alignment section, such as AV (`[64]`) and DV (`[65]`) bonuses. Summoned creatures store their lifespan at `[66]`.
 

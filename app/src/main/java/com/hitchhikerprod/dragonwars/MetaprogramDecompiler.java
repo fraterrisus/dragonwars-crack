@@ -304,7 +304,7 @@ public class MetaprogramDecompiler {
     }
 
     private void dataOpenChest() {
-        decodeWords(1);
+        decodeWords(1); // return address
         final int bitsplit = chunk.getUnsignedByte(this.pointer);
         System.out.printf("%08x  .data %02x", this.pointer, bitsplit);
         this.pointer++;
@@ -312,7 +312,7 @@ public class MetaprogramDecompiler {
             System.out.printf("      test heap[%02x + 99], 0x%02x", (bitsplit >> 3), 0x80 >> (bitsplit & 0x7));
         }
         System.out.println();
-        decodeData(1); // only run the chest if this value is 0x00
+        decodeData(1); // if >0, chest is locked and this is the difficulty level
         decodeWordsUntil(0xff);
     }
 
@@ -736,7 +736,7 @@ public class MetaprogramDecompiler {
         new Instruction("clr heap[immA.h + immB], 0x80 >> immA.l", compose(immIndex, immIndex)),
         new Instruction("test heap[immA.h + immB], 0x80 >> immA.l", compose(immIndex, immIndex)),
         new Instruction("ax <- getStructSize(str:ax)", immNone),
-        new Instruction("*039f()", immNone)
+        new Instruction("you_win_slideshow()", immNone)
     );
 
     private String calculateLongTarget(String operation) {

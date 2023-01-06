@@ -55,14 +55,14 @@ Byte 1: map height (max Y). This value is 1 larger than it should be; internally
 
 Byte 2 contains flags for the map:
 
-| Byte`[02]` | Meaning                               |
-| :--------: | ------------------------------------- |
-| `––1–––––` | *unknown* (Kingshome Dungeon)         |
-| `–––1––––` | Map allows the use of *D:Create Wall* |
-| `––––1–––` | Map provides light for you            |
-| `–––––1––` | Compass is displayed                  |
-| `––––––1–` | Map wraps around                      |
-| `–––––––1` | *unknown* (Kingshome Dungeon)         |
+| Byte`[02]` | Meaning                                                      |
+| :--------: | ------------------------------------------------------------ |
+| `––1–––––` | *unknown* (Kingshome Dungeon)                                |
+| `–––1––––` | Map allows the use of *D:Create Wall*                        |
+| `––––1–––` | Map provides light for you                                   |
+| `–––––1––` | Compass is displayed                                         |
+| `––––––1–` | Map wraps around                                             |
+| `–––––––1` | *unknown* (Kingshome Dungeon, Slave Mines after losing your Chains) |
 
 Byte 3: chance of a random encounter. If 0, random encounters don't occur on this map. Otherwise, the chance of an encounter is "1 in `x`", so if this value is 1, you will get a random encounter on literally every step. Larger values mean a lower chance of an encounter.
 
@@ -119,7 +119,7 @@ Stored in the array at `0x54b6`, and often saved to `heap[26]`.
 | `10––––––` | Wall is passable, but only with Kick (i.e. an open door or secret door) |
 | `–1––––––` | Wall is solid / impassable (i.e. a locked door or regular wall) |
 | `––1–––––` | *D:Soften Stone* does *not* work on this wall                |
-| `–––1––––` | ???                                                          |
+| `–––1––––` | *unknown*                                                    |
 | `––––****` | Wall specials (see below)                                    |
 
 *Purgatory*: most walls are `d1` (solid, impassable, susceptible to Soften, and ???) but the walls of the Arena are `e1` (solid, impassable, immune to Soften, and not ???).

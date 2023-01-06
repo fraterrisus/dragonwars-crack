@@ -48,6 +48,7 @@ public class HintTable {
 
     public static void parse(Map<Integer, Map<Integer, Hint>> hintMap, Stream<String> lines) {
         lines.forEach(line -> {
+            if (line.startsWith(("#"))) { return; }
             final Matcher matcher = hintPattern.matcher(line);
             if (! matcher.matches()) {
                 throw new RuntimeException("Parse error: " + line);

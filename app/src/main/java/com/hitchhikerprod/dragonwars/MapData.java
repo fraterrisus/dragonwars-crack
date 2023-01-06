@@ -374,7 +374,7 @@ public class MapData {
                     gfx.fill(door);
                 }
             }
-            gfx.setColor(Color.RED);
+            gfx.setColor(new Color(0xff, 0xaa, 0xaa));
             gfx.drawString(String.format("%02x", metadata & 0xff), (int) door.getX(), (int) door.getY() - 2);
         }
     }
@@ -693,7 +693,7 @@ public class MapData {
         final String basePath = Properties.getInstance().basePath();
 
         final Optional<Integer> boardIndex;
-        if (args.length > 1)
+        if (args.length > 0)
             boardIndex = Optional.of(Integer.parseInt(args[0].substring(2), 16));
         else
             boardIndex = Optional.empty();

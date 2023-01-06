@@ -188,7 +188,7 @@ ic,b)` -->
 
     > When you pay for healing, the game automatically pools your gold with the first PC. This shouldn't be a problem, unlike in some games where the max gold per PC is ridiculously low.
 
-41. `[1653]` (23,02) Magic refresh pool. Non-dead characters have their Power restored to max.
+41. `[1653]` (23,02) Magic refresh pool. Color text `{47:1654}`. Non-dead characters have their Power restored to max.
 
 42. `[1684]` Default handler. If party is outside the rectangle (0,0)-(33,33), ask to exit. Otherwise, check if we're outside (roof texture 0) or inside, and if inside, set the random encounter counter (`[0003]`) to `0x64` (1 in 100).
     - North: `(00:0f,05)` — *oops*, this really ought to be `(00:0d,05)`.
@@ -475,7 +475,7 @@ ic,b)` -->
 
 25. `[0829]` (14,15) Color text `{4c:028a}` for the tavern.
 
-26. ` [07d0]` Default handler. If the party is outside (1,1)-(16,16), prompt to exit. N:`(00:05,12)` E:`(00:06,11)` S:`(00:05,10)` W:`(00,04,12)`.
+26. ` [07d0]` Default handler. If the party is outside (1,1)-(16,16), prompt to exit. N:`(00:05,12)` E:`(00:06,11)` S:`(00:05,10)` W:`(00:04,12)`.
 
     > The map dimensions are (00,00)-(17,17), but the the walls can't be Softened, so you can really only exit to the S.
 
@@ -601,7 +601,7 @@ ic,b)` -->
 
 18. `[0943]` Run a random combat, then erase this event if you win.
 
-19. `[08f4]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. N:`(00:25,09)` E:`(00:26,08)` S:`(00:25,07)` W:`(00,24,08)`.
+19. `[08f4]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. N:`(00:25,09)` E:`(00:26,08)` S:`(00:25,07)` W:`(00:24,08)`.
 
     Gate-and-set `[b9,00]` to read paragraph #29. If you've already talked to the priests after sealing the leak `[99,56]`, put a wall there. If `[99,1a-1d]` are all set, update the decoration texture on the statue to `0x05` (repaired statue).
 
@@ -831,7 +831,7 @@ ic,b)` -->
 3. `[0279]` (01,04) If `![b9,01]`, read paragraph #50, erase both doors, set `[b9,01]`, and erase this event.
 4. `[00e6]` Default handler. If the party is outside (0,0)-(7,7), offer to exit to `(00:06,18)` if you're on the west side of the bridge (X<4) or `(00:08,18)` otherwise.
 
-   Gate-and-set `[b9,00]`. If you're on the east side of the bridge (X>=4), color text `{53:013b}`. Otherwise, color text `{53:01d0}`, erase both doors, and set `[b9,01]`.
+   Gate-and-set `[b9,00]`. If you're on the east side of the bridge (X>=4), color text `{53:013b}`. Otherwise, color text `{53:01d0}`, erase both doors, and set `[b9,01]`.
 
 ## 0x0e Necropolis
 
@@ -858,9 +858,9 @@ ic,b)` -->
 1. `[0445]` You burn out the spiders. Color text `{54:0446}` and set `[99,09]`.
 1. `[0464]` (05,07) Meet Nergal. If you haven't already fought his goons `![99,0a]`, display monster `0x2b`, read paragraph #114, and run combat #14. If you win, set `[99,0a]` and Nergal demands tribute (paragraph #115).
 
-   If you have fought his goons (either before or just now) but haven't fed him yet `![99,0b]`, display monster `0x2b` and color text `{54:0498}`, then exit while he waits for you to feed him.
+   If you have fought his goons (either before or just now) but haven't fed him yet `![99,0b]`, display monster `0x2b` and color text `{54:0498}`, then exit while he waits for you to feed him.
 
-   If you have fought his goons `[99,0a]` and fed him `[99,0b]`, Nergal [leaves behind](#chest) (`[b9,06]`) the silver key and some important scrolls.
+   If you have fought his goons `[99,0a]` and fed him `[99,0b]`, Nergal [leaves behind](#chest) (`[b9,06]`) the silver key and some important scrolls.
 1. `[04e0]` You give the Mushrooms to Nergal. Color text `{54:04e1}`, then pick a party member to have his head bitten off (paragraph #93). Color text `{54:052d}`,`{54:055a}`,`{54:0581}`, `{54:05d9}`. Set `[99,0b]` and `[b9,06]`
 1. `[061e]` (15,10) Color text `{54:061f}` (portal of power)
 1. `[065f]` (15,10) You use Arcane Lore; color text `{54:0660}` (portals are random)
@@ -876,7 +876,7 @@ ic,b)` -->
 
 1. `[03b2]` (00,07) Offer stairs down to the Well of Souls `(12:27,14)`.
 1. `[03fa]` (07,06) Run combat #11 (Stone Demon). If you win, erase this event.
-1. `[06f5]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. NE:`(00:28,15)` S:`(00:27,14)` W:`(00,26,15)`.
+1. `[06f5]` Default handler. If the party is outside (0,0)-(16,16), prompt to exit. NE:`(00:28,15)` S:`(00:27,14)` W:`(00:26,15)`.
 
 ### Actions
 
@@ -925,7 +925,7 @@ ic,b)` -->
 
 ## 0x10 Dwarf Clan Hall
 
-> Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0xe0=11100000`. Usually that texture is also an index into another list, but clearly not that one. Maybe `0x7f` is literal, though?
+> Random cool thing: The invisible wall is index 4, texture `0x7f` and metadata `0xe0=11100000`. Usually that texture is also an index into another list, but clearly not that one. Maybe `0x7f` is literal, though?
 
 ### Flags
 
@@ -985,7 +985,7 @@ ic,b)` -->
 | `b9,00`  |  `[b9]`   | `*–––––––` | Set upon entering the town and checking for the Sword |
 | `b9,01`  |  `[b9]`   | `–*––––––` | Freeport has been deserted                            |
 
-### Events (chunk 0x57)
+### Events
 
 1. `[0386]` (14,15) [Boat dock](#boat).
 1. `[038d]` You stepped in the water.
@@ -996,7 +996,7 @@ ic,b)` -->
 1. `[0392]` Color text `{57:0393}` (harbor bridge).
 1. `[06ec]` (03,04) Exit if the Sword of Freedom has already been revealed `[99,07]`. Read paragraph 0x1b, color text `{57:0700}` with the world's most annoying apostrophe typo. Pick a player to take the sword. If you don't hit ESC to cancel, color text `{57:073f}`,`{57:079e}`,`{57:07b1}`,`{57:07d5}`,`{57:0819}`,`{57:0831}`, and finally `{57:084e}` and `{57:08e1}`. The player you picked is killed (0 Stn, 0 HP, flag 0x1). Set `[99,07]`.
 
-   > You know, you *have* a "personal pronoun" function. You aren't *obligated* to print the PC's name over and over again.
+   > You know, you *have* a "personal pronoun" function. You aren't *obligated* to print the PC's name over and over again.
 1. `[08f8]` (03,04) Gate-and-set `[99,07]`; color text `{57:08ff}` and `{57:096e}` to reveal the illusionary sword.
 1. `[09a1]` (02,05) If the Sword has been revealed `[99,07]`, gate-and-set `[b9,01]`. Color text `{57:09b7}`; Freeport is a ghost town. Erase events #4, #6, and #19-24.
 
@@ -1022,7 +1022,7 @@ ic,b)` -->
 1. `[08f6]` Do nothing.
 1. `[0a9a]` Default handler. If the party is outside (0,0)-(15,16), prompt to exit. NE:`(00:43,24)` S:`(00:43,22)` W:`(00:42,23)` . Gate-and-set `[b9,00]` to read paragraph #51 and run Event #10 (is Freeport a ghost town?)
 
-   > This is almost certainly a logic bug. If you enter the city, it immediately sets `[b9,00]`. Then when you touch the Sword, it sets `[b9,01]`. The next time you take a step, the default handler *should* clear out the city and print the "ghost town" message, but it doesn't, because `[b9,00]` was already set.
+   > This is almost certainly a logic bug. If you enter the city, it immediately sets `[b9,00]`. Then when you touch the Sword, it sets `[b9,01]`. The next time you take a step, the default handler *should* clear out the city and print the "ghost town" message, but it doesn't, because `[b9,00]` was already set.
 
 ### Actions
 
@@ -1042,59 +1042,68 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
-| `b9,02`  |  `[b9]`   | `––*–––––` |         |
-| `b9,04`  |  `[b9]`   | `––––*–––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                               |
+| :------: | :-------: | :--------: | ------------------------------------- |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Paid the fairies' toll                |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have access to the Water Potion chest |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Defeated Namtar the second time       |
 
-### Events (chunk 0x58)
+### Events
 
-1. `[0c65]`
-1. `[0c6a]`
-1. `[0c84]`
-1. `[0c90]`
-1. `[0c9c]`
-1. `[0ca8]`
-1. `[0cb4]`
-1. `[0cc0]`
-1. `[1147]`
-1. `[1166]`
-1. `[135c]`
-1. `[0ccc]`
-1. `[0cfd]`
-1. `[1147]`
-1. `[0dce]` You cast *D:Scare*. Gate-and-set `[99,55]` to permanently scare off the fairies `{58:0dd8}`.
-1. `[0e04]`
-1. `[0e7d]`
-1. `[0ebd]`
-1. `[0ed6]`
-1. `[0f5e]`
-1. `[0fbb]`
-1. `[0fc0]`
-1. `[0f82]`
-1. `[0f9a]`
-1. `[0fe4]`
-1. `[1018]`
-1. `[10ff]`
-1. `[125d]`
-1. `[135e]`
-1. `[1280]`
-1. `[128d]`
-1. `[11e5]`
-1. `[1334]`
-1. `[135c]` Default handler.
+1. `[0c65]` You stepped in the water.
+1. `[0c6a]` (13,04) Stairs up to Purgatory `(01:07,12)`, but only if no one in the party has the Dead Body of Namtar
+1. `[0c84]` (19,19) Stairs up to Salvation `(03:03,04)`, but only if...
+1. `[0c90]` (19,04) Stairs up to the Tars Dungeon `(27:00,05)`, but only if...
+1. `[0c9c]` (10,21) Stairs up to the Dwarven forge `(10:00,08)`, but only if...
+1. `[0ca8]` (27,14) Stairs up to the Necropolis `(0e:00,07)`, but only if...
+1. `[0cb4]` (16,14) Stairs up to Lansk Undercity `(26:14,05)`, but only if...
+1. `[0cc0]` (02,06) Stairs up to the Mystic Wood (`17:04,15)`, but only if...
+1. `[1147]` (20,20) Color text `{58:1148}`. You can't cast *D:Scare* from here.
+1. `[1166]` (20,19) and surrounding.
+   - If you've already beaten Namtar twice `[b9,04]` and don't have the Dead Body in your inventory, open a [chest](#chest) (`[99,86]`) with the Dead Body.
+   - If you haven't `![b9,04]` and you *do* have the Dead Body, drop it, set `[b9,04]`, set `heap[bd]` to prevent Running, and run combat #12. If you lose, do it again. If you win, set `[99,86]` and open the chest.
+   - Color text `{58:11b9}` 
+
+1. `[135c]` (14,16) The Lansk Balcony; do nothing.
+1. `[0ccc]` (14,14) Color text `{58:0ccd}`.
+1. `[0cfd]` (20,22) If you *Scared* them off `[99,55]` or have already paid their toll `[b9,01]`, the fairies watch you pass `{58:0d83}`. Otherwise, they demand "the price of life". Agree, and your Health and Stun are both set to 1; set `[b9,01]` and color text `{58:0d60}`. Refuse, and they don't let you pass `{58:0da5}`.
+1. `[1147]` (20,21),(20,23) Color text `{58:1148}`.
+1. `[0dce]` You cast *D:Scare* while next to the Fairies. Gate-and-set `[99,55]` to **permanently scare them off** `{58:0dd8}`.
+1. `[0e04]` (26,16) If anyone in your party has prayed to Irkalla (character flag `0x80`), you are welcome `{58:0e0f}` to her realm. Otherwise you're kicked out `{58:0e35}`.
+1. `[0e7d]` (12,29) Color text `{58:0e83}`. If you enter the cave, read paragraph #127.
+1. `[0ebd]` (03,11) You find the Well of Souls `{58:0ebe}`.
+1. `[0ed6]` You used *Arcane Lore* at the Well. Color text `{58:0eda}` and you're asked which character's body to throw into the well. It doesn't work if they aren't dead `{58:0f33}`. Otherwise, read paragraph #128; the character is no longer dead (`0x01`) but they are stunned (`0x80`) and given 1 HP.
+1. `[0f5e]` You step in flames `{58:0f5f}`. Take 1 HP damage.
+1. `[0fbb]` (02,17) You hop to the Isle. Face E, step forward twice, and color text `{58:0fc7}`.
+1. `[0fc0]` (04,17) You hop off the Isle. Face W...
+1. `[0f82]` (02,17) Color text `{58:0f83}`.
+1. `[0f9a]` (04,17) Color text `{58:0f9b}`.
+1. `[0fe4]` (05,17) If you haven't freed Irkalla yet `![99,6a]`, display monster `0x2f` (Irkalla) and read paragraph #137. Otherwise, run a [chest](#chest) (`[b9,02]`) with the Water Breathing potion.
+1. `[1018]` Gate-and-set `[99,6a]` to free Irkalla from her chains with Nergal's key. Drop the Silver Key, color text `{58:1025}` and `{58:10c1}`, set `[b9,02]`, and **gain 500 XP**.
+1. `[10ff]` (05,18) Run a [chest](#chest) (`[99,6b]`) with paragraph #138 and the Sword of Freedom. Color text `{58:111b}`.
+1. `[125d]` (31,02) If `![99,73]`, run combat `0x1b` (**which doesn't exist?**). If you win, set `[99,73]` and open a [locked chest](#locked) (`[99,72]`, **difficulty 3**) with the Rusty Axe.
+1. `[135e]` You throw Namtar's body into The Pit. Run the "You Win" slideshow.
+1. `[1280]` (11,24) Run a [locked chest](#locked) (`[99,7b]`) with The Slicer and some Dragon Stones.
+1. `[128d]` (28,18) Gate-and-set `[99,81]` and take the Leap of Faith `{58:129c}`,`{58:12cf}`,`{58:1307}`. All party members are granted +5 AP.
+1. `[11e5]` (09,12) First fight with Namtar.
+   - If you've already beaten Namtar once `[99,85]`, run a [chest](#chest) (`[99,83]`) with the Dead Body.
+   - If you haven't `![99,85]`...
+     - If you have the Dead Body in your inventory, drop it and set `[99,84]`. Now you don't.
+     - If you don't have the Dead Body but `[99,84]`, run combat #11. If you lose, run away. If you win, set `[99,83]` and `[99,85]`. Now you've beaten Namtar, so run the chest.
+
+1. `[1334]` (09,14) Magic refresh pool. Color text `{58:1335}`. Non-dead characters have their Power restored to max.
+1. `[135c]` Default handler; do nothing.
 
 ### Actions
 
-| Special | Skill, Item, or Spell  | Event | Handler  |
-| :-----: | :--------------------: | :---: | :------: |
-|   #14   | *D:Scare*              |  #15  | `[0dce]` |
-|   #18   | *Arcane Lore*          |  #19  | `[0ed6]` |
-|   #23   | Golden Boots           |  #21  | `[0fbb]` |
-|   #24   | Golden Boots           |  #22  | `[0fc0]` |
-|   #25   | Silver Key             |  #26  | `[1018]` |
-|   #10   | Dead Body              |  #27  | `[135e]` |
+| Special | Skill, Item, or Spell | Event | Handler  |
+| :-----: | :-------------------: | :---: | :------: |
+|   #14   |       *D:Scare*       |  #15  | `[0dce]` |
+|   #18   |     *Arcane Lore*     |  #19  | `[0ed6]` |
+|   #23   |     Golden Boots      |  #21  | `[0fbb]` |
+|   #24   |     Golden Boots      |  #22  | `[0fc0]` |
+|   #25   |      Silver Key       |  #26  | `[1018]` |
+|   #10   |       Dead Body       |  #29  | `[135e]` |
 
 ## 0x13 Slave Mines
 
@@ -1105,39 +1114,62 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
-| `b9,02`  |  `[b9]`   | `––*–––––` |         |
-| `b9,03`  |  `[b9]`   | `–––*––––` |         |
-| `b9,04`  |  `[b9]`   | `––––*–––` |         |
-| `b9,05`  |  `[b9]`   | `–––––*––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                  |
+| :------: | :-------: | :--------: | ---------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Ran the "sold into slavery" routine once |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Party has been chained                   |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have access to the Tin Cup               |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Have access to the Rocks                 |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the Pick Handle           |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Have access to the Shoelaces             |
 
-### Events (chunk 0x59)
+### Events
 
-1. `[0343]`
-1. `[0352]`
-1. `[0395]`
-1. `[03c2]`
-1. `[0716]`
-1. `[03dd]`
-1. `[03e5]`
-1. `[040d]`
-1. `[0439]`
-1. `[0462]`
-1. `[049e]`
-1. `[04d5]` You fill the Cup.
-1. `[0483]` You give water to the dying man.
-1. `[0509]` You use the parts to fashion a hammer.
-1. `[058a]` You use the hammer to break your chains.
-1. `[05ca]`
-1. `[0600]`
-1. `[066a]`
-1. `[089d]`
-1. `[08a2]`
-1. `[08a7]`
-1. `[067d]` Default handler.
+1. `[0343]` (05,11) Stairs up to Slave Estate `(25:05,12)`
+
+1. `[0352]` (08,08) If you're still a slave `[b9,01]`, guards sneer at you `{59:035a}`. Otherwise, run combat #0 (Guards). If you win, erase this event.
+
+1. `[0395]` (13,04) The garbage pile `{59:0396}` is north of here.
+
+1. `[03c2]` (13,02) and surroundings. This room stinks `{59:03c3}`.
+
+1. `[0716]` (13,05) A garbage pile. If you didn't have any inventory when you came in, color text `{59:071f}`. Otherwise, your discarded inventory is here `{59:0742}`, but you can't pick it up if you're still chained (status `0x2`). The rest of this routine is basically the same as "get loot from chest" except there can be a larger number of items to pick up.
+
+1. `[03dd]` (04,05) Read paragraph #60.
+
+1. `[03e5]` (02,15) A ["chest"](#chest) (`[b9,02]`) with a tin cup.
+
+1. `[040d]` (12,08) A [pile](#chest) (`[b9,03]`) of loose rocks.
+
+1. `[0439]` (07,01) A pile of [debris](#chest) (`[b9,04]`) with a pick handle.
+
+1. `[0462]` (12,12) A feeble little spring `{59:0463}`
+
+1. `[049e]` (03,06) If the old man is dead `[99,36]`, you find his [shoelaces](#chest) (`[b9,05]`). Otherwise, the dying old man begs for water `{59:04a5}`. 
+
+1. `[04d5]` (03,06) You use the Cup on the old man. If he's dead `[99,36]`, exit. If the Cup is empty (item flag `0x0`), he scolds you and asks for water `{59:04e3}`. If the Cup is full (item flag `0x1`), read paragraph #61. He dies `[99,36]` and wills you the laces from his boots `[b9,05]`.
+
+1. `[0483]` (12,12) You fill the Cup `{59:0488}`. Set item flag `0x1` .
+
+1. `[0509]` You use one of the hammer parts. If you have all three parts (Rocks, Laces, Handle), drop them and pick up the Crude Hammer. Otherwise, you're still missing something `{59:0558}`.
+
+1. `[058a]` Gate-and-set `![b9,01]` to break your chains `{59:059d}`. Set board flag `0x1` (**purpose unknown**). Drop the Hammer and all the Chains, then clear status bit `0x2` from everyone in the party.
+
+1. `[05ca]` (04,12) If you haven't defeated the guards yet `![99,33]`, they're blocking the exit `{59:05d1}`.
+
+1. `[0600]` (05,12) If you're still wearing chains `[b9,01]`, the guards `{59,0627}` drag you back into the mines (05,06). Otherwise, run combat #3 (Guards and Slave Boss). If you win, read paragraph #62, set `[99,33]`, and erase this event.
+
+1. `[066a]` (04,11) A [locked chest](#locked) (`[99,37]`, difficulty 1)
+
+1. `[089d]` Run combat #0 (Guards). If you win, erase this event.
+
+1. `[08a2]` (03,00) Run combat #1 (Snakes). If you win, erase this event.
+
+1. `[08a7]` (02,03) Run combat #2 (Spiders). If you win, erase this event.
+
+1. `[067d]` Default handler. Gate-and-set `[b9,00]`. Then set `[b9,02]`,`[b9,03]`, and `[b9,04]` to enable access to the Hammer parts. If you somehow got here *without* selling yourself into slavery in Purgatory `![99,35]`, exit.
+
+   Set `![99,35]` and `[b9,01]`. Take the party's inventory, unequip it, and move it all to a data area `{59:08b2}`. Give everyone a set of Chains and set status `0x2` (chained). Throw away the party's gold.
 
 ### Actions
 
@@ -1161,32 +1193,32 @@ ic,b)` -->
 | `b9,00`  |  `[b9]`   | `*–––––––` | Intro paragraph |
 | `b9,01`  |  `[b9]`   | `–*––––––` | Stairs to the Undercity are open |
 
-### Events (chunk 0x5a)
+### Events
 
-1. `[0b0b]`
-1. `[03df]`
-1. `[03f2]`
-1. `[0410]`
-1. `[042b]`
-1. `[0443]`
-1. `[045b]`
-1. `[0491]`
-1. `[0499]`
-1. `[04da]`
-1. `[0664]`
-1. `[06e1]`
-1. `[0796]`
-1. `[07cd]`
-1. `[0875]`
-1. `[08e3]`
-1. `[0933]`
-1. `[098c]`
-1. `[09b7]`
-1. `[09d7]`
-1. `[0af7]`
-1. `[0b44]`
-1. `[0b4f]`
-1. `[0b10]` Default handler.
+1. `[0b0b]` You stepped in the water.
+1. `[03df]` (04,03) Sign for the Governor's Office `{5a:03e3}`
+1. `[03f2]` (05,03) Sign for the Visitor's Registration Dept. `{5a:03f6}`
+1. `[0410]` (11,05) Sign for the Visitor's Information Bureau `{5a:0414}`
+1. `[042b]` (13,13) Sign for the Quarter Master's Office `{5a:042f}`
+1. `[0443]` (06,14) Sign for the Dept. of Lubrication `{5a:0447}`
+1. `[045b]` (02,11) Sign for the Office of the Bureau of Departments `{5a:045f}`
+1. `[0491]` (07,06) Read paragraph #35.
+1. `[0499]` (02,08) Vibration beneath your feet `{5a:049a}`
+1. `[04da]` (05,04) Registration. `{5a:04e3}`,`{5a:0561}`,`{5a:05f1}`.
+1. `[0664]` You try to bribe an official, but they warn you off `{5a:0665}` because this isn't the Department of Lubrication.
+1. `[06e1]` (12,13) Quartermaster. Mog leaves his estate to you `{5a:06ea}`. This doesn't have any effect on the game.
+1. `[0796]` (03,11) Bureau of Departments; it's empty `{5a:0797}`
+1. `[07cd]` (04,04) Governor's Office. He gives you a set of papers `{5a:07d6}`, item #0.
+1. `[0875]` (11,04) Information Bureau. He asks for your papers `{5a:087e}`.
+1. `[08e3]` You try to use *Bureaucracy*, but the official turns into an Australian `{5a:08e4}`.
+1. `[0933]` You show him your papers. If they haven't been stamped (item flag `0x0`), he throws you out `{5a:09eb}`. If they have `0x1`, he exchanges it `(5a:0952}` for a Governor's Pass, item #1.
+1. `[098c]` (06,13) Lubrication. He asks for your papers `{5a:0991}`.
+1. `[09b7]` You show him your papers and he stamps them `{5a:09b8}`. Set item flag `0x1`.
+1. `[09d7]` You use *Bureaucracy*. The official requires a bribe `{5a:09d8}` of $500 or more. Give too little and `{5a:0a34}`. Don't have enough to bribe him, `{5a:0ad2}`. Otherwise, he opens the stairs down to the Undercity `{5a:0a70}`,`{5a:0abe}`; set `[b9,01]`.
+1. `[0af7]` (05,08) If `[b9,01]`, offer stairs down to the Undercity `(26:05,08)`.
+1. `[0b44]` (03,07) A [locked chest](#locked) (`[99,3b]`, difficulty 2) with the Druid's Mace.
+1. `[0b4f]` Run a random combat. If you win, erase this event.
+1. `[0b10]` Default handler. If the party is outside (0,0)-(16,17), prompt to exit. NE:`(00:17,14)` S:`(00:16,13)` W:`(00:15,14)`.
 
 ### Actions
 
@@ -1216,7 +1248,7 @@ ic,b)` -->
 1. `[0159]` Run random combat. If you win, erase this event.
 2. `[011a]` You pick a lock. Only works on wall texture `0x01`. Requires *Lockpick 4*.
 3. `[0162]` Color text `{5b:0163}`.
-4. `[0197]` You try to swim, but don't get very far. Color text `{5b:0198}`, `{5b:01f0}`.
+4. `[0197]` You try to swim, but don't get very far `{5b:0198}`, `{5b:01f0}`.
 5. `[0220]` You use the Water Breathing potion. Travel to `(16:05,03)`.
 6. `[0257]` Gate-and-set `[99,48]` for access to a [chest](#chest) `[b9,04]`.
 7. `[0299]` Default handler. If the party is outside (0,0)-(8,8), prompt to exit. NW:`(00:37,15)` SE:`(00:38,14)`
@@ -1284,7 +1316,7 @@ ic,b)` -->
 | `b9,05`  |  `[b9]`   | `–––––*––` | |
 | `b9,06`  |  `[b9]`   | `––––––*–` | |
 
-### Events (chunk 5d)
+### Events (chunk 0x5d)
 
 1. `[038a]`
 1. `[038f]`
