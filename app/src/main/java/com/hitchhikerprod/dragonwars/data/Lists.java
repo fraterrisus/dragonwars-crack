@@ -72,4 +72,66 @@ public class Lists {
     static final String[] WEAPON_TYPES = {
         "Axe", "Flail", "Sword", "Two-handed sword", "Mace", "Thrown weapon", "Ammunition"
     };
+
+    static final String[] MONSTER_IMAGES = {
+        "0x8a",
+        "Water Spirit", // 0x8c
+        "0x8e", // 0x8e
+        "Skeleton", // 0x90
+        "Zombie", // 0x92
+        "0x94",
+        "0x96",
+        "Barbarian", // 0x98
+        "0x9a", // 0x9a
+        "Spear Guard", // 0x9c
+        "Bear", // 0x9e
+        "Turtle", // 0xa0
+        "Dragon Lizard", // 0xa2
+        "Martial Artist", // 0xa4
+        "Halbard Guard", // 0xa6
+        "Wolf", // 0xa8
+        "Adventurer", // 0xaa
+        "Old Crone", // 0xac
+        "Namtar", // 0xae
+        "Executioner", // 0xb0
+        "Lizardman", // 0xb2
+        "Dragon Warrior", // 0xb4
+        "Wraith", // 0xb6
+        "0xb8", // 0xb8
+        "Murk Tree", // 0xba
+        "Rock Man", // 0xbc
+        "Gaze Demon", // 0xbe
+        "Snake", // 0xc0
+        "Hydra", // 0xc2
+        "Spider", // 0xc4
+        "Creepy Mage", // 0xc6
+        "Beggar", // 0xc8
+        "Gladiator", // 0xca
+        "Old Man", // 0xcc
+        "Slave", // 0xce
+        "Greeting Machine", // 0xd0
+        "Lance Guard", // 0xd2
+        "Wild Man", // 0xd4
+        "Pirate", // 0xd6
+        "Scorpion", // 0xd8
+        "Humbaba", // 0xda
+        "Stosstrupen", // 0xdc
+        "Wild Boy", // 0xde
+        "Nergal", // 0xe0
+        "Goblin", // 0xe2
+        "Cocatrice", // 0xe4
+        "Pilgrim", // 0xe6
+        "Irkalla", // 0xe8
+        "0xea",
+        "Dragon Whelp", // 0xec
+        "Forester", // 0xee
+        "Stag", // 0xf0
+        "Robed Man", // 0xf2
+        "Wizard", // 0xf4
+        "0xf6", // 0xf6
+        "Robot", // 0xf8
+        "0xfa",
+        "Rat", // 0xfc
+        "Dragon Queen" // 0xfe
+    };
 }

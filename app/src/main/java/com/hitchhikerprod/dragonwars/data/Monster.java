@@ -149,6 +149,39 @@ public class Monster {
 
     @Override
     public String toString() {
+        return longString();
+    }
+
+    public String shortString() {
+        final StringBuilder response = new StringBuilder("MON");
+        response.append(String.format(" %02x", this.strength));
+        response.append(String.format(" %02x", this.dexterity));
+        response.append(String.format(" %02x", this.intelligence));
+        response.append(String.format(" %02x", this.spirit));
+        response.append(String.format(" %02x", this.baseHealth));
+        response.append(String.format(" %02x", this.b05));
+        response.append(String.format(" %02x", this.avBonus));
+        response.append(String.format(" %02x", this.dvBonus));
+        response.append(String.format(" %02x", raw.get(0x08)));
+        response.append(" 00"); // range
+        response.append(String.format(" %02x", this.varGroupSize));
+        response.append(String.format(" %02x", this.imageChunk));
+        for (int i = 0x0c; i <= 0x1e; i++) {
+            response.append(String.format(" %02x", raw.get(i)));
+        }
+        response.append(String.format(" %02x", this.confidence));
+        response.append(String.format(" %02x", this.b20));
+        response.append(String.format(" %02x", this.speed));
+        response.append(String.format(" %02x", (raw.get(0x0a) >> 6) & 0x3));
+        response.append(String.format(" %02x", this.b23 ? 1 : 0));
+        response.append(String.format(" %02x", this.b24));
+        response.append(String.format(" %02x", ((raw.get(0x20) & 0x80) > 0) ? 1 : 0));
+        response.append(String.format(" %02x", this.attacksPerRound));
+        response.append(" ").append(this.name);
+        return response.toString();
+    }
+
+    public String longString() {
         List<String> tokens = new ArrayList<>();
         tokens.add(this.name + " (" + this.gender.getPronouns() + ") [#" + varGroupSize + "]");
         tokens.add(String.format("STR %02d DEX %02d INT %02d SPR %02d",
@@ -163,6 +196,9 @@ public class Monster {
         tokens.add("XP:" + xpReward.toInteger());
         tokens.addAll(this.flags);
 
+        final String imageName = Lists.MONSTER_IMAGES[imageChunk];
+        tokens.add("image:" + imageName);
+
         if (b05 != 0) { tokens.add(String.format("[05]:0x%02d", b05)); }
         if (b0d != 0) { tokens.add(String.format("[0d]:0x%02d", b0d)); }
         if (b0f != 0) { tokens.add(String.format("[0f]:0x%02d", b0f)); }
@@ -176,8 +212,6 @@ public class Monster {
             response.append("\n      ");
             response.append(a.toString());
         }
-        response.append("\n      ");
-        response.append(raw.stream().map(x -> String.format("%02x", x)).collect(Collectors.joining(" ")));
         return response.toString();
     }
 

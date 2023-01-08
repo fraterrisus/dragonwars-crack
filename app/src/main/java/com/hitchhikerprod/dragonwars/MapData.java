@@ -719,7 +719,7 @@ public class MapData {
                 mapData.parseDirty();
             }
             mapData.display();
-            mapData.draw();
+            // mapData.draw();
 
 /* Sunken Ruins (0x16)
             for (int offset : List.of(0x024e, 0x025d, 0x0274, 0x0286, 0x029d, 0x02b4, 0x02cb)) {
