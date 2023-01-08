@@ -1169,7 +1169,7 @@ ic,b)` -->
 
 1. `[067d]` Default handler. Gate-and-set `[b9,00]`. Then set `[b9,02]`,`[b9,03]`, and `[b9,04]` to enable access to the Hammer parts. If you somehow got here *without* selling yourself into slavery in Purgatory `![99,35]`, exit.
 
-   Set `![99,35]` and `[b9,01]`. Take the party's inventory, unequip it, and move it all to a data area `{59:08b2}`. Give everyone a set of Chains and set status `0x2` (chained). Throw away the party's gold.
+   Set `![99,35]` and `[b9,01]`. Take the party's inventory, unequip it, and move it all to a data area `{59:08b2}`. Give everyone a set of Chains and set status `0x2` (chained). Throw away the party's gold.
 
 ### Actions
 
@@ -1246,7 +1246,7 @@ ic,b)` -->
 ### Events
 
 1. `[0159]` Run random combat. If you win, erase this event.
-2. `[011a]` You pick a lock. Only works on wall texture `0x01`. Requires *Lockpick 4*.
+2. `[011a]` You pick a lock. Only works on wall metadata `0x01`. Requires *Lockpick 4*.
 3. `[0162]` Color text `{5b:0163}`.
 4. `[0197]` You try to swim, but don't get very far `{5b:0198}`, `{5b:01f0}`.
 5. `[0220]` You use the Water Breathing potion. Travel to `(16:05,03)`.
@@ -1278,19 +1278,19 @@ ic,b)` -->
 | :------: | :-------: | :--------: | ------- |
 | `b9,00`  |  `[b9]`   | `*–––––––` | Intro text |
 | `b9,01`  |  `[b9]`   | `–*––––––` | Acquired the Clam |
-| `b9,03`  |  `[b9]`   | `–*––––––` | |
-| `b9,04`  |  `[b9]`   | `–*––––––` | Chest access |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Unlocked the locker |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the locker |
 
-### Events (chunk 0x5c)
+### Events
 
-1. `[00ed]` *Entrance square: intro text, clam-to-skull, stairs up*
-1. `[01f6]` *Take the clam*
-1. `[0303]` *Chest (diff 3)*
-1. `[034e]` *Murky locker*
-1. `[0314]` *Lockpick (diff 2)*
+1. `[00ed]` (05,03) Gate-and-set `[b9,00]` for color text `{5c:00fc}`. Offer stairs up to `(15:05,04)`. If you take the stairs and have the Clam (item 1), drop it and pick up Roba's Skull (item 2) `{5c:019b}`; set `[99,1f]`.
+1. `[01f6]` (01,06) If you have the the Skull `[99,1f]` or the Clam `[b9,01]`, exit. Otherwise, you find a giant clam `{5c:0209}`. If you try to take the Skull `{5c:0255}`, it crunches you `{5c:028b}`,`{5c:029d}` for 1–3 HP damage. But you _can_ take the Clam `{5c:02bf}`, item 1; set `[b9,01]`.
+1. `[0303]` (04,02) A [locked chest](#locked) (`[99,49]`, difficulty 3)
+1. `[034e]` (07,07) If the locker is still locked `![b9,03]`, you find a locker `{5c:0398}`; exit. If the locker is open but you haven't defeated the dead sailors `![99,20]`, run combat #5 (Bloated Corpses). If you win, set `[99,20]` and open the [chest](#chest) (`[b9,04]`).
+1. `[0314]` (07,07) You need *Lockpick 2* to open the locker; if so `{5c:0321}`, set `[b9,03]`. Otherwise `{5c:033e}`.
 1. `[03ae]` Run a random combat. If you win, erase this event.
-1. `[00e4]` Spinner trap; assign random(4) to `heap[03]` (facing).
-1. `[03b7]` *Default handler.*
+1. `[00e4]` (01,03) Spinner trap; assign random(4) to `heap[03]` (facing).
+1. `[03b7]` Default handler; do nothing.
 
 ### Actions
 
@@ -1302,55 +1302,57 @@ ic,b)` -->
 
 ### Flags
 
-- **Random Encounters:** yes (1 in 25)
+- **Random Encounters:** yes (1 in 25), until you bring the Soul Bowl back to Zaton's shrine.
 
 ### Board State
 
 | Bitsplit | Heap byte |    Bit     | Meaning |
 | :------: | :-------: | :--------: | ------- |
 | `b9,00`  |  `[b9]`   | `*–––––––` | |
-| `b9,01`  |  `[b9]`   | `–*––––––` | |
-| `b9,02`  |  `[b9]`   | `––*–––––` | |
-| `b9,03`  |  `[b9]`   | `–––*––––` | |
-| `b9,04`  |  `[b9]`   | `––––*–––` | |
-| `b9,05`  |  `[b9]`   | `–––––*––` | |
-| `b9,06`  |  `[b9]`   | `––––––*–` | |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Following tracks |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have shed blood on Enkidu's shrine |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Have access to Zaton's scrolls |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the Beast Horn |
+| `b9,05`  |  `[b9]`   | `–––––*––` | The lake guards have been awakened |
+| `b9,06`  |  `[b9]`   | `––––––*–` | Have access to The Ring |
 
-### Events (chunk 0x5d)
+### Events
 
-1. `[038a]`
-1. `[038f]`
-1. `[03bd]`
-1. `[0463]`
-1. `[0538]`
-1. `[053d]`
-1. `[0543]`
-1. `[0549]`
-1. `[0576]`
-1. `[0501]`
-1. `[0594]`
-1. `[05af]`
-1. `[05e4]`
+1. `[038a]` You stepped in the water.
+1. `[038f]` (13,14) You find the Mushrooms `{5d:0396}`, item #0
+1. `[03bd]` (05,01) If you've revived Zaton's spirit `[b9,03]`, there's a [chest](#chest) (`[b9,03]`) with a bunch of druid spells. Otherwise, there's a grave marker `{5d:03f6}`.
+1. `[0463]` (07,05) If anyone in the party has *Arcane Lore 1*, you spot `{5d:0471}` a Transportation Nexus and are offered travel to King's Isle `(00:19,23)` or Quag `(00:22,13)`. If you don't have *Arcane Lore*, you're teleported to one of the two destinations randomly.
+1. `[0538]` If you're following the tracks `[b9,01]`, turn N and step forward.
+1. `[053d]` ... turn E
+1. `[0543]` ... turn S
+1. `[0549]` ... turn W
+1. `[0576]` (07,09) If you're already following the tracks `[b9,01]`, run event #5. Otherwise, you see footprints `{5d:057d}`.
+1. `[0501]` (07,03) If you're following the tracks `[b9,01]`, this is the end of the trail `{5d:050b}`, so stop following it (set `![b9,01]`). Color text `{5d:051d}`.
+1. `[0594]` You used *Tracker* `{5d:0597}`; set `[b9,01]` to start following the tracks.
+1. `[05af]` (11,05) If `[b9,05]`, run event #22. Otherwise, you spot a shrine on the island `{5d:05b6}`.
+1. `[05e4]` (14,05) If you've shed blood on the shrine `[b9,02]`, there's a [chest](#locked) (unlocked) with the Enkidu Totem (item 1); set `![b9,02]`. Otherwise, there's a shrine here `{5d:05eb}`.
 1. `[064c]` You used Arcane Lore on the island shrine. Read paragraph #72.
-1. `[0655]`
-1. `[07be]`
-1. `[07c6]`
-1. `[0829]` *Wrestling Enkidu; you win if 15 + (0-8) is lower than your STR*
-1. `[043b]`
-1. `[0aab]`
-1. `[0acc]`
-1. `[0718]`
-1. `[06ed]`
-1. `[06f2]`
-1. `[0af0]`
-1. `[0b09]`
-1. `[0b1a]`
-1. `[074c]`
-1. `[0b3f]`
-1. `[0b4b]`
-1. `[0af9]`
-1. `[0afe]`
-1. `[0ba6]` Default handler.
+1. `[0655]` You used an item on the island shrine. If it's a weapon (item types `0x3-0xb`, so Maces work but Ammunition doesn't), you shed a drop of blood `{5d:066a}` on the shrine; set `[b9,02]`.
+1. `[07be]` (02,13) Read paragraph #6.
+1. `[07c6]` (02,15) If `[99,42]` and `[b9,04]`, you find a magical horn (`[b9,04]`). If `![99,42]`, set `[99,42]` and `[b9,04]` and then find the horn. Regardless, there's a statue of Enkidu here `{5d:0804}`.
+1. `[0829]` (02,15) You used *SPR*, cast *D:Beast Call*, or used the Beast Horn to do it for you. If you've already wrestled Enkidu `[99,17]`, exit. Otherwise, read paragraph #73 and pick a challenger. Enkidu picks one randomly if you try to back out. You win the wrestling match if 15 + (0–8) is lower than your STR, so you always win with STR 24 and always lose with STR 15. If you win, you get a lot of color text, *Druid Magic 2*, character flag `0x20`, and the array of spell IDs at `{5d:0aa4}`.
+1. `[043b]` Gate-and-set `[99,18]` to use the Soul Bowl on Zaton's shrine. Read paragraph #79, set `[b9,03]`, disable random encounters on this board, and gain 500 XP.
+1. `[0aab]` (04,15) The well of souls `{5d:0aac}`.
+1. `[0acc]` You *Climb* down the well `{5d:0acd}`. Travel to the Magan Underworld `(12:02,06)`.
+1. `[0718]` (13,05) If the lake guards are awake `[b9,05]` and you haven't killed them yet `![99,44]`, run combat #6 (Lagooners). If you win, set `[99,44]` and `![b9,05]` and exit. Otherwise, this seems like a good spot to jump `{5d:0737}`.
+1. `[06ed]` (11,05) If you're facing E, you hop across the water `{5d:06fc}` to (13,05).
+1. `[06f2]` (13,05) If you're facing W, you hop across the water `{5d:06fc}` to (11,05).
+1. `[0af0]` Run random combat. If you win, erase this event.
+1. `[0b09]` (01,00) A [locked chest](#locked) (`[99,3f]`, difficulty 2) with more Druid scrolls.
+1. `[0b1a]` (01,05) If you haven't beaten them `![99,43]`, run combat #1 (Water Spirits). If you win, set `[99,43]` and find a [locked chest](#locked) (`[99,40]`, difficulty 2).
+1. `[074c]` (11,05),(13,05) Bad spot to go swimming. If you've already defeated the lake guards `[99,44]`, you simply fail `{5d:0796}`. Otherwise set `[b9,05]` which wakes up the guards `{5d:0753}`.
+1. `[0b3f]` (14,08) If you already went swimming, you find the [ring](#chest) (`[b9,06]`).
+1. `[0b4b]` You go swimming. Gate-and-set `[99,41]` to find a ring `{5d:0b52}` and set `[b9,06]`.
+1. `[0af9]` (15,02) Run combat #6 (Lagooners). If you win, erase this event.
+1. `[0afe]` Run combat #2 (Earth Man and Wild Dog). If you win, erase this event.
+1. `[0ba6]` Default handler. If the party is outside (0,0)-(16,15), prompt to exit. NW:`(00:02,07)` E:`(00:03,06)` S:`(00:02,05)`
+
+   Gate-and-set `[b9,00]` to read paragraph #70. If `[99,18]`, disable random encounters.
 
 ### Actions
 
@@ -1362,10 +1364,10 @@ ic,b)` -->
 | #17 |  *SPR* or cast *D:Beast Call*  |  #18  | `[0829]` |
 | #3 |  Soul Bowl  |  #19  | `[043b]` |
 | #20 |  *Climb*  |  #21  | `[0acc]` |
-| #12 |  Golden Boots  |  0x17  | `[06ed]` |
-| #22 |  Golden Boots  |  0x18  | `[06f2]` |
-| #12, #22 |  *Swim*  |  0x1c  | `[074c]` |
-| #29 |  *Swim*  |  0x1e  | `[0b4b]` |
+| #12 |  Golden Boots  |  #23  | `[06ed]` |
+| #22 |  Golden Boots  |  #24  | `[06f2]` |
+| #12, #22 |  *Swim*  |  #28  | `[074c]` |
+| #29 |  *Swim*  |  #30  | `[0b4b]` |
 
 ## 0x18 Snake Pit
 
@@ -1375,33 +1377,41 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                           |
+| :------: | :-------: | :--------: | ------------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Intro paragraph                                   |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Met the mad artist                                |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have shown the Signet Ring to the boathouse guard |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to Drake's throne                     |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Have access to the Stone Head                     |
 
-### Events (chunk 0x5e)
+### Events
 
 1. `[0343]` You stepped in the water.
-1. `[0348]` Color text `{5e:0349}`
-1. `[035a]` Color text `{5e:035b}`
-1. `[037a]` Color text `{5e:037a}`
-1. `[039d]` Color text `{5e:039d}`
-1. `[03f6]` Color text `{5e:03f7}`
-1. `[0420]` Read paragraph #81.
-1. `[0428]` Show the Jade Eyes to the sad dwarf? Color text `{5e:0429}` urges you to "replace them in the statue".
-1. `[045f]` 
-1. `[0471]`
-1. `[0532]`
-1. `[0565]`
-1. `[05c5]`
-1. `[0679]`
-1. `[069d]`
-1. `[06b9]`
-1. `[06f3]`
-1. `[07f1]`
-1. `[073b]` The old man teaches you *D:Beast Call*.
-1. `[06e0]`
-1. `[07ba]` Default handler.
+1. `[0348]` The northern clump of trees. Color text `{5e:0349}`
+1. `[035a]` (03,10) Closet full of beach umbrellas `{5e:035b}`
+1. `[037a]` (03,06) Closet full of beach chairs `{5e:037a}`
+1. `[039d]` (07,06) Sad jester `{5e:039d}`
+1. `[03f6]` (09,07) "The king is near!" `{5e:03f7}`
+1. `[0420]` (06,08) Meet Josephina the dwarf; read paragraph #81.
+1. `[0428]` (06,08) You show the Jade Eyes(?) to the sad dwarf; he urges you `{5e:0429}` to "replace them in the statue".
+1. `[045f]` (11,02) Gate-and-set `[b9,01]` to meet the mad artist; read paragraph #76.
+1. `[0471]` (12,10) If `![b9,02]`, a kid stops you from entering the boathouse `{5e:0482}`,`{5e:04f1}`.
+1. `[0532]` (12,11) If `![b9,02]`, the kid kicks you out `{5e:053e}`.
+1. `[0565]` (12,10) You show the Signet Ring to the kid, who tells you about the secret door to the dock `{5e:0566}`. Set `[b9,02]`.
+1. `[05c5]` (11,14) An old man `{5e:05cb}` guides a ferry from here to Kingshome `{5e:0631}`. Travel to `(00:20,26)`, which is of course the site of the ambush outside Kingshome.
+1. `[0679]` (08,13) You pick up some Branches ([unlocked chest](#locked)).
+1. `[069d]` (01,09) Gate-and-set `[99,13]`. The Stone Head is just [sitting there](#chest) (`[b9,05]`).
+
+   > There's a check for `CF=1` after running the chest and before setting `[99,13]`, which I assume prevents the chest from going away just because you didn't pick up the Stone Head.
+1. `[06b9]` (07,08) Gate-and-set `[99,14]`. Drake's [throne](#chest) (`[b9,04]`, paragraph #80) and his Signet Ring.
+1. `[06f3]` (04,01) An old man refuses to go inside `{53:06f4}`.
+1. `[07f1]` Do nothing. (Clear CF and exit)
+1. `[073b]` You show Branches (or use *Druid Magic*) to the old man `{53:073c}`; he teaches you *D:Beast Call*. `{53:078f}`.
+
+   > No flag is set here, so you can do it as often as you like.
+1. `[06e0]` (07,07) A [locked chest](#locked) (`[99,3e]`, difficulty 2)
+1. `[07ba]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit to `(00:03,19)`. Otherwise, gate-and-set `[b9,00]` to read paragraph #75.
 
 ### Actions
 
@@ -1421,28 +1431,34 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                              |
+| :------: | :-------: | :--------: | ------------------------------------ |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Showed the Signet Ring to the guards |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Have access to the weapons cache |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Met Namtar and exited his room       |
 
-### Events (chunk 0x5f)
+### Events
 
-1. `[079c]`
-1. `[0392]`
-1. `[0382]`
-1. `[0335]`
-1. `[03f6]`
-1. `[03fe]`
-1. `[0453]`
-1. `[0516]`
-1. `[061b]`
-1. `[06b9]`
-1. `[06f9]`
-1. `[07c9]`
-1. `[078a]`
-1. `[05db]`
-1. `[0414]`
-1. `[07a1]` Default handler.
+1. `[079c]` You stepped in the water.
+1. `[0392]` (07,00) If `![b9,01]`, guards block your entrance `{5f:039a}`. Otherwise they look busy `{5f:03bf}`.
+1. `[0382]` (07,00) You show the Signet Ring to the guards. Read paragraph #15 and set `[b9,01]`.
+1. `[0335]` (07,01) If you haven't shown the guards the ring `![b9,01]` and you didn't meet Namtar `![b9,03]`, guards kick you out `{5f:0347}`.
+1. `[03f6]` (07,03) Read paragraph #130; the grand hall is empty.
+1. `[03fe]` (07,08) Gate-and-set `[99,15]` and meet Namtar. Display monster `0x12` (Namtar) and read paragraph #131.
+1. `[0453]` (03,12) Family portraits `{5f:0459}`,`{5f:04c3}`.
+1. `[0516]` (12,12) *Objets d'art* `{5f:051c}`,`{5f:0584}`.
+1. `[061b]` (02,07) The King's Wardrobe `{5f:0621}`.
+1. `[06b9]` (03,07) [Chest](#locked) (unlocked) full of Pilgrim Robes. 
+1. `[06f9]` (11,07) The library `{5f:06ff}`.
+1. `[07c9]` You pick a lock. Only works on wall metadata `0x01`.
+1. `[078a]` (06,08) Offer stairs down to the dungeon `(24:+01,+01)`. Make Namtar's door appear again (`0x20`).
+
+   > Since we're at (06,08), that brings us to (24:07,09). Not clear to me why we needed a "delta stairs" method as well as an "absolute stairs" method.
+1. `[05db]` (11,12) Gate-and-set `[99,3d]` to access a [chest](#chest) (`[b9,02]`).
+
+   > Seems to be called "Great Plate" instead of "Heavy Plate"?
+1. `[0414]` (07,07) If Namtar's door exists (`0x20`), it slams shut `{5f:0423}` and disappears (`0x10`); set `[b9,03]`.
+1. `[07a1]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit. NE:`(00:19,27)` SW:`(00:18,26)`
 
 ### Actions
 
@@ -1459,24 +1475,31 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning         |
+| :------: | :-------: | :--------: | --------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Intro paragraph |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Thrown in jail  |
 
 ### Events
 
 1. `[0112]` You stepped in the water.
-1. `[0117]`
-1. `[0142]`
-1. `[01e3]` Color text `{60:01e4}`.
-1. `[01f7]` Read paragraph #83.
-1. `[01ff]`
-1. `[0243]` Read paragraph #84.
-1. `[024b]` Color text `{60:024c}`.
-1. `[026b]` Color text `{60:0271}`. Travel to `(04:07,15)`.
-1. `[02a2]` Run combat #2. If you win, erase this event.
-1. `[02e7]` Lockpick. Texture 0x1 requires Lockpick 3. Texture 0x3 always works.
-1. `[02ad]` Default handler.
+1. `[0117]` (02,05) If you haven't killed them yet `![99,82]`, the guards are watching `{60:011e}`.
+1. `[0142]` (02,04) If you killed the guards already `![99,82]`, exit. If everyone in your party has Pilgrim Robes equipped, you get by the guards `{60:01a4}`. Otherwise, run combat #1 (Guards, Stosstrupen). If you win, set `[99,82]` and erase this event. If you lose, they throw you in jail `{60:0163}`. Travel to `(02,01)` and set `[b9,02]`, but also make the cell door easier to pick (set N wall texture to `5` with metadata `0x03`, instead of texture `4` metadata `0x01`).
+1. `[01e3]` (04,02) Someone is crying `{60:01e4}`.
+1. `[01f7]` (04,01) Read paragraph #83. The prisoner tells you of the secret tunnel and clues "the swamp within the mountain".
+1. `[01ff]` (02,01) If `[b9,02]`, you've been thrown in jail `{60:0206}`.
+
+   > The color text is lying to you to try to get you to find another way out, i.e. the secret door in the W wall.
+1. `[0243]` (05,04) Statue of the Universal God. Read paragraph #84.
+1. `[024b]` (01,01) The secret tunnel `{60:024c}`.
+1. `[026b]` (00,01) Teleporter `{60:0271}`. Travel to `(04:07,15)`.
+1. `[02a2]` (01,02) Run combat #2 (Guards, Stosstrupen). If you win, erase this event.
+1. `[02e7]` You pick a lock. Wall metadata `0x01` requires *Lockpick 3*. Always works on wall metadata `0x03`.
+1. `[02ad]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. NE:`(00:19,21)` S:`(00:18,20)`W:`(00:17,21)`
+
+   Otherwise, test-and-set `[b9,00]` for paragraph #82 (the mountain of Nisir rises above you).
+
+   > Whoops. These exit coordinates make more sense if the dock was at (18,21) on the world map, but it's actually at (17,21).
 
 ### Actions
 
@@ -1503,7 +1526,7 @@ ic,b)` -->
 
 ### Events (chunk 0x61)
 
-1. `[19d3]` *Lockpick. Always works on wall texture 0x01.*
+1. `[19d3]` *Lockpick. Always works on wall metadata 0x01.*
 1. `[0c70]`
 1. `[0c9d]`
 1. `[0cf6]`
@@ -1563,25 +1586,29 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                   |
+| :------: | :-------: | :--------: | ----------------------------------------- |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Have access to the chest under the statue |
 
-### Events (chunk 0x62)
+### Events
 
-1. `[00f5]`
-1. `[00fa]`
-1. `[01e7]`
-1. `[0203]`
-1. `[021d]`
-1. `[0267]`
-1. `[023e]`
-1. `[02b1]`
-1. `[02c4]`
-1. `[0301]`
-1. `[033e]`
-1. `[0392]` *Move the statue; requires STR 24*.
-1. `[0318]` Default handler.
+1. `[00f5]` You stepped in the water.
+1. `[00fa]` (05,01) The Lansk ferry manager `{62:0101}` sells you a ticket for Lansk for $500 `{62:0177}`.
+
+   > You can only sell a Lansk Ticket for $20; rude.
+1. `[01e7]` (03,04) Sign for the Pilgrim's Dock `{62:01e8}`
+1. `[0203]` (05,04) Sign for the Lansk Ferry `{62:0204}`
+1. `[021d]` (05,05) The Lansk ferrymaster asks for your ticket `{62:021e}`
+1. `[0267]` (03,06) If everyone is wearing Pilgrim Garb, run event #10. Otherwise, they say you can't board `{62:0272}`.
+1. `[023e]` (03,05) Pilgrims wait to board the ferry `{62:023f}`
+1. `[02b1]` (05,02) Sign for the Lansk Travel Bureau `{62:02b2}`
+1. `[02c4]` (05,05) You take the Ferry `{62:02c5}` to the Lansk Undercity  `(26:07,15)`.
+1. `[0301]` (03,06) You board the Pilgrim's Ferry. Read paragraph #85 and travel to the Pilgrim's Dock `(1a:02,07)`.
+1. `[033e]` (01,01) If `[b9,01]`, open a [chest](#chest) (`[b9,01]`). Otherwise, a cheap joke about PC clones `{62:0345}`.
+
+   > A "CHEAP" JOKE! GET IT?
+1. `[0392]` You try to move the statue. If you've already moved it `[99,45]`, exit. If you have STR less than 24, you fail `{62:03cf}`. Otherwise `{62:03a0}` set `[b9,01]` and `[99,45]`.
+1. `[0318]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit to `(00:15,17)`.
 
 ### Actions
 
@@ -1601,27 +1628,36 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                        |
+| :------: | :-------: | :--------: | ------------------------------ |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Checked if the war is over yet |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Killed the guards at the entrance |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Talked to Buck Ironhead |
+| `b9,04` | `[b9]` | `––––*–––` | Have access to the soldier's armor cache |
 
-### Events (chunk 0x63)
+### Events
 
-1. `[0335]`
-1. `[0379]`
-1. `[0387]`
-1. `[040d]`
-1. `[0451]`
-1. `[0507]`
-1. `[0415]`
-1. `[0556]`
-1. `[05c9]`
-1. `[08ef]` You climb over the rocks. Color text `{63:08f0}`, then travel to `(03,07)`.
-1. `[0916]`
-1. `[0954]`
-1. `[04c8]`
-1. `[095f]`
-1. `[0968]` Default handler.
+1. `[0335]` (07,03) If you haven't killed them `![b9,01]`, guards block the exit `{63:033c}`.
+1. `[0379]` (07,02) Run combat #2 (Guards, Royal Guards). If you win, erase this event and set `[b9,01]`.
+1. `[0387]` (07,01) If you haven't killed the guards `![b9,01]`, you're welcome to recruit `{63:0393}`. If yes `{63:03d8}`, read paragraph #59 and bump to `(07,04)`. If no, you're kicked out `{63:03f9}`.
+1. `[040d]` (07,00) Read paragraph #87.
+1. `[0451]` (10,04) Healer (free).
+1. `[0507]` (05,06) If you've already been here `[b9,02]`, you're sent `{63:0527}` to the front `(09,13)`. Otherwise, set `[b9,02]` and read paragraph #90; Buck Ironhead offers you a pardon if you beat Byzanople for him, then kicks you out.
+1. `[0415]` (09,13) A priest of the Universal God blesses you in Namtar's name (?!) `{63:0416}`.
+1. `[0556]` (11,13) The [Black Market](#shop).
+1. `[05c9]` (03,09) If Kingshome has already won `[99,21]`, the passage leads to the Siege Camp `{63:0881}`. If Byzanople has already won `[99,22]`, there's a commemorative plaque `{63:08b4}`. If neither of those is true and you haven't joined forces with Prince Jordan `![99,24]`, the passage leads to the Siege Camp `{63:0881}`.
+
+   If neither of those is true and you *have* joined forces with Prince Jordan `[99,24]`, it's time for the big fight against Kingshome `{63:05e1}`,`{63:0628}`,`{63:0647}`. Run combat #1 (Guards, Royal Guards, Mercenaries, Kingshomer Captains). If you lose/run away, you find a hiding place `{63:069f}`, but then Ironhead finds you `{63:06d3}`,`{63:0705}`, `{63:0733}` and throws you in the Kingshome Dungeon `(24:00,15)`. Set `[99,21]`. If you win `{63:0781}`,`{63:07f2}`, Jordan is victorious `[99,22]`. You get 500 XP, and the camp is emptied (see event #15).
+1. `[08ef]` (03,09) You climb through the rocks `{63:08f0}`. Travel to `(03,07)`.
+1. `[0916]` (10,14) Gate-and-set `[99,64]` to access a [chest](#chest) (`[b9,04]`) with the Lance Sword and Silver Gloves.
+1. `[0954]` (08,02) A [locked chest](#chest) (`[99,65]`, difficulty 2) with the Silver Arrow.
+1. `[04c8]` (02,05) A hidden passage `{63:04cf}` takes you to the inner courtyard of Byzanople `(09:09,07)`.
+1. `[095f]` Run random combat. If you win, erase this event.
+1. `[0968]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. N:`(00:07,27)` E:`(00:08,26)` S:`(00:07,25)`W:`(00:06,26)`
+
+    Gate-and-set `[b9,00]`. If the Siege is over `[99,21]` or `[99,22]`, empty the camp: erase events #1–7 and #11.
+
+    > Interesting: the soldier's cache disappears if you win the war before stealing his stuff
 
 ### Actions
 
@@ -1639,26 +1675,44 @@ ic,b)` -->
 
 | Bitsplit | Heap byte |    Bit     | Meaning |
 | :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Have tracked the Stag |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Caught in a snare trap |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Freed yourself from a snare trap |
+| `b9,05` | `[b9]` | `–––––*––` | Jack has left his bow behind |
+| `b9,06` | `[b9]` | `––––––*–` | Have access to the bandit's treasure |
 
-### Events (chunk 0x64)
+### Events
 
-1. `[0337]`
-1. `[033c]`
-1. `[035c]`
-1. `[03b8]`
-1. `[03e3]`
-1. `[041f]`
-1. `[07a7]`
-1. `[0353]`
-1. `[049a]`
-1. `[057c]`
-1. `[0543]`
-1. `[0827]`
-1. `[05b3]`
-1. `[05d8]`
-1. `[0646]`
-1. `[0678]` Default handler.
+1. `[0337]` You stepped in water.
+1. `[033c]` (09,12) Color text `{64:033d}`.
+1. `[035c]` (08,12),(10,12) If you haven't tracked the stag yet `![b9,01]`, you find animal tracks `{64:0363}`. Otherwise, set `![b9,01]` and run combat #2 (Stag). If you lose, exit. If you win, set `[99,11]`. If `![99,12]`, Jack finds you (paragraph #92). Set `[bb],[ba]` to `(x,y+1)`.
+
+   > `[ba]=0` is a special case that says you've already resolved the Jack story
+1. `[03b8]` You used *Forest Lore*, which gives you hint that there's a gamewarden around `{64:03b9}`.
+1. `[03e3]` You used *Tracker*, which gives you a hint that there's game near the water `{64:03e4}`.
+1. `[041f]` (08,12),(10,12) You used *Hiding* or *Tracker* near the bridge. If you killed the stag already `[99,11]`, nothing happens `{64:045a}`. Otherwise, a stag appears `{64:0426}`; set `[b9,01]`.
+1. `[07a7]` You used *Bureaucracy, Forest Lore*, or *Tracker*. If you're on the same square as you were when you met Jack (checks `[bb],[ba]`), he likes you `{64:07b7}` but throws you out anyway `(00:25,26)`.
+1. `[0353]` Run random combat. If you win, erase this event.
+1. `[049a]` If `![b9,02]` and you have Detect Traps running `[bf]>0`, you find a trap `{64:04a7}`; erase this event. If you don't have Detect Traps running you're caught in a trap `{64:04c2}`; set `[b9,02]` and a counter `[bc]=0x28` to hold you in place `{64:04fa}` for 40 turns. This also sets board flag `0x1` and temporarily sets the wall in front of you to be impassable (wall metadata `0xc0`) so you can spin but not move.
+
+   If `[b9,02]` and you've freed yourself`[b9,03]`, erase this event and clear `[b9,02]` and `[b9,03]`.
+1. `[057c]` Use an item to try to free yourself from the snare `[b9,02]`. If it's a weapon (item types `0x3-0xb`), set `[b9,03]` and `{64:0597}`.
+1. `[0543]` Use *STR* to try to free yourself from the snare `[b9,02]`. If you have *STR 18*, set `[b9,03`] and `{64:0597}`. Otherwise `{64:0551}`.
+1. `[0827]` You used the Signet Ring. If you're on the same square as you were when you met Jack (checks `[bb],[ba]`), read paragraph #74. Jack vanishes `[99,12]` and gives you his bow `[b9,05]`. Write your current coordinates to `{071b,071c}` and set `[ba]=0` so Jack stops bothering you.
+1. `[05b3]` (03,03) If Jack has vanished `[99,12]`, no one's home `{64:05c6}`. Otherwise, read paragraph #96 and set `[bb],[ba]` to these coordinates.
+1. `[05d8]` Erase this event. If you have Detect Traps running `[bf]>0`, you spot a tripwire `{64:0613}`. Otherwise you ring the bell `{64:05df}`. If you haven't killed the bandits `![99,54]`, run combat #3. If you win, set `[99,54]` and `[b9,06]`.
+1. `[0646]` If you haven't killed them yet `![99,54]`, run combat #3 (Bandits that look like Goblins). If you win, set `[99,54]`, read paragraph #91, and open a [chest](#chest) (`[b9,06]`).
+1. `[0678]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit. N:`(00:25,28)` E:`(00:26,27)` S:`(00:25,26)`W:`(00:24,27)`
+
+   Gate-and-set `[b9,00]` to read a sign `{64:06ab}`.
+
+   If Jack has given you his bow `[b9,05]` and you're on the square where you met him (checks `{071b,071c}`), you find [his bow](#chest) (`[b9,05]`).
+
+   If `![b9,05]` but the Jack story is resolved `[ba]=0`, exit.
+
+   If `![b9,05]` and `[ba]!=0` and you're *not* on the square where you met Jack (checks `[bb],[ba]`), set `[ba]=0` and run combat #4 (Jack). If you lose, he throws you out `(00:25,26)`. If you win, set `[99,12]` and `[b9,05]` and write your current coordinates to `{071b,071c}`.
+
+   If none of that is true, then Jack is waiting for you to explain yourself `{64:0784}`; display monster `0x32` (Jack).
 
 ### Actions
 
@@ -1699,13 +1753,13 @@ ic,b)` -->
 1. `[051b]` (Room 5) Read paragraph #144 (granite block)
 1. `[0522]` (06,02) Color text `{65:0528}` (smashed to bits), then `{65:0574}`. You're dumped outside `(04,06)`.
 1. `[05aa]` (Room 5) Color text `{65:05ab}` (destroyed the block). Travel to `(06,03)`, as below.
-1. `[0590]` (Room 5) Color text `{65:0591}` (disarmed the trap). Travel to `(06,03)`. Hide the door S of you: set `[009f]=0x13` (N wall texture at 06,02, was `0x23`)
+1. `[0590]` (Room 5) Color text `{65:0591}` (disarmed the trap). Travel to `(06,03)`. Hide the door S of you (`0x10` instead of `0x20`)
 1. `[05e4]` (06,03) Read paragraph #145 (that was novel)
 1. `[05f5]` (05,03) Color text `{65:0600}` (Utnapishtim is near).
 1. `[05ec]` (06,04) Color text `{65:0600}` (Utnapishtim is near).
 1. `[0618]` (05,04) Display monster image `0x35` (Utnapishtim). Fake a combat start screen `{65:062a}` and prompt for Fight/Quickfight/Run. Run works as usual. Fight/Quickfight result in color text `{65:067f}` and you're dumped outside `(04,06)`.
 1. `[0695]` (05,06) Read paragraph #146 (you win). Prompt `{65:06a2}` to pick a reward. Color text `{65:06ce}` if you take the Soul Bowl. Then open an unlocked [chest](#locked). Then you're dumped outside `(04,06)`.
-1. `[0690]` (06,05) Hide the door S of you: set `[006f]=0x10`. (N wall texture at 06,04, was `0x20`)
+1. `[0690]` (06,05) Hide the door S of you; set `[006f]=0x10`. (N wall texture at 06,04, was `0x20`)
 
    > Wall texture 1 has metadata `0xf0` (impassable); texture 2 has metadata `0x90` (no wall). Because this wall is closed behind you, you have to leave the map entirely and come back in to reset this door if you want to repeat the Exam (say, because you picked the wrong item, or you just really wanted a second Soul Bowl).
 1. `[0745]` Default handler. If the party is outside (0,0)-(7,7), prompt to exit. NE:`(00:37,24)` S:`(00:36,23)` W:`(00:35,24)`.
@@ -1732,33 +1786,37 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,01`  |  `[b9]`   | `–*––––––` |         |
-| `b9,04`  |  `[b9]`   | `––––*–––` |         |
-| `b9,06`  |  `[b9]`   | `––––––*–` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                            |
+| :------: | :-------: | :--------: | ---------------------------------- |
+| `b9,01`  |  `[b9]`   | `–*––––––` |                                    |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the chest in the SW |
+| `b9,06`  |  `[b9]`   | `––––––*–` | Met the Dragon Queen               |
 
-### Events (chunk 0x66)
+### Events
 
-1. `[0339]`
-1. `[033e]`
-1. `[033f]`
-1. `[0376]`
-1. `[039e]`
-1. `[03ec]`
-1. `[03fd]`
-1. `[0430]`
-1. `[0463]`
-1. `[0486]`
-1. `[0481]`
-1. `[0491]`
-1. `[04bd]`
-1. `[04e8]`
-1. `[061e]`
-1. `[062d]`
-1. `[0643]`
-1. `[047c]`
-1. `[0516]` Default handler.
+1. `[0339]` You stepped in the water.
+1. `[033e]` (10,01) Do nothing.
+1. `[033f]` (09,05) Color text `{66:0340}` "distant rumble"
+1. `[0376]` (08,08) Color text `{66:0377}` "air reeks"
+1. `[039e]` (08,09) Color text `{66:039f}` "prepare for war"
+1. `[03ec]` (06,08) Color text `{66:03ed}` "another baby killed"
+1. `[03fd]` (05,09) Color text `{66:03fe}` "telepathic hate"
+1. `[0430]` (07,12) Color text `{66:0431}` "death and tension"
+1. `[0463]` (06,11) Color text `{66:0464}` "encore"
+1. `[0486]` (various) Run combat #0 (Fangers, Cockatrice, Dragon Warriors). If you win, erase this event.
+1. `[0481]` (various) Run combat #1 (Dragon Warriors). If you win, erase this event.
+1. `[0491]` (08,03) A [dead dragon](#locked) (unlocked) with infinite Dragon Teeth.
+1. `[04bd]` (06,12) If you've already shown the Dragon Gem to the Queen `[99,89]`, exit. Gate-and-set `[b9,06]` for paragraph #134 and write your current coordinates to `[bb],[ba]`. Then display monster `0x3a` (Dragon Queen).
+1. `[04e8]` You show the Dragon Gem to the Queen. If `![b9,01]`, exit. Read paragraph #120 and gain **500 XP**. Set `![b9,01]` and `[99,89]` and`[ba]=0`.
+1. `[061e]` (14,14) A [locked chest](#locked) (`[99,4f]`, difficulty 5).
+1. `[062d]` (04,03) If you haven't beaten it `![99,50]`, run combat #1 (). If you win, set `[99,50]` and `[b9,04]`.
+1. `[0643]` (03,03) A [chest](#chest) (`[b9,04]`).
+1. `[047c]` (various) Run combat #3 (random). If you win, erase this event.
+1. `[0516]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit. NE:`(00:35,15)` S:`(00:34,14)` W:`(00:33,15)`.
+
+   If `[ba]=0`, there's a 1 in 12 chance of hearing a dragon roar.
+
+   Otherwise, you're in front of the Queen. If you're on the square where you met her (checks `[bb],[ba]`), she "prepares" to attack you `{66:05f2}` to give you time to try using the Gem. If you aren't, set `[ba]=0` and she actually attacks (combat #4). **When** you lose `{66:0560}`, you're blown back to the entrance (07,00). If you somehow manage to win, she "surrenders" `{66:0591}` and swears to answer the Dragon Gem when you use it, and you're blown back to the entrance `{66:05e3}`.
 
 ### Actions
 
@@ -1954,45 +2012,86 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                                              |
+| :------: | :-------: | :--------: | ---------------------------------------------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Intro message                                        |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Have access to the chest at (10,11)                  |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Ripped up the floorboards to access chest at (05,08) |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Following tracks                                     |
 
-### Events (chunk 0x6b)
+### Events
 
-1. `[0362]`
-1. `[037f]`
-1. `[03a3]`
-1. `[03c5]`
-1. `[0419]`
-1. `[035d]`
-1. `[047a]`
-1. `[04c5]`
-1. `[04cd]`
-1. `[0511]`
-1. `[054b]`
-1. `[0598]`
-1. `[05a0]`
-1. `[05e3]`
-1. `[05eb]`
-1. `[0676]`
-1. `[067b]`
-1. `[0681]`
-1. `[0687]`
-1. `[06b4]`
-1. `[06db]`
-1. `[06fc]`
-1. `[0753]`
-1. `[0745]`
-1. `[0782]`
-1. `[0621]`
-1. `[0669]`
+1. `[0362]` (14,10) A life-like statue `{6b:0363}`
+
+1. `[037f]` (14,08) A life-like statue `{6b:0380}`
+
+1. `[03a3]` (14,03) A life-like statue `{6b:03a4}`
+
+1. `[03c5]` (11,01) The garden `{6b:03c6}`
+
+1. `[0419]` (07,05) If you *didn't* come up through the Mines `![99,33]`, set `[99,33]` and read paragraph #117. Then find an ugly statue of Mog `{6b:0428}`.
+
+1. `[035d]` You stepped in the water.
+
+1. `[047a]` (10,11) A guardroom with no guards? `{6b:0480}` Gate-and-set `[99,30]` to open a [chest](#chest) `[b9,01]`.
+
+1. `[04c5]` (10,08) and room. Read paragraph #105.
+
+1. `[04cd]` (03,07) Lots of [mirrors](#locked) (unlocked).
+
+1. `[0511]` (10,05) and room. Old dinner `{6b:0512}`.
+
+1. `[054b]` (05,03) Lots of [mirrors](#locked) (unlocked).
+
+1. `[0598]` (07,03) and room. Read paragraph #99.
+
+1. `[05a0]` (10,03) and room. Broken mirrors `{6b:05a1}`
+
+1. `[05e3]` (04,05) and room. Read paragraph #1.
+
+1. `[05eb]` (05,08) If `[b9,02]`, you find a [chest](#locked) (`[99,31]`, **difficulty 3**). Otherwise the floorboards creak `{6b:05f2}`.
+
+1. `[0676]` If `[b9,05]`, you're following tracks. Turn N and step forward.
+
+1. `[067b]` ... turn E
+
+1. `[0681]` ... turn S
+
+1. `[0687]` ... turn W
+
+1. `[06b4]` (07,11) If `[b9,05]`, run event #18. Otherwise you see tracks `{6b:06bb}`.
+
+1. `[06db]` You used *Tracker* `{6b:06de}`. Set `[b9,05]`.
+
+1. `[06fc]` (02,02) If `[b9,05]`, the tracks stop `{6b:0707}`; set `![b9,05]`. If the Demon is still alive `![99,34]`, you have a bad feeling about this `{6b:071f}`.
+
+1. `[0753]` (03,03) If the Demon is still alive `![99,34]`, run a combat. If you have any Mirrors in your inventory, drop them; the tagline for combat #0 says he shatters them. Otherwise, the tagline for combat #5 doesn't say it. Either way, if you win, set  `[99,34]`.
+
+   > There are two Gaze Demons in the Monster list, although they're not much different (one's breath weapon is slightly more potent), and one isn't referenced by any Encounters. I wonder if one of these Encounters was supposed to use the "other" one.
+
+1. `[0745]` (04,02) and room. If the Demon is still alive `![99,34]`, read paragraph #103.
+
+1. `[0782]` Used a Mirror. If the Demon is still alive `![99,34]`, you kill him `{6b:0789}`,`{6b:07dc}`; set `[99,61]` and `[99,34]` and put a statue at (03,03) (set decoration `0x02`).
+
+1. `[0621]` Used STR to pull up the floorboards. If you've pulled up the floorboards already `[b9,02]`, exit. If you opened the chest already `[99,31]`, there's nothing here `{6b:065b}`. Otherwise you find the chest `{6b:0631}`; set `[b9,02]`.
+
+1. `[0669]` (03,08) A [locked chest](#locked) (`[99,32]`, **difficulty 3**).
+
 1. `[08f0]` You use the elixer [sic] on a statue, but it doesn't work `{6b:08f1}`.
-1. `[092c]`
-1. `[0931]`
+
+1. `[092c]` (09,08)
+
+1. `[0931]` (04,08)
+
 1. `[0936]`
-1. `[093b]`
-1. `[0853]` Default handler.
+
+1. `[093b]` (03,05)
+
+1. `[0853]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit. NE:`(00:18,06)` S:`(00:17,06)` W:`(00:16,06)`.
+
+   Gate-and-set `[b9,00]`. If the Demon is dead `[99,34]` and turned to stone `[99,61]`, put a statue at (03,03). Draw a welcome message `{6b:0893}`.
+
+   > Awkward, that this will play when you come up from the slave mines, too.
 
 ### Actions
 
@@ -2116,6 +2215,8 @@ ic,b)` -->
 # General Events
 
 The metaprogram for each board often calls out to functions in other chunks. Some of these are common to cities and feature additional data, which is worth explaining.
+
+Calls to `random(n)` generate a number from `0` to `n-1`, so if you want 1–`n` you just have to add 1.
 
 ## Taverns<a name="tavern">
 

@@ -23,14 +23,14 @@
 | `99,0e`  |  `[9a]`   | `––––––*–` |            Dwarf Clan Hall             | Depetrified the dwarves                                      |
 | `99,0f`  |  `[9a]`   | `–––––––*` |            Dwarf Clan Hall             | [Gave the Skull to the dwarven smith]                        |
 | `99,10`  |  `[9b]`   | `*–––––––` |            Dwarf Clan Hall             | Stole from the dwarves                                       |
-| `99,11`  |  `[9b]`   | `–*––––––` |                                        |                                                              |
-| `99,12`  |  `[9b]`   | `––*–––––` |                                        |                                                              |
-| `99,13`  |  `[9b]`   | `–––*––––` |                                        |                                                              |
-| `99,14`  |  `[9b]`   | `––––*–––` |                                        |                                                              |
-| `99,15`  |  `[9b]`   | `–––––*––` |                                        |                                                              |
+| `99,11`  |  `[9b]`   | `–*––––––` |             Game Preserve              | Killed the stag                                              |
+| `99,12`  |  `[9b]`   | `––*–––––` |             Game Preserve              | Jack has vanished (or was killed)                            |
+| `99,13`  |  `[9b]`   | `–––*––––` |               Snake Pit                | Found the Stone Head                                         |
+| `99,14`  |  `[9b]`   | `––––*–––` |               Snake Pit                | Found Drake's throne                                         |
+| `99,15`  |  `[9b]`   | `–––––*––` |               Kingshome                | Met Namtar                                                   |
 | `99,16`  |  `[9b]`   | `––––––*–` |                                        |                                                              |
-| `99,17`  |  `[9b]`   | `–––––––*` |                                        |                                                              |
-| `99,18`  |  `[9c]`   | `*–––––––` |                                        |                                                              |
+| `99,17`  |  `[9b]`   | `–––––––*` |              Mystic Wood               | Wrestled Enkidu?                                             |
+| `99,18`  |  `[9c]`   | `*–––––––` |              Mystic Wood               | Revived Zaton's spirit                                       |
 | `99,19`  |  `[9c]`   | `–*––––––` |               Purgatory                | Start square intro message has been played                   |
 | `99,1a`  |  `[9c]`   | `––*–––––` |                Mud Toad                | Stone Arms have been returned                                |
 | `99,1b`  |  `[9c]`   | `–––*––––` |                Mud Toad                | Stone Trunk has been returned                                |
@@ -38,11 +38,11 @@
 | `99,1d`  |  `[9c]`   | `–––––*––` |                Mud Toad                | Stone Hand has been returned                                 |
 | `99,1e`  |  `[9c]`   | `––––––*–` |                                        |                                                              |
 | `99,1f`  |  `[9c]`   | `–––––––*` |             Sunken Dungeon             | Clam has been brought to surface and replaced with Skull     |
-| `99,20`  |  `[9d]`   | `*–––––––` |             Sunken Dungeon             |                                                              |
-| `99,21`  |  `[9d]`   | `–*––––––` |               Byzanople                | Kingshome wins the siege of Byzanople                        |
+| `99,20`  |  `[9d]`   | `*–––––––` |             Sunken Dungeon             | Defeated the locker guards                                   |
+| `99,21`  |  `[9d]`   | `–*––––––` |       Byzanople,<br />Siege Camp       | Kingshome wins the siege of Byzanople                        |
 | `99,22`  |  `[9d]`   | `––*–––––` |       Byzanople,<br />Siege Camp       | Byzanople wins the siege of Byzanople                        |
 | `99,23`  |  `[9d]`   | `–––*––––` |               Byzanople                | Killed the Byzanople observation party                       |
-| `99,24`  |  `[9d]`   | `––––*–––` |           Byzanople Dungeon            | Joined forces with Prince Jordan                             |
+| `99,24`  |  `[9d]`   | `––––*–––` |   Byzanople Dungeon,<br />Siege Camp   | Joined forces with Prince Jordan                             |
 | `99,25`  |  `[9d]`   | `–––––*––` |               Purgatory                | Defeated the Humbaba                                         |
 | `99,26`  |  `[9d]`   | `––––––*–` |               Purgatory                | Have received reward from Clopin for defeating the Humbaba   |
 | `99,27`  |  `[9d]`   | `–––––––*` |               Slave Camp               | Have access to the Nature Axe cache                          |
@@ -54,11 +54,11 @@
 | `99,2d`  |  `[9e]`   | `–––––*––` |                Phoebus                 | Unlocked the chest at (01,10)                                |
 | `99,2e`  |  `[9e]`   | `––––––*–` |                Phoebus                 | Unlocked the chest at (01,15)                                |
 | `99,2f`  |  `[9e]`   | `–––––––*` |                Phoebus                 | Unlocked the chest at (11,15)                                |
-| `99,30`  |  `[9f]`   | `*–––––––` |                                        |                                                              |
-| `99,31`  |  `[9f]`   | `–*––––––` |              Slave Estate              |                                                              |
-| `99,32`  |  `[9f]`   | `––*–––––` |              Slave Estate              |                                                              |
-| `99,33`  |  `[9f]`   | `–––*––––` |              Slave Mines               | Defeated the guards blocking the exit                        |
-| `99,34`  |  `[9f]`   | `––––*–––` |                                        |                                                              |
+| `99,30`  |  `[9f]`   | `*–––––––` |              Slave Estate              | Found the chest at (10,11)                                   |
+| `99,31`  |  `[9f]`   | `–*––––––` |              Slave Estate              | Found the chest at (05,08)                                   |
+| `99,32`  |  `[9f]`   | `––*–––––` |              Slave Estate              | Unlocked the chest at (03,08)                                |
+| `99,33`  |  `[9f]`   | `–––*––––` |       Slave Mines, Slave Estate        | Defeated the guards to escape the mines<br />*-or-* Found the ugly statue of Mog |
+| `99,34`  |  `[9f]`   | `––––*–––` |              Slave Estate              | Killed the Gaze Demon                                        |
 | `99,35`  |  `[9f]`   | `–––––*––` |         Purgatory, Slave Mines         | Sold yourself into slavery                                   |
 | `99,36`  |  `[9f]`   | `––––––*–` |              Slave Mines               | Gave water to the dying old man                              |
 | `99,37`  |  `[9f]`   | `–––––––*` |              Slave Mines               | Unlocked the hidden chest                                    |
@@ -67,30 +67,30 @@
 | `99,3a`  |  `[a0]`   | `––*–––––` |            Smuggler's Cove             | Unlocked the pirate's treasure chest                         |
 | `99,3b`  |  `[a0]`   | `–––*––––` |                 Lansk                  | Unlocked the chest                                           |
 | `99,3c`  |  `[a0]`   | `––––*–––` |                                        |                                                              |
-| `99,3d`  |  `[a0]`   | `–––––*––` |                                        |                                                              |
-| `99,3e`  |  `[a0]`   | `––––––*–` |                                        |                                                              |
-| `99,3f`  |  `[a0]`   | `–––––––*` |                                        |                                                              |
-| `99,40`  |  `[a1]`   | `*–––––––` |                                        |                                                              |
-| `99,41`  |  `[a1]`   | `–*––––––` |                                        |                                                              |
-| `99,42`  |  `[a1]`   | `––*–––––` |                                        |                                                              |
-| `99,43`  |  `[a1]`   | `–––*––––` |                                        |                                                              |
-| `99,44`  |  `[a1]`   | `––––*–––` |                                        |                                                              |
-| `99,45`  |  `[a1]`   | `–––––*––` |                                        |                                                              |
-| `99,46`  |  `[a1]`   | `––––––*–` |               Byzanople                | Have unlocked the Fire Shield chest                          |
+| `99,3d`  |  `[a0]`   | `–––––*––` |               Kingshome                | Have access to the weapons cache                             |
+| `99,3e`  |  `[a0]`   | `––––––*–` |               Snake Pit                | Unlocked the hidden chest                                    |
+| `99,3f`  |  `[a0]`   | `–––––––*` |              Mystic Wood               | Unlocked the chest in the SW corner                          |
+| `99,40`  |  `[a1]`   | `*–––––––` |              Mystic Wood               | Unlocked the chest along the shoreline                       |
+| `99,41`  |  `[a1]`   | `–*––––––` |              Mystic Wood               | Found The Ring                                               |
+| `99,42`  |  `[a1]`   | `––*–––––` |              Mystic Wood               | Found the Beast Horn                                         |
+| `99,43`  |  `[a1]`   | `–––*––––` |              Mystic Wood               | Defeated the Water Spirits guarding the chest                |
+| `99,44`  |  `[a1]`   | `––––*–––` |              Mystic Wood               | Defeated the Lagooners guarding the pond                     |
+| `99,45`  |  `[a1]`   | `–––––*––` |                Old Dock                | Moved the statue                                             |
+| `99,46`  |  `[a1]`   | `––––––*–` |               Byzanople                | Unlocked the Fire Shield chest                               |
 | `99,47`  |  `[a1]`   | `–––––––*` |            Scorpion Bridge             | Have access to the chest                                     |
 | `99,48`  |  `[a2]`   | `*–––––––` |              Sunken Ruins              | Have access to the chest                                     |
-| `99,49`  |  `[a2]`   | `–*––––––` |                                        |                                                              |
-| `99,4a`  |  `[a2]`   | `––*–––––` |                Freeport                | Have unlocked the Order's chest                              |
-| `99,4b`  |  `[a2]`   | `–––*––––` |                Freeport                | Have defeated the Order of the Sword                         |
+| `99,49`  |  `[a2]`   | `–*––––––` |             Sunken Dungeon             | Unlocked the hidden chest                                    |
+| `99,4a`  |  `[a2]`   | `––*–––––` |                Freeport                | Unlocked the Order's chest                                   |
+| `99,4b`  |  `[a2]`   | `–––*––––` |                Freeport                | Defeated the Order of the Sword                              |
 | `99,4c`  |  `[a2]`   | `––––*–––` |                                        |                                                              |
 | `99,4d`  |  `[a2]`   | `–––––*––` |                                        |                                                              |
 | `99,4e`  |  `[a2]`   | `––––––*–` |                                        |                                                              |
-| `99,4f`  |  `[a2]`   | `–––––––*` |                                        |                                                              |
-| `99,50`  |  `[a3]`   | `*–––––––` |                                        |                                                              |
+| `99,4f`  |  `[a2]`   | `–––––––*` |             Dragon Valley              | Unlocked the chest in the NE corner                          |
+| `99,50`  |  `[a3]`   | `*–––––––` |             Dragon Valley              | Beat the encounter guarding the SW chest                     |
 | `99,51`  |  `[a3]`   | `–*––––––` |                                        |                                                              |
 | `99,52`  |  `[a3]`   | `––*–––––` |            Lanac'toor's Lab            |                                                              |
-| `99,53`  |  `[a3]`   | `–––*––––` |                 Nisir                  | Have unlocked the weapons chest                              |
-| `99,54`  |  `[a3]`   | `––––*–––` |             Game Preserve              |                                                              |
+| `99,53`  |  `[a3]`   | `–––*––––` |                 Nisir                  | Unlocked the weapons chest                                   |
+| `99,54`  |  `[a3]`   | `––––*–––` |             Game Preserve              | Killed the bandits                                           |
 | `99,55`  |  `[a3]`   | `–––––*––` |            Magan Underworld            | Scared off the malign fairies                                |
 | `99,56`  |  `[a3]`   | `––––––*–` |                Mud Toad                | Sealed the leak, received the Golden Boots                   |
 | `99,57`  |  `[a3]`   | `–––––––*` |               Purgatory                | NPC ID 0 (Ulrik) is in the party                             |
@@ -103,11 +103,11 @@
 | `99,5e`  |  `[a4]`   | `––––––*–` |                   —                    | NPC ID 7 (—) is in the party                                 |
 | `99,5f`  |  `[a4]`   | `–––––––*` |                   —                    | NPC ID 8 (—) is in the party                                 |
 | `99,60`  |  `[a5]`   | `*–––––––` |                                        |                                                              |
-| `99,61`  |  `[a5]`   | `–*––––––` |                                        |                                                              |
+| `99,61`  |  `[a5]`   | `–*––––––` |              Slave Estate              | Killed the Gaze Demon with a mirror                          |
 | `99,62`  |  `[a5]`   | `––*–––––` |               Purgatory                | Won citizenship by defeating the Gladiators in the Arena     |
 | `99,63`  |  `[a5]`   | `–––*––––` |                 Dilmun                 | Found the cache on Forlorn                                   |
-| `99,64`  |  `[a5]`   | `––––*–––` |                                        |                                                              |
-| `99,65`  |  `[a5]`   | `–––––*––` |                                        |                                                              |
+| `99,64`  |  `[a5]`   | `––––*–––` |               Siege Camp               | Found the soldier's cache                                    |
+| `99,65`  |  `[a5]`   | `–––––*––` |               Siege Camp               | Unlocked the other chest                                     |
 | `99,66`  |  `[a5]`   | `––––––*–` |                                        |                                                              |
 | `99,67`  |  `[a5]`   | `–––––––*` |                                        |                                                              |
 | `99,68`  |  `[a6]`   | `*–––––––` |                                        |                                                              |
@@ -136,13 +136,14 @@
 | `99,7f`  |  `[a8]`   | `–––––––*` |                 Dilmun                 | Defeated the Goblins outside Phoebus                         |
 | `99,80`  |  `[a9]`   | `*–––––––` |            Phoeban Dungeon             |                                                              |
 | `99,81`  |  `[a9]`   | `–*––––––` |            Magan Underworld            | Have taken the 5 AP Leap of Faith                            |
-| `99,82`  |  `[a9]`   | `––*–––––` |              Pilgrim Dock              |                                                              |
+| `99,82`  |  `[a9]`   | `––*–––––` |              Pilgrim Dock              | Killed the dock guards                                       |
 | `99,83`  |  `[a9]`   | `–––*––––` |            Magan Underworld            | Have access to the first Namtar's Body chest                 |
 | `99,84`  |  `[a9]`   | `––––*–––` |            Magan Underworld            | Dropped Namtar's Body to set up the first fight              |
 | `99,85`  |  `[a9]`   | `–––––*––` |            Magan Underworld            | Defeated Namtar the first time                               |
 | `99,86`  |  `[a9]`   | `––––––*–` |            Magan Underworld            | Defeated Namtar the second time<br />Have access to the second Namtar's Body chest |
 | `99,87`  |  `[a9]`   | `–––––––*` |            Scorpion Bridge             | Killed the Scorpion guards                                   |
 | `99,88`  |  `[aa]`   | `*–––––––` |            Tars Underground            | Have opened the Stone Arms cache                             |
+| `99,89`  |  `[aa]`   | `–*––––––` |             Dragon Valley              | Showed the Dragon Gem to the Queen                           |
 
 ## Marching Order
 
