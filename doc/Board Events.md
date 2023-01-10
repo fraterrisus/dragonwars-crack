@@ -18,7 +18,7 @@ I wonder if there's a difference between flags in the 90's and flags in the b0's
 
 `(0a:05,07)` is a **map location**. The first number (in hex) is the board number. The second and third are an (X,Y) coordinate (in decimal) on that map. Coordinates on the current map are usually not printed in monotype, i.e. (05,07).
 
-`{45:0412}` is a **memory location** within a data chunk (uncompressed, if necessary).
+`{45:0412}` is a **memory location** within an (uncompressed) data chunk.
 
 ## 0x00 Dilmun
 
@@ -1520,53 +1520,102 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                         |
+| :------: | :-------: | :--------: | ------------------------------- |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Dispelled the invisible maze    |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Killed Namtar three times       |
+| `b9,07`  |  `[b9]`   | `–––––––*` | The Dragon Queen torched Namtar |
+| `b9,08`  |  `[ba]`   | `*–––––––` | Summoned the Dragon Queen       |
 
-### Events (chunk 0x61)
+### Events
 
-1. `[19d3]` *Lockpick. Always works on wall metadata 0x01.*
-1. `[0c70]`
-1. `[0c9d]`
-1. `[0cf6]`
-1. `[0cf1]`
-1. `[0d23]`
-1. `[0d94]`
-1. `[0db3]`
-1. `[0db3]`
-1. `[0e29]` The Air Element[al] ferries you across the gap. Face E and move forward three times.
-1. `[0e2e]` The Air Element[al] ferries you across the gap. Face W and move forward three times.
-1. `[0e58]`
-1. `[0ea1]`
-1. `[0f00]`
-1. `[0f01]`
-1. `[0f1c]` *Set `[b9,01]` to disable the invisible wall maze*
-1. `[0f92]`
-1. `[0fbc]`
-1. `[10a5]`
-1. `[1100]`
-1. `[1135]`
-1. `[1156]`
-1. `[11e8]`
-1. `[121a]`
-1. `[1215]`
-1. `[1225]`
-1. `[125e]`
-1. `[1265]`
-1. `[1257]`
-1. `[1249]`
-1. `[1250]`
-1. `[123b]`
-1. `[1242]`
-1. `[1275]`
-1. `[1313]`
-1. `[146d]`
-1. `[148b]`
-1. `[14b9]`
-1. `[17b4]`
-1. `[14ab]`
-1. `[19fa]` Default handler.
+1. `[19d3]` You pick a lock. Always works on wall metadata `0x01`.
+
+1. `[0c70]` (15,18) Color text `{61:0c71}`.
+
+1. `[0c9d]` (15,17) Welcome to the Depths of Nisir `{61:0ca3}`. Erase this event.
+
+1. `[0cf6]` Icy Winds of Despair; extinguish any magical light `[c1]=0,[c5]=0` and deal 1 HP damage.
+
+1. `[0cf1]` Spinner trap.
+
+1. `[0d23]` If you have *Disarm Traps* running `[bf]>0`, you miss a pit `{61:0d78}`. Otherwise, you fall `{61:0d29}` and take 1d8 HP damage. Either way, you feel despair `{61:0d3b}`.
+
+1. `[0d94]` (07,19) "Right back where you started"`{61:0d95}`? Liar.
+
+1. `[0db3]` (24,11),(24,12) Overlooking a pit `{61:0db9}`.
+
+1. `[0db3]` (27,11),(27,12) Overlooking a pit `{61:0db9}`.
+
+1. `[0e29]` The Air Element[al] ferries you across the gap `{61:0e38}`. Face E and move forward three times.
+
+1. `[0e2e]` The Air Element[al] ferries you across the gap `{61:0e38}`. Face W and move forward three times.
+
+1. `[0e58]` (30,09) Namtar admits he misunderestimated you `{61:0e5e}`. Erase this event.
+
+1. `[0ea1]` (30,14) Namtar disapproves of your vagrancy `{61:0ea7}`. Erase this event.
+
+1. `[0f00]` (15,28) Do nothing.
+
+1. `[0f01]` (10,13) Entrance to the invisible maze `{61:0f02}`
+
+1. `[0f1c]` You cast *H:Reveal Glamour*. If you're inside (8,6)-(12,13), test-and-set `[b9,01]` to dispel the illusion `{61:0f30}`. (This actually saves your location, then travels through the room setting bits on the various walls, then restores your location.)
+
+1. `[0f92]` Mystalvision's lair is full of hot sunshine `{61:0f92}`. Deal 1 HP damage.
+
+1. `[0fbc]` (17,01) If Mystalvision is still alive `![99,70]`, he's here `{61:0fc8}`. Run combat #4 (Mystalvision). If you lose, he fights to the death. If you win `{61:1064}`, set `[99,70]` and he teleports you to `(07,19)`.
+
+1. `[10a5]` (02,16) and room. The meat locker `{61:10a6}`.
+
+1. `[1100]` (02,12) and room. The bone room `{61:1101}`.
+
+1. `[1135]` (02,08) and room. A swampy odor `{61:1136}`.
+
+1. `[1156]` (02,05) The swamp beneath the mountain `{61:115c}`. Erase this event.
+
+1. `[11e8]` (23,24) and room. A guard barracks `{61:11e9}`.
+
+1. `[121a]` Run combat #2 (Lizard Warriors, Namtar Guards). If you win, erase this event.
+
+1. `[1215]` Run random combat. If you win, erase this event.
+
+1. `[1225]` ([10,21],[14,24]) Spinner trap, but it warns you `{61:122d}`.
+
+1. `[125e]` (15,14) Teleport to (17,24)
+
+1. `[1265]` (17,24) Teleport to (15,14)
+
+1. `[1257]` (18,05) Teleport to (13,05)
+
+1. `[1249]` (17,09) Teleport to (30,22)
+
+1. `[1250]` (30,22) Teleport to (17,09)
+
+1. `[123b]` (10,19) Teleport to (21,18)
+
+1. `[1242]` (21,18) Teleport to (10,19)
+
+1. `[1275]` (27,18) If Buck Ironhead is still alive `![99,71]`, he's here `{61:1281}`. Run combat #5 (Buck). If you lose, he fights to the death. If you win, set `[99,71]`.
+
+1. `[1313]` (28,02) You're teleported to a battle plain `{61:1319}`,`{61:139b}`,`{61:13f0}`. Travel to `(23,05)`.
+
+1. `[146d]` (23,04),(23,05) Namtar's army lies to the S `{61:146e}`. You can use the Dragon Gem here.
+
+1. `[148b]` (23,03) Don't you dare go any further... `{61:148c}`. You can use the Dragon Gem here.
+
+1. `[14b9]` (23,02) If you've killed Namtar three times `[b9,02]`, you can pick up [his body](#chest) (`[b9,02]`).
+
+   If you haven't fought Namtar yet `![b9,02]` but the Dragon Queen did her thing `[b9,07]`, Namtar comes back to life `{61:1639}`,`{61:1682}`. Set `[db]` to disable Running, then run combat #6 (Namtar #1, with taunting).
+
+   If you haven't fought Namtar yet `![b9,02]` and *didn't* summon the Dragon Queen `![b9,07]`, you went too far `{61:14cb}`. Run combat #10 (10 Young Dragons, 31 Lizard Warriors, 31 Enforcers, 31 Namtar Guards). The game allows you to Run and/or lose gracefully. If you somehow manage to win `{61:14f2}`, you spot Namtar `{61:152a}`,`{61:1595}`. Set `[db]` to disable Running, then run combat #9 (Namtar #1, without taunting).
+
+   Namtar #1 is a fight to the death; you can't run, and if you lose, you have to repeat it. Win, and you get a triumphant message `{61:1605}` or `{61:16be}`, and then he stands up `{61:16f9}`. Set `[db]` again, then run combat #7 (Namtar #2), which uses the same rules. Win that and the game sets `[db]` again to run combat #8 (Namtar #3). Win *that*, and we set `[b9,02]`.
+
+1. `[17b4]` If you *didn't* activate the Dragon Gem already `![99,89]`, you're SOL. Gate-and-set `[b9,08]` to summon the Dragon Queen `{61:17c4}`, who torches Namtar's army `{61:1849}` and then Namtar himself `{61:18ca}` before deciding `{61:193d}` not to kill you `{61:19ae}`. Drop the Dragon Gem, travel to `(23,02)`, and set `[b9,07]`.
+
+1. `[14ab]` (17,16),(23,06) Stairs up to the Underworld `(12:08,15)`
+
+1. `[19fa]` Default handler; do nothing.
 
 ### Actions
 
@@ -1834,43 +1883,45 @@ ic,b)` -->
 
 | Bitsplit | Heap byte |    Bit     | Meaning |
 | :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` | |
-| `b9,01`  |  `[b9]`   | `–*––––––` | |
-| `b9,02`  |  `[b9]`   | `––*–––––` | |
-| `b9,03`  |  `[b9]`   | `–––*––––` | |
-| `b9,04`  |  `[b9]`   | `––––*–––` | |
-| `b9,05`  |  `[b9]`   | `–––––*––` | |
-| `b9,06`  |  `[b9]`   | `––––––*–` | |
-| `b9,07`  |  `[b9]`   | `–––––––*` |         |
+| `b9,00`  |  `[b9]`   | `*–––––––` | "Intro" |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Killed the Jailer (09,06) |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Killed the Guard Captains at (06,03) |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Access the good treasure chest |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Access the bad treasure chest |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Jailer threw you back in the cell at least once |
+| `b9,06`  |  `[b9]`   | `––––––*–` | Defeated Mystalvision |
+| `b9,07`  |  `[b9]`   | `–––––––*` | Have access to Mystalvision's treasure |
 
-### Events (chunk 0x67)
+### Events
 
-1. `[0383]`
-1. `[09f4]`
-1. `[09f9]`
-1. `[0455]`
-1. `[0a09]`
-1. `[09fe]`
-1. `[0391]`
-1. `[03ac]`
-1. `[03d2]`
-1. `[03fb]`
-1. `[0aa0]`
-1. `[0447]`
-1. `[04b4]`
-1. `[0509]`
-1. `[0530]`
-1. `[0554]`
-1. `[0571]`
-1. `[05a1]`
-1. `[05b5]`
-1. `[05ed]`
-1. `[06ad]`
-1. `[0702]`
-1. `[0710]`
-1. `[075e]`
-1. `[08e6]`
-1. `[0a95]` Default handler.
+1. `[0383]` (01,13) Stairs up to Phoebus `(06:02,13)`
+1. `[09f4]` (06,07) Run combat #0 (random). If you win, erase this event.
+1. `[09f9]` (03,04) Run combat #1 (Guard Captains, Dungeon Guards). If you win, erase this event.
+1. `[0455]` (09,06) If he isn't dead `![b9,01]`, the jailer sounds the alarm `{67:0461}`; run combat #2 (). If you win, set `[b9,01]` and exit. If you lose, you're thrown back in your cell `{67:049d}`; travel to `(12,3)`, lock the door (index `0x5`), set `[b9,05]` and `[bb]=0x01`.
+1. `[0a09]` (07,15) If Mystalvision isn't dead `![99,70]` and you haven't fought him already `![b9,06]`, run combat #3 (). If you win, Mystalvision vanishes `{67:0a24}`; set `[b9,06]` and open a [chest](#chest) of goodies (`[b9,07]`).
+1. `[09fe]` (09,10) Run combat #4 (random). If you win, erase this event.
+1. `[0391]` A strong scent of dragon `{67:0392}`.
+1. `[03ac]` A strong sound of dragon `{67:03ad}`.
+1. `[03d2]` (13,06) A crying man from the N `{67:03d3}`.
+1. `[03fb]` (13,07) "They're torturing the Druid!" `{67:03fc}`
+1. `[0aa0]` You pick a lock.
+1. `[0447]` (10,06) Read paragraph #102 (the drunk, sleeping guard)
+1. `[04b4]` You *Hide* past the guards (unless you killed them already `[b9,01]`), revealing the secret door to the S `{67:04bb}`.
+1. `[0509]` (06,01),(05,01) If the cave-in wall hasn't been cleared (index `0x6`), it's blocked `{67:0514}`.
+1. `[0530]` You *Climb* through the debris, if it hasn't been cleared (metadata `0x04`).
+1. `[0554]` You dig through the debris, if it hasn't been cleared (metadata `0x04`).
+
+   > Index `0x06` :arrow_right: metadata `0xd4`, so these are the same check.
+1. `[0571]` (07,01) Voices from the N `{67:0578}`, if the guards are still there `[b9,02]`
+1. `[05a1]` (06,03) If you haven't killed them yet `![b9,02]`, run combat #1 (Guard Captains). If you win, set `[b9,02]` and erase this event.
+1. `[05b5]` (03,14) Gate-and-set `[99,66]` to access a [chest](#chest) (`[b9,03]`) with the good treasure.
+1. `[05ed]` (04,12) Magic mouth demands the password `{67:05f3}`. It's `HALIFAX` `{67:0677}`.  (`BURGER` `{67:067e}` doesn't work.)
+1. `[06ad]` (02,11) Gate-and-set `[99,67]` to access a [chest](#chest) (`[b9,04]`) with "basic" arms and armor, and the Shovel.
+1. `[0702]` (06,11) If the Druid isn't dead `[99,68]`, read paragraph #106.
+1. `[0710]` (06,11) You heal the Druid. If he isn't dead `[99,68]`, he dies and gives you the password `{67:071a}`.
+1. `[075e]` (12,03) If `[bb]=0`, you wake up `{67:076a}` in a locked cell `{67:0780}` and are stuck here `{67:07c6}`; set `[bb]=0x1`. Otherwise, you're stuck here for 100 turns. Every ten, you mark another day of captivity. After eight days, you get a message `{67:0829}`. Eventually Berengaria unlocks your cell (index `0x2`, paragraph #101), and if this isn't your first time `[b9,05]`, encourages you not to wake up the guards `{67:0873}`.
+1. `[08e6]` (13,13) If the dragon has already been fed `[99,80]`, he snores `{67:08ee}`. Otherwise, read paragraph  #104. The hunchback waits for an answer `{67:0921}`. If you allow him `{67:0969}`, set `[99,80]`. Otherwise, read paragraph #89 and the dragon destroys Phoebus `[99,7e]`; travel to Dilmun `(00:05,10)`.
+1. `[0a95]` Default handler. Gate-and-set `[b9,00]`, but don't do anything with it. :man_shrugging:
 
 ### Actions
 
@@ -1884,33 +1935,37 @@ ic,b)` -->
 
 ## 0x22 Lanac'toor's Lab
 
+> The walls surrounding the Underworld staircase can't be *D:Softened* (`0x20`) once you *D:Create* them.
+
 ### Flags
 
-- **Random Encounters:** yes (1 in 25)
+- **Random Encounters:** yes (1 in 25), until you seal up the Underworld staircase
 - You **need a light** in order to see.
 - You **need a compass** to get your bearings.
 - The map **wraps**.
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                          |
+| :------: | :-------: | :--------: | -------------------------------- |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Sealed off the Underworld stairs |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Access the Spectacles chest |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Access the scrolls chest |
 
-### Events (chunk 0x68)
+### Events
 
-1. `[032f]` Read paragraph 0x6b.
+1. `[032f]` Read Lanac'toor's journal, paragraph #107, which is chock full of clues.
 1. `[0337]` Color text `{68:0338}`.
-1. `[036c]` Offer stairs up to `(08:07,10)`.
-1. `[037a]` Offer stairs down to `(12:25,08)`.
-1. `[0388]` *Can be used to find dangerous walls.*
-1. `[0437]` *Walls with texture special 0x01 cause water to rush you. 1d6 damage*
+1. `[036c]` Stairs up to Mud Toad `(08:07,10)`.
+1. `[037a]` Stairs down to the Underworld `(12:25,08)`.
+1. `[0388]` **You use *Cave Lore*.** If you're facing a wall with special `0x1`, it looks dangerous `{68:038f}`. Otherwise if it's a wall (metadata `0x80`), it looks fine `{68:03e5}`. Otherwise you're not facing a wall `{68:0415}`.
+1. `[0437]` You cast *D:Soften Stone*. If you're facing a wall with special `0x1`, it splashes you `{68:044d}` for **1d6 damage**.
 1. `[04f8]` If the Underworld has not yet been sealed off `![b9,01]`, run a random combat. If you win, erase this event.
-1. `[04a5]` *If used on a wall with texture special 0x02, it seals up the Underworld.*
-1. `[0508]` *the Spectacles*
-1. `[0541]` *some High Magic scrolls*
-1. `[058f]` *a chest*
-1. `[059e]` Default handler.
+1. `[04a5]` You cast *D:Create Wall*. If you're facing a (missing) wall with special `0x2`, you seal up the Underworld staircase `{68:04ac}` on all four sides, stops random encounters `[24]=0x0`, and sets `[b9,01]`.
+1. `[0508]` Gate-and-set `[99,1e]` to find the [Spectacles](#chest) (`[b9,04]`).
+1. `[0541]` Gate-and-set `[99,51]` to find some [High Magic scrolls](#chest) (`[b9,05]`).
+1. `[058f]` A [locked chest](#locked) (`[99,52]`, difficulty 4) with a Healing Potion and Dragon Shield.
+1. `[059e]` Default handler. Do nothing.
 
 ### Actions
 
@@ -1933,29 +1988,52 @@ ic,b)` -->
 
 | Bitsplit | Heap byte |    Bit     | Meaning |
 | :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Access to the crypt treasure |
+| `b9,05`  |  `[b9]`   | `–––––*––` | Access to the treasure vault |
 
-### Events (chunk 0x69)
+### Events
 
-1. `[030f]`
-1. `[031d]`
-1. `[037a]`
-1. `[0385]`
-1. `[041a]`
-1. `[0422]`
-1. `[043d]`
-1. `[044b]`
-1. `[047b]`
-1. `[0504]`
-1. `[0536]`
-1. `[0544]`
-1. `[0579]`
-1. `[05b6]`
-1. `[036f]`
-1. `[080a]`
-1. `[03da]`
-1. `[09ed]`
-1. `[0a73]` Default handler.
+1. `[030f]` (06,09) Stairs up to Byzanople `(09:06,09)` Courtyard
+
+1. `[031d]` You pick a lock. Always works on wall metadata `0x01`; never works on `0x02` `{69:034b}`.
+
+1. `[037a]` Run combat #3 (Zombies). If you win, erase this event.
+
+1. `[0385]` (14,01) Gate-and-set `[99,6c]` for a [MagicAxe ](#chest) (`[b9,04]`).
+
+1. `[041a]` (01,08) Read paragraph #111.
+
+1. `[0422]` (09,03) Hydra hallway, dusty from disuse `{69:0423}`.
+
+1. `[043d]` (09,01) Stairs up to Byzanople `(09:09,01)` Hydra Corner
+
+1. `[044b]` (09,05) A movable wall `{69:044c}`.
+
+1. `[047b]` (09,05) *STR 18* allows you to move the wall `{69:0488}`, otherwise it doesn't work `{69:04df}`.
+
+1. `[0504]` (07,04) Sapper hallway, narrow `{69:0505}`.
+
+1. `[0536]` (07,03) Stairs up to Byzanople `(09:07,04)` sappers
+
+1. `[0544]` (07,05) A shoveable wall `{69:0545}`.
+
+1. `[0579]` (07,05) *STR 18* allows you to move the wall `{69:0586}`, but it seals behind you.
+
+1. `[05b6]` (07,11) Prince Jordan. If you haven't joined forces with him already`![99,24]` and didn't kill him `![99,6d]`, read paragraph #108. Jordon asks you to join him `{69:05cf}`. If you say yes, read paragraph #109 and set `[99,24]`, then open a door in the wall to the W.
+
+   If you say no, he offers you a second chance. `{69:60d}`. If you still say no, run combat #2 (Jordan, Throneroom Guards). If you lose, you're thrown in jail `(07,07)` with an infinite counter `{69:06a2}`. If you win, Byzanople is doomed `{69:06d4}`, Dilmun is doomed `{69:071a}`, and somehow the game things *you're* going to lead the people `{69:07a2}`? As a punishment `{69:07e2}`? Set `[99,6d]`,`[99,6e]`, and `[99,23]` to mark the entire royal family KIA.
+
+1. `[036f]` (09,07) and room. If you haven't joined forces with Prince Jordan `![99,24]`, run combat #1 (City Militia, Royal Guards). If you win, erase this event (but note that the whole room is full of Event #15).
+
+1. `[080a]` (06,08),(06,10) If you haven't joined forces with Jordan `![99,24]`, you haven't killed Jordan `![99,6e]`, and the siege hasn't been decided yet `![99,21]![99,22]`, you meet Princess Myrolla `{69:0828}`. She demands your surrender `{69:0828}`. If you agree, she sends you to jail `(07,07)` for `[bb]=0x14` turns `{69:089a}`.
+
+   If you refuse, run combat #0 (Myrolla, Royal Guards). If you lose, you're sent to jail as above. If you win, set `[99,6e]`. You find a letter from Drake `{69:0941}` that he's scribbled all over `{69:0941}`. Turns out you did a dumb `{69:09b5}.`
+
+1. `[03da]` (09,11) Gate-and-set `[99,6f]` to access the [treasure vault](#chest) (`[b9,05]`).
+
+1. `[09ed]` (07,07) and room. If `[bb]=0`, you're just stuck here. Otherwise decrement `[bb]` ; if zero, Myrolla comes to get you `{69:09ff}` and brings you to Jordan `(07,11)`.
+
+1. `[0a73]` Default handler; do nothing.
 
 ### Actions
 
@@ -1978,24 +2056,27 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning                       |
+| :------: | :-------: | :--------: | ----------------------------- |
+| `b9,03`  |  `[b9]`   | `–––*––––` | Have access to the treasury   |
+| `b9,04`  |  `[b9]`   | `––––*–––` | Have access to Drake's throne |
 
-### Events (chunk 0x6a)
+### Events
 
-1. `[0436]`
-1. `[0466]`
-1. `[04f0]`
-1. `[03f2]`
-1. `[040f]`
-1. `[0396]`
-1. `[03d2]`
-1. `[0444]`
-1. `[045b]`
-1. `[048d]`
-1. `[04b0]`
-1. `[0456]`
+1. `[0436]` (07,09) Stairs up to Kingshome `(19:-1,-1)`
+
+   > Seriously somebody else must have written this method?
+1. `[0466]` You pick a lock. Always works on wall metadata `0x01` (or `0x3`)
+1. `[04f0]` (10,14) Do nothing.
+1. `[03f2]` (04,12) Read paragraph #53 (the jester). Back away slowly `(02,13)` and relock his cell door.
+1. `[040f]` (14,03) Gate-and-set `[99,16]` to find [Drake's throne](#chest) (`[b9,04]`, paragraph #42).
+1. `[0396]` (14,10) A secret tunnel `{6a:0397}`
+1. `[03d2]` (02,14) Your cell is unlocked? `{6a:03d3}`
+1. `[0444]` (02,07) Read paragraph #65, then run combat #1 (Vicious Guards). If you win, erase this event.
+1. `[045b]` (08,02) Run combat #2 (Stosstrupen). If you win, erase this event.
+1. `[048d]` (14,16) If you don't have *Detect Traps* running `[bf]=0`, a crossbow trap `{6a:0493}` deals 1d6 damage, then erase this event.
+1. `[04b0]` (07,15) Gate-and-set `[99,3c]` for the [Kingshome armory](#chest) (`[b9,03]`).
+1. `[0456]` (07,13),(10,16) Run a random combat. If you win, erase this event.
 1. `[04ed]` Default event. Set `[99,78]` to disable the Kingshome ambush.
 
 ### Actions
@@ -2005,6 +2086,8 @@ ic,b)` -->
 |    —    | *Lockpick*             |  #2   | `[0466]` |
 
 ## 0x25 Slave Estate
+
+>  Item #1 is the Elixir (sic, *S:Heal*, 10 charges), but it doesn't seem to actually be findable...
 
 ### Flags
 
@@ -2079,13 +2162,13 @@ ic,b)` -->
 
 1. `[08f0]` You use the elixer [sic] on a statue, but it doesn't work `{6b:08f1}`.
 
-1. `[092c]` (09,08)
+1. `[092c]` (09,08) Run combat #1 (Goblins); if you win, erase this event
 
-1. `[0931]` (04,08)
+1. `[0931]` (04,08) Run combat #2 (Snake); if you win, erase this event
 
-1. `[0936]`
+1. `[0936]` Run combat #3 (Goblins); if you win, erase this event
 
-1. `[093b]` (03,05)
+1. `[093b]` (03,05) Run combat #4 (Goblins); if you win, erase this event
 
 1. `[0853]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit. NE:`(00:18,06)` S:`(00:17,06)` W:`(00:16,06)`.
 
@@ -2102,9 +2185,9 @@ ic,b)` -->
 | #15 |  *STR*  |  #26  | `[0621]` |
 | #1–3 |  Elixir  |  #28  | `[08f0]` |
 
-> I don't think the Elixir (item #1, sic) is actually findable...
-
 ## 0x26 Lansk Undercity
+
+> There's a Gatlin Bow in the Items list, but it doesn't appear in any of the store inventories or the chests.
 
 ### Flags
 
@@ -2112,43 +2195,47 @@ ic,b)` -->
 
 ### Board State
 
-| Bitsplit | Heap byte |    Bit     | Meaning |
-| :------: | :-------: | :--------: | ------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |         |
+| Bitsplit | Heap byte |    Bit     | Meaning         |
+| :------: | :-------: | :--------: | --------------- |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Intro paragraph |
+| `b9,01`  |  `[b9]`   | `–*––––––` | Healed the dragon |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Moved the statue |
 
-### Events (chunk 0x6c)
+### Events
 
-1. `[03c4]` If `[b9,02]`, you find a locked [chest](#locked) (`[99,79]`, difficulty 3). Read paragraph 0x7a.
-1. `[0416]`
-1. `[041e]`
-1. `[0426]`
-1. `[042e]`
-1. `[0458]`
-1. `[0466]`
-1. `[048e]`
-1. `[049c]`
-1. `[0662]`
-1. `[04d1]`
-1. `[0513]`
-1. `[0556]`
-1. `[0570]`
-1. `[0881]` *Lockpick; always works, on any wall with texture special 0x1*.
-1. `[05b6]`
-1. `[0608]`
-1. `[06ca]`
-1. `[070a]`
-1. `[079f]`
-1. `[07e8]`
-1. `[0768]`
-1. `[03bf]`
-1. `[072f]`
-1. `[0820]`
-1. `[06e9]`
-1. `[07b9]`
-1. `[0781]`
-1. `[08b9]`
+1. `[03c4]` (01,15) If you've moved the statue `[b9,02]`, you find a locked [chest](#locked) (`[99,79]`, difficulty 3). Read paragraph #122 (statue of Irkalla, hint about Nergal)
+1. `[0416]` (14,15) Read paragraph #123 (Nergal, hint about Necropolis)
+1. `[041e]` (01,02) Read paragraph #124 (Universal God, hint about Roba)
+1. `[0426]` (14,02) Read paragraph #125 (Enkidu)
+1. `[042e]` (04,07) "This way to the surface" `{6c:042f}`
+1. `[0458]` (05,08) Stairs up to Lansk `(14:05,08)`
+1. `[0466]` (12,05) "This way to the Underworld" `{6c:046a}`
+1. `[048e]` (14,05) Stairs down to the Underworld `(12:16,14)`
+1. `[049c]` (02,06) There's Definitely No Hidden Shop Here `{6c:049d}`
+1. `[0662]` (02,08) Hidden magic [shop](#shop).
+1. `[04d1]` (08,15) King's Isle ferry master `{6c:04d2}`
+1. `[0513]` You pay for the ferry `{6c:0514}`. Drop the Kings Ticket and travel to the Old Dock `(1c:05,05)`.
+1. `[0556]` (07,09) If `[b9,01]`, get the [Dragon Gem](#chest) (`[b9,01]`). Otherwise, read paragraph #126 (the sad old dragon). 
+1. `[0570]` (07,09) You heal the dragon (or use the Ankh); set `[b9,01]`.
+
+   > This also fills the first item of the event #13 chest with `0101` (the Dragon Gem)... which it already had. Possibly you can refill the chest if you do this multiple times, since the Dragon Gem is so essential to beating the game?
+1. `[0881]` You pick a lock. Always works on wall metadata `0x01` (just the door to the dragon's cage)
+1. `[05b6]` (13,09) Exeter's armor [shop](#shop).
+1. `[0608]` (13,11) Dr. Death's weapon [shop](#shop).
+1. `[06ca]` (12,09) Sign for Exeter's `{6c:06ce}`
+1. `[070a]` (12,11) Sign for Dr. Death's `{6c:070e}`
+1. `[079f]` (03,10) Sign for EZ Paperwork `{6c:07a3}`
+1. `[07e8]` (02,10) EZ Paperwork [shop](#shop)
+1. `[0768]` (03,06) "Closed" `{6c:076c}`
+1. `[03bf]` You stepped in the water.
+1. `[072f]` Room around Dr Death's `{6c:0730}`
+1. `[0820]` Healer ($4/hp)
+1. `[06e9]` Room around Exeter's `{6c:06ea}`
+1. `[07b9]` Room around EZ Paperwork `{6c:07ba}`
+1. `[0781]` Room around magic shop `{6c:0782}`
+1. `[08b9]` Random combat. If you win, erase this event.
 1. `[03df]` Use Strength (any) to move the statue. Gate-and-set `[b9,02]` for color text `{6c:03e9}`.
-1. `[08a8]` Default handler.
+1. `[08a8]` Default handler. Gate-and-set `[b9,00]` for paragraph #121.
 
 ### Actions
 
@@ -2286,7 +2373,7 @@ The inventory lists are also arrays starting with a one-byte item count. Each it
 
 There are five destinations. You pass in the index of your current location so that one isn't shown on the list of choices.
 
-Your "parking space" is stored in `heap[bd]`. If you approach a dock that isn't the same as where you left the boat, you can't use the dock. (This is how Ugly drops you at the Necropolis; the parking space is still 0, the Necropolis dock, index 1, doesn't work.)
+Your "parking space" is stored in `heap[bd]`. If you approach a dock that isn't the same as where you left the boat, you can't use the dock. (This is how Ugly drops you at the Necropolis; the parking space is still index 0, Pirate's Cove, so the Necropolis dock, index 1, doesn't work.)
 
 - Pirate's Cove `(0a:01,01)`
 - Necropolis `(0e:07,14)`
