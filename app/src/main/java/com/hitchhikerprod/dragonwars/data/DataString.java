@@ -1,11 +1,14 @@
 package com.hitchhikerprod.dragonwars.data;
 
 import com.hitchhikerprod.dragonwars.Chunk;
+import com.hitchhikerprod.dragonwars.ChunkTable;
+import com.hitchhikerprod.dragonwars.HuffmanDecoder;
 import com.hitchhikerprod.dragonwars.Properties;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.Character;
+import java.util.List;
 
 public class DataString {
     private final byte[] bytes;
@@ -62,9 +65,19 @@ public class DataString {
         final String basePath = Properties.getInstance().basePath();
 
         try (
-            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r")
+            final RandomAccessFile exec = new RandomAccessFile(basePath + "DRAGON.COM", "r");
+            final RandomAccessFile data1 = new RandomAccessFile(basePath + "DATA1", "r");
+            final RandomAccessFile data2 = new RandomAccessFile(basePath + "DATA2", "r")
         ) {
-            final DataString dataString = new DataString(exec, 0x2911, 0x20);
+            final ChunkTable chunkTable = new ChunkTable(data1, data2);
+            final int chunkId = 0x67;
+            Chunk chunk = chunkTable.getChunk(chunkId);
+            if (chunkId >= 0x1e) {
+                final HuffmanDecoder mapDecoder = new HuffmanDecoder(chunk);
+                final List<Byte> decodedMapData = mapDecoder.decode();
+                chunk = new Chunk(decodedMapData);
+            }
+            final DataString dataString = new DataString(chunk, 0x0677, 13);
             System.out.println(dataString.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);

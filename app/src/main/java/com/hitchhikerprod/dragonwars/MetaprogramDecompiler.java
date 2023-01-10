@@ -1,5 +1,6 @@
 package com.hitchhikerprod.dragonwars;
 
+import com.hitchhikerprod.dragonwars.data.DataString;
 import com.hitchhikerprod.dragonwars.data.Hint;
 import com.hitchhikerprod.dragonwars.data.Item;
 import com.hitchhikerprod.dragonwars.data.Lists;
@@ -47,6 +48,10 @@ public class MetaprogramDecompiler {
             final Hint hint = hints.get(startPointer);
             if (hint != null) {
                 switch (hint.hintType()) {
+                    case CHAR -> {
+                        decodeDataString(hint.count());
+                        continue;
+                    }
                     case DATA -> {
                         decodeData(hint.count());
                         continue;
@@ -248,6 +253,12 @@ public class MetaprogramDecompiler {
         System.out.println(item);
         this.pointer += 11;
         this.pointer += item.getName().length();
+    }
+
+    private void decodeDataString(int count) {
+        final DataString ds = new DataString(this.chunk, this.pointer, count);
+        System.out.printf("%08x  .char \"%s\"\n", this.pointer, ds);
+        this.pointer += ds.toString().length();
     }
 
     private void decodeString() {
