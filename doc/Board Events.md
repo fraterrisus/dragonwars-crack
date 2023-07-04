@@ -124,7 +124,7 @@ ic,b)` -->
 
 9. `[1055]` (06,13) Statue of Irkalla. Gate-and-set `[b9,1b]` to display color text. **The sacrifice works on a Spirit check (vs 1d20).** If it works, set `char[92].0x80` on every party member.
 
-10. `[10e3]` (07,12) Apsu Waters. Travel to board 0x12 (Magan Underworld) at (13,04). If you say 'N', you back up.
+10. `[10e3]` (07,12) Apsu Waters. Travel to the Magan Underworld (12:13,04). If you say 'N', you back up.
 
 11. `[112d]` (18,26) Entering the Arena. Runs the "free gear" program if you have less than **3 x your party size items** in your inventory. Then erases the entry door `ds[0320]<-0x30` and replaces this Event `ds[02bc]<-0x1d` with Event #29.
 
@@ -160,7 +160,7 @@ ic,b)` -->
 
 27. `[0e8c]` (23,09) Run combat #1 (5 King's Guard and 6 Pikemen). Clear the square if you win.
 
-28. `[110e]` (06,12) One square shy of the Apsu Waters. Gate on Town Lore 1 to get paragraph 94. Otherwise you see "odd waters".
+28. `[110e]` (06,12) One square shy of the Apsu Waters. Gate on Town Lore 1 to get paragraph #94. Otherwise you see "odd waters".
 
 29. `[1255]` Color text `{47:1256}`
 
@@ -174,7 +174,7 @@ ic,b)` -->
 
 34. `[0e6e]` (20,03) Run combat #4 (Unjust, Innocent, Cannibals). If you win, erase this event.
 
-35. `[0e7d]` (12,28) Run combat #7 (Jail Keeprs). If you win, erase this event.
+35. `[0e7d]` (12,28) Run combat #7 (Jail Keepers). If you win, erase this event.
 
 36. `[0e82]` (26,27) Just outside the tavern. Run combat #8. If you win, erase this event.
 
@@ -994,7 +994,7 @@ ic,b)` -->
 1. `[03ce]` (02,12) Color text `{57:03d2}` "Freeport City Council"
 1. `[03fa]` (01,12) Read paragraph #57.
 1. `[0392]` Color text `{57:0393}` (harbor bridge).
-1. `[06ec]` (03,04) Exit if the Sword of Freedom has already been revealed `[99,07]`. Read paragraph 0x1b, color text `{57:0700}` with the world's most annoying apostrophe typo. Pick a player to take the sword. If you don't hit ESC to cancel, color text `{57:073f}`,`{57:079e}`,`{57:07b1}`,`{57:07d5}`,`{57:0819}`,`{57:0831}`, and finally `{57:084e}` and `{57:08e1}`. The player you picked is killed (0 Stn, 0 HP, flag 0x1). Set `[99,07]`.
+1. `[06ec]` (03,04) Exit if the Sword of Freedom has already been revealed `[99,07]`. Read paragraph #27, color text `{57:0700}` with the world's most annoying apostrophe typo. Pick a player to take the sword. If you don't hit ESC to cancel, color text `{57:073f}`,`{57:079e}`,`{57:07b1}`,`{57:07d5}`,`{57:0819}`,`{57:0831}`, and finally `{57:084e}` and `{57:08e1}`. The player you picked is killed (0 Stn, 0 HP, flag 0x1). Set `[99,07]`.
 
    > You know, you *have* a "personal pronoun" function. You aren't *obligated* to print the PC's name over and over again.
 1. `[08f8]` (03,04) Gate-and-set `[99,07]`; color text `{57:08ff}` and `{57:096e}` to reveal the illusionary sword.
@@ -1068,7 +1068,7 @@ ic,b)` -->
 1. `[0ccc]` (14,14) Color text `{58:0ccd}`.
 1. `[0cfd]` (20,22) If you *Scared* them off `[99,55]` or have already paid their toll `[b9,01]`, the fairies watch you pass `{58:0d83}`. Otherwise, they demand "the price of life". Agree, and your Health and Stun are both set to 1; set `[b9,01]` and color text `{58:0d60}`. Refuse, and they don't let you pass `{58:0da5}`.
 1. `[1147]` (20,21),(20,23) Color text `{58:1148}`.
-1. `[0dce]` You cast *D:Scare* while next to the Fairies. Gate-and-set `[99,55]` to **permanently scare them off** `{58:0dd8}`.
+1. `[0dce]` You cast *D:Scare* while next to the Fairies. Gate-and-set `[99,55]` to permanently scare them off `{58:0dd8}`.
 1. `[0e04]` (26,16) If anyone in your party has prayed to Irkalla (character flag `0x80`), you are welcome `{58:0e0f}` to her realm. Otherwise you're kicked out `{58:0e35}`.
 1. `[0e7d]` (12,29) Color text `{58:0e83}`. If you enter the cave, read paragraph #127.
 1. `[0ebd]` (03,11) You find the Well of Souls `{58:0ebe}`.
@@ -1079,11 +1079,11 @@ ic,b)` -->
 1. `[0f82]` (02,17) Color text `{58:0f83}`.
 1. `[0f9a]` (04,17) Color text `{58:0f9b}`.
 1. `[0fe4]` (05,17) If you haven't freed Irkalla yet `![99,6a]`, display monster `0x2f` (Irkalla) and read paragraph #137. Otherwise, run a [chest](#chest) (`[b9,02]`) with the Water Breathing potion.
-1. `[1018]` Gate-and-set `[99,6a]` to free Irkalla from her chains with Nergal's key. Drop the Silver Key, color text `{58:1025}` and `{58:10c1}`, set `[b9,02]`, and **gain 500 XP**.
+1. `[1018]` Gate-and-set `[99,6a]` to free Irkalla from her chains with Nergal's key. Drop the Silver Key, color text `{58:1025}` and `{58:10c1}`, set `[b9,02]`, and gain 500 XP.
 1. `[10ff]` (05,18) Run a [chest](#chest) (`[99,6b]`) with paragraph #138 and the Sword of Freedom. Color text `{58:111b}`.
-1. `[125d]` (31,02) If `![99,73]`, run combat `0x1b` (**which doesn't exist?**). If you win, set `[99,73]` and open a [locked chest](#locked) (`[99,72]`, **difficulty 3**) with the Rusty Axe.
+1. `[125d]` (31,02) If `![99,73]`, run combat `0x1b` (**which doesn't exist?**). If you win, set `[99,73]` and open a [locked chest](#locked) (`[99,72]`, difficulty 3) with the Rusty Axe.
 1. `[135e]` You throw Namtar's body into The Pit. Run the "You Win" slideshow.
-1. `[1280]` (11,24) Run a [locked chest](#locked) (`[99,7b]`) with The Slicer and some Dragon Stones.
+1. `[1280]` (11,24) Run a [locked chest](#locked) (`[99,7b]`, difficulty 3) with The Slicer and some Dragon Stones.
 1. `[128d]` (28,18) Gate-and-set `[99,81]` and take the Leap of Faith `{58:129c}`,`{58:12cf}`,`{58:1307}`. All party members are granted +5 AP.
 1. `[11e5]` (09,12) First fight with Namtar.
    - If you've already beaten Namtar once `[99,85]`, run a [chest](#chest) (`[99,83]`) with the Dead Body.
@@ -1151,7 +1151,7 @@ ic,b)` -->
 
 1. `[0483]` (12,12) You fill the Cup `{59:0488}`. Set item flag `0x1` .
 
-1. `[0509]` You use one of the hammer parts. If you have all three parts (Rocks, Laces, Handle), drop them and pick up the Crude Hammer. Otherwise, you're still missing something `{59:0558}`.
+1. `[0509]` You use one of the hammer parts. If you have all three parts (Rocks, Laces, Handle), drop them and pick up the Crude Hammer; read paragraph #49. Otherwise, you're still missing something `{59:0558}`.
 
 1. `[058a]` Gate-and-set `![b9,01]` to break your chains `{59:059d}`. Set board flag `0x1` (**purpose unknown**). Drop the Hammer and all the Chains, then clear status bit `0x2` from everyone in the party.
 
@@ -1218,7 +1218,7 @@ ic,b)` -->
 1. `[0af7]` (05,08) If `[b9,01]`, offer stairs down to the Undercity `(26:05,08)`.
 1. `[0b44]` (03,07) A [locked chest](#locked) (`[99,3b]`, difficulty 2) with the Druid's Mace.
 1. `[0b4f]` Run a random combat. If you win, erase this event.
-1. `[0b10]` Default handler. If the party is outside (0,0)-(16,17), prompt to exit. NE:`(00:17,14)` S:`(00:16,13)` W:`(00:15,14)`.
+1. `[0b10]` Default handler. If the party is outside (0,0)-(16,17), prompt to exit. NE:`(00:17,14)` S:`(00:16,13)` W:`(00:15,14)`. Otherwise, gate-and-set `[b9,00]` to read paragraph #64.
 
 ### Actions
 
@@ -1370,6 +1370,8 @@ ic,b)` -->
 | #29 |  *Swim*  |  #30  | `[0b4b]` |
 
 ## 0x18 Snake Pit
+
+> Paragraph #78 sure seems like it belongs here.
 
 ### Flags
 
@@ -1605,11 +1607,11 @@ ic,b)` -->
 
 1. `[14b9]` (23,02) If you've killed Namtar three times `[b9,02]`, you can pick up [his body](#chest) (`[b9,02]`).
 
-   If you haven't fought Namtar yet `![b9,02]` but the Dragon Queen did her thing `[b9,07]`, Namtar comes back to life `{61:1639}`,`{61:1682}`. Set `[db]` to disable Running, then run combat #6 (Namtar #1, with taunting).
+   If you haven't fought Namtar yet `![b9,02]` but the Dragon Queen did her thing `[b9,07]`, Namtar comes back to life `{61:1639}`,`{61:1682}`. Set `[db]` to disable Running, then run combat #6 (Namtar #1, with taunting).
 
    If you haven't fought Namtar yet `![b9,02]` and *didn't* summon the Dragon Queen `![b9,07]`, you went too far `{61:14cb}`. Run combat #10 (10 Young Dragons, 31 Lizard Warriors, 31 Enforcers, 31 Namtar Guards). The game allows you to Run and/or lose gracefully. If you somehow manage to win `{61:14f2}`, you spot Namtar `{61:152a}`,`{61:1595}`. Set `[db]` to disable Running, then run combat #9 (Namtar #1, without taunting).
 
-   Namtar #1 is a fight to the death; you can't run, and if you lose, you have to repeat it. Win, and you get a triumphant message `{61:1605}` or `{61:16be}`, and then he stands up `{61:16f9}`. Set `[db]` again, then run combat #7 (Namtar #2), which uses the same rules. Win that and the game sets `[db]` again to run combat #8 (Namtar #3). Win *that*, and we set `[b9,02]`.
+   Namtar #1 is a fight to the death; you can't run, and if you lose, you have to repeat it. Win, and you get a triumphant message `{61:1605}` or `{61:16be}`, and then he stands up `{61:16f9}`. Set `[db]` again, then run combat #7 (Namtar #2), which uses the same rules. Win that and the game sets `[db]` again to run combat #8 (Namtar #3). Win *that*, and we set `[b9,02]`.
 
 1. `[17b4]` If you *didn't* activate the Dragon Gem already `![99,89]`, you're SOL. Gate-and-set `[b9,08]` to summon the Dragon Queen `{61:17c4}`, who torches Namtar's army `{61:1849}` and then Namtar himself `{61:18ca}` before deciding `{61:193d}` not to kill you `{61:19ae}`. Drop the Dragon Gem, travel to `(23,02)`, and set `[b9,07]`.
 
@@ -1828,6 +1830,8 @@ ic,b)` -->
 |   #15   |                       *S:Disarm Trap*                        |  #18  | `[0590]` |
 
 ## 0x20 Dragon Valley
+
+> Paragraph #147 sure seems like it belongs here.
 
 ### Flags
 
@@ -2343,13 +2347,15 @@ After that is an array of two-byte values. The first byte is an index into the [
 
 ## Locked Chests<a name="locked">
 
-*Opcode:* `580a0f00 longcall(0a,000f)`
+*Opcode:* `580a0f00 longcall(0b,000f)`
 
 Very similar to unlocked chests above, but not exactly. The first word is still the return address.
 
-The next bit is a bitsplit against `heap[99]`, but if it's `0xff`, skip the check. The bitsplit check determines if the chest has been opened (1) or is still locked (0).
+The next byte is a bitsplit against `heap[99]`, but if it's `0xff`, skip the check. The bitsplit check determines if the chest has been opened (1) or is still locked (0).
 
-If the chest is locked, the following bit is the lock's difficulty level. (If it's `0xff`, nevermind, the chest is actually unlocked.)  If your *Lockpick* skill is less than the difficulty level, you can't open it. If it's equal, you have a 50% chance of opening the lock. That goes up to 60%, 70%, 75%, 80%, 85%, 90%, and 95% if your skill level is higher than the lock's difficulty. It tops out at 95%, so there's always a chance you might fail, but trying again is free. When (if) you unlock the chest, it sets the heap flag to mark the chest "opened" and sets the lock's difficulty level to 0.
+If the chest is locked, the following byte is the lock's difficulty level. (If it's `0xff`, nevermind, the chest is actually unlocked.) If your *Lockpick* skill is greater than the difficulty level, you open the chest immediately. If it's equal, you have a 95% chance, and if it's lower, you have a decreasing chance depending on how much lower: 90%, 85%, 80%, 75%, 70%, 60%, and 50% if your skill is 7 or more ranks below the difficulty level. In practice, the worst lock has difficulty 5.
+
+When you unlock the chest, it sets the heap flag to mark the chest "opened" and sets the lock's difficulty level to 0.
 
 If the chest has been opened but the difficulty level is greater than zero, the chest is invisible to you.
 

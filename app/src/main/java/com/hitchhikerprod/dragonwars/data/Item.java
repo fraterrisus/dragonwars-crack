@@ -23,6 +23,7 @@ public class Item {
     private boolean equipped;
     private boolean disposable;              // disappears when it runs out of charges
     private boolean chargeable;
+    private boolean unknownFlag;             // [02].0x20
     private int itemType;
     private int ammoType;
     private String magicEffect;
@@ -49,6 +50,7 @@ public class Item {
         final boolean reducesAC = (chunk.getByte(offset + 1) & 0x40) > 0;
         final String skillName = Lists.REQUIREMENTS[chunk.getByte(offset + 1) & 0x3f];
 
+        this.unknownFlag =  (chunk.getByte(offset + 2) & 0x20) > 0;
         this.minimumValue = (chunk.getByte(offset + 2) & 0x1f);
         this.skill = (this.minimumValue > 0) ? skillName : null;
 
@@ -108,6 +110,10 @@ public class Item {
 
         if (disposable) {
             attributes.add("disposable");
+        }
+
+        if (unknownFlag) {
+            attributes.add("flag[18]");
         }
 
         for (WeaponDamage d : this.damageDice) {

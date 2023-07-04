@@ -11,7 +11,7 @@ Items are represented as a series of 11 bytes of data followed by an ASCII [stri
 | `[01]` | `–*––––––` | If 1, item's AC modifier is _negative_ |
 | `[01]` | `––******` | Required **attribute** or [skill](Skills.md) |
 | `[02]` | `**––––––` | Supports **burst fire** (missile weapons only) |
-| `[02]` | `––*–––––` | _Unknown_<br />*Items with 0x1: Arrow, Grey Arrow, IBM PS/2, Magic Arrow, Silver Arrow* |
+| `[02]` | `––*–––––` | _Unknown_<br />*Items with 0x1: Arrow, Grey Arrow (Kingshome only), IBM PS/2, Magic Arrow, Silver Arrow (but not the White Arrow or the Guard Bridge Grey Arrow)* |
 | `[02]` | `–––*****` | Required **value**; if 0, no requirement |
 | `[03]` | `****––––` | **AV modifier** |
 | `[03]` | `––––****` | **AC modifier** |
@@ -111,7 +111,7 @@ Encoded across two bytes `[06-07]`. The first byte always means the same things:
 
 Note that you **can** add charges to spell scrolls with *S:Charger*. Just make sure you add two charges before you use it, or the scroll will disappear after the first use (see byte `[00].0x40`).
 
-Learning a spell from a scroll is always successful, so long as you have at least 1 rank in the associated magic skill (see `{06:01f6}`. You don't need any magic skills to learn Miscellaneous Magic scrolls; everyone is treated as if they have 1 rank in Miscellaneous Magic.
+Learning a spell from a scroll is always successful, so long as you have at least 1 rank in the associated magic skill (see `{06:01f6}`. The check is skipped for Miscellaneous Magic, since there's no skill for that. However, the scrolls themselves also have skill requirements; the Miscellaneous Magic scrolls require *Low Magic 1* or you can't even use them to learn the spell.
 
 If the item has no magical effect, byte `[07]` sometimes is used to hold a flag that indicates that the item has been modified. For example, the Battered Cup that you find in the Slave Mines sets this byte to `0x1` to indicate that you've filled it with water. Similarly, the Papers you're supposed to get stamped in Lansk set this byte when you do. (Interestingly, the Dead Body you collect during the end game does *not* work this way...)
 

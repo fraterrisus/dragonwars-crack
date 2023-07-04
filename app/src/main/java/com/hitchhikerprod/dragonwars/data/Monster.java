@@ -34,7 +34,6 @@ public class Monster {
     private int speed;
     private int attacksPerRound;
 
-    private int b05;
     private int b0d;
     private int b0f;
     private int b20;
@@ -68,9 +67,7 @@ public class Monster {
 
         this.spirit = data.getUnsignedByte(offset + 0x03);
 
-        this.baseHealth = data.getUnsignedByte(offset + 0x04);
-
-        this.b05 = data.getUnsignedByte(offset + 0x05);
+        this.baseHealth = data.getWord(offset + 0x04);
 
         this.avBonus = data.getUnsignedByte(offset + 0x06);
 
@@ -158,8 +155,7 @@ public class Monster {
         response.append(String.format(" %02x", this.dexterity));
         response.append(String.format(" %02x", this.intelligence));
         response.append(String.format(" %02x", this.spirit));
-        response.append(String.format(" %02x", this.baseHealth));
-        response.append(String.format(" %02x", this.b05));
+        response.append(String.format(" %04x", this.baseHealth));
         response.append(String.format(" %02x", this.avBonus));
         response.append(String.format(" %02x", this.dvBonus));
         response.append(String.format(" %02x", raw.get(0x08)));
@@ -199,7 +195,6 @@ public class Monster {
         final String imageName = Lists.MONSTER_IMAGES[imageChunk];
         tokens.add("image:" + imageName);
 
-        if (b05 != 0) { tokens.add(String.format("[05]:0x%02d", b05)); }
         if (b0d != 0) { tokens.add(String.format("[0d]:0x%02d", b0d)); }
         if (b0f != 0) { tokens.add(String.format("[0f]:0x%02d", b0f)); }
         if (b20 != 0) { tokens.add(String.format("[20]:0x%02d", b20)); }

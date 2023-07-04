@@ -2,8 +2,6 @@
 
 Spells marked with `(!)` never appear on scrolls, i.e. you can't learn them, although in some cases NPCs and/or monsters know these spells and can cast them.
 
-Power costs: `{0c:0406}` If `0x80` is set, power cost is variable and `0x3f` is the magic skill id.
-
 |   ID   | Power | School | Name           | Type and code target |
 |:------:|:------:| :------------: | -------------------- | -------------------- |
 | `0x00` |  2  |  Low   | Mage Fire      | Zap (`0x05b1`)       |
@@ -78,12 +76,12 @@ Whenever you cast a spell, the game first checks to see whether that spell trigg
 - Schools: calculated by spell ID at `{06:0630}`
 - Argument byte 1: `{06:02f0}`
 
-  The top two bits of byte 1 indicate the spell type, Combat (1), Misc (2), or Heal (3). The "Travel" context is indicated by bit 0x80: we can cast Misc and Heal spells. "Combat" context (0x40) only permits Combat and Heal spells.
+  The top two bits of byte 1 indicate the spell type, Combat (1), Misc (2), or Heal (3). The "Travel" context is indicated by bit `0x80`: we can cast Misc and Heal spells. "Combat" context (`0x40`) permits Combat and Heal spells.
 - Argument byte 2: `{06:032d}` (not used by all spells)
 
 ## Heal spells (0x036a)
 
-Since there are so many healing spells, they have a common code handler that takes arguments indicating how many targets they affect (one or a group) and how much they heal. There's a clause that allows for spells that cure Statuses instead of health. You might see things like "poisoned" or "petrified" in other games, but *Dragon Wars* doesn't use statuses except for 'Dead', 'Stunned', and 'Chained' (in the Slave Mines).
+Since there are so many healing spells, they have a common code handler that takes arguments indicating how many targets they affect (one or a group) and how much they heal. There's a clause that allows for spells that cure Statuses instead of health. You might see things like "poisoned" or "petrified" in other games, but *Dragon Wars* doesn't use statuses except for 'Dead', 'Stunned', and 'Chained' (in the Slave Mines), and you can't "cure" those.
 
 Arguments:
 
@@ -202,7 +200,7 @@ Neither spell seems to check its range value (`arg1.0x0f` = 60')
 
 ## Wall spells (0x03eb, 0x0409)
 
-Unsurprisingly, *D:Create Wall* and *D:Soften Stone* have to read several bytes from the map data to determine if they're allowed to do their work on the current square. Some maps don't allow *D:Create Wall*; some walls can't be removed with *D:Soften Stone*. Neither spell pays any attention to the "arguments".
+Unsurprisingly, *D:Create Wall* and *D:Soften Stone* have to read several bytes from the [map data](Board Data.md) to determine if they're allowed to do their work on the current square. Some maps don't allow *D:Create Wall*; some walls can't be removed with *D:Soften Stone*. Neither spell pays any attention to the "arguments".
 
 ## Charge Item spells (0x094b)
 
@@ -212,13 +210,13 @@ Unsurprisingly, *D:Create Wall* and *D:Soften Stone* have to read several bytes 
 
 If you have fewer than 7 occupied slots in your marching order, summoning spells will generate a creature to fill one. The creature summoned is specific to the spell you cast; all summoned creatures have a melee weapon and some armor, and none of them can cast spells. Summoning spells have variable power cost; summoned creatures last 4 hours per point or until they're killed.
 
-| Spell                 | Creature     | STR  | DEX  | INT  | SPR  |  HP  |  AC  | Damage |
-| --------------------- | ------------ | :--: | :--: | :--: | :--: | :--: | :--: | :----: |
-| *H:Air Summon*        | Air Element  |  16  |  12  |  01  |  00  |  12  |  08  |  1d12  |
-| *H:Earth Summon*      | Earth Elemnt |  18  |  14  |  01  |  00  |  15  |  10  |  1d20  |
-| *H:Water Summon*      | Water Elemnt |  20  |  15  |  01  |  00  |  25  |  11  |  1d20  |
-| *H:Fire Summon*       | Fire Element |  24  |  18  |  01  |  00  |  35  |  15  |  2d20  |
-| *D:Beast Call*        | Beast        |  15  |  16  |  01  |  00  |  13  |  7   |  1d12  |
-| *D:Invoke Spirit*     | Spirit       |  10  |  18  |  10  |  00  |  13  |  12  |  3d10  |
-| *D:Wood Spirit*       | Wood Spirit  |  16  |  16  |  01  |  00  |  19  |  9   |  1d12  |
-| *S:Summon Salamander* | Salamander   |  16  |  24  |  01  |  00  |  23  |  10  |  1d20  |
+| Spell                 | Creature       | STR  | DEX  | INT  | SPR  |  HP  |  AC  | Damage |
+| --------------------- | -------------- | :--: | :--: | :--: | :--: | :--: | :--: | :----: |
+| *H:Air Summon*        | `Air Element`  |  16  |  12  |  01  |  00  |  12  |  08  |  1d12  |
+| *H:Earth Summon*      | `Earth Elemnt` |  18  |  14  |  01  |  00  |  15  |  10  |  1d20  |
+| *H:Water Summon*      | `Water Elemnt` |  20  |  15  |  01  |  00  |  25  |  11  |  1d20  |
+| *H:Fire Summon*       | `Fire Element` |  24  |  18  |  01  |  00  |  35  |  15  |  2d20  |
+| *D:Beast Call*        | `Beast`        |  15  |  16  |  01  |  00  |  13  |  7   |  1d12  |
+| *D:Invoke Spirit*     | `Spirit`       |  10  |  18  |  10  |  00  |  13  |  12  |  3d10  |
+| *D:Wood Spirit*       | `Wood Spirit`  |  16  |  16  |  01  |  00  |  19  |  9   |  1d12  |
+| *S:Summon Salamander* | `Salamander`   |  16  |  24  |  01  |  00  |  23  |  10  |  1d20  |

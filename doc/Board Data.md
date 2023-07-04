@@ -148,8 +148,8 @@ Everything after that is a two-byte pointer to a Monster Group. Groups contain 3
 | `[01]` | `********` | `[01]` | **Dexterity** |
 | `[02]` | `––––––––` | `[02]` | *Intelligence?* sometimes 0, never used |
 | `[03]` | `––––––––` | `[03]` | *Spirit?* sometimes 0, never used |
-| `[04]` | `********` | `[04]` | Base **Health** (added to die roll at [08]) |
-| `[05]` | `––––––––` | `[05]` | *Unknown* |
+| `[04]` | `********` | `[04]` | Base **Health** (lower byte, added to die roll at [08]) |
+| `[05]` | `********` | `[05]` | Base **Health** (upper byte) |
 | `[06]` | `********` | `[06]` | **AV bonus** |
 | `[07]` | `––––––––` | `[07]` | *DV bonus?* always zero |
 | `[08]` | `***–––––` | `[08]` | **Health** dice (sides) |
@@ -175,22 +175,13 @@ Everything after that is a two-byte pointer to a Monster Group. Groups contain 3
 |       |            | `[27]` | holds temporary group **AV** modifier (from buffs, etc.) |
 |       |            | `[28]` | holds temporary group **DV** modifier |
 
-Each individual monster's health is randomly generated: the sum of the base health at `[04]` and the health dice (in the same format as equipment damage dice) at `[08]`.
+Each individual monster's health is randomly generated: the sum of the base health at `[05:04]` and the health dice (in the same format as equipment damage dice) at `[08]`.
 
 If an encounter specifies a random **group size**, the group size at `[0a]` is used as a max for the roll. Regardless, this value is overwritten with the actual group size when the encounter is generated.
 
-Gold is given for killing monsters whose image chunk is 09 (helmet and spear), 0e (guards), 13 (bloody axe), 24 (pikemen), and 38. You get $1–$40 per kill.
+Gold is given for killing monsters whose image chunk is 09 (helmet and spear), 0e (guards), 13 (bloody axe), 24 (pikemen), and 38. You get $1–40 per kill.
 
 #### Unknown Values
-
-**Byte [05]**
-
-| Value           | Monster                  |
-| --------------- | ------------------------ |
-| `0x01.00000001` | Namtar (Nisir, 2nd)      |
-| `0x02.00000010` | Namtar (Nisir, 1st)      |
-| `0x03.00000011` | Namtar (Nisir, 3rd)      |
-| `0x19.00011001` | Stone Demon (Necropolis) |
 
 **Byte [0d]**
 
@@ -198,12 +189,12 @@ Gold is given for killing monsters whose image chunk is 09 (helmet and spear), 0
 | --------------- | ------------------------------------------------------------ |
 | `0x02.00000010` | Big Dogs (*Purgatory*), Jail Keepers (*Purgatory*), Mystalvision (*Phoebus*) |
 | `0x10.00100000` | Giant Spiders (*Purgatory*)                                  |
-| `0x40.01000000` | Automoton (*Dwarf Clan Hall*), Giant Snakes (*Tars, Tars Dungeon, Necropolis, Underworld, Lanac'toor*), Guards (*Dilmun*), Midget Maniacs (*Lansk Undercity*), Rats! (*Guard Bridge #1*), Rock Spiders (*Purgatory*), Snakes (*Slave Mines*), Spiders (*Purgatory*) |
-| `0x42.01000010` | Adventurers (Freeport, Lansk), Bears (Scorpion Bridge), Earth Man (Mystic Wood), Gorgons (Dwarf Clan Hall), Ogres (Game Preserve), Serpent Swimmers (Sunken Ruins Topside, Sunken Ruins Below), Stosstrupen (Salvation, Phoebus, Pilgrim Dock) |
-| `0x50.01010000` | Wild Dogs (Purgatory)                                        |
-| `0x60.01100000` | Ghouls (Necropolis, Underworld, Lanac'toor, Tars Underground), Wolves (Purgatory) |
-| `0xa9.10101001` | Spirit Ward (Slave Camp)                                     |
-| `0xaa.10101010` | Man with a fever (Slave Camp)                                |
+| `0x40.01000000` | Automaton (*Dwarf Clan Hall*), Giant Snakes (*Tars, Tars Dungeon, Necropolis, Underworld, Lanac'toor*), Guards (*Dilmun*), Midget Maniacs (*Lansk Undercity*), Rats! (*Guard Bridge #1*), Rock Spiders (*Purgatory*), Snakes (*Slave Mines*), Spiders (*Purgatory*) |
+| `0x42.01000010` | Adventurers (*Freeport*, *Lansk*), Bears (*Scorpion Bridge*), Earth Man (*Mystic Wood*), Gorgons (*Dwarf Clan Hall*), Ogres (*Game Preserve*), Serpent Swimmers (*Sunken Ruins Topside, Sunken Ruins Below*), Stosstrupen (*Salvation, Phoebus, Pilgrim Dock*) |
+| `0x50.01010000` | Wild Dogs (*Purgatory*)                                      |
+| `0x60.01100000` | Ghouls (*Necropolis, Underworld, Lanac'toor, Tars Underground*), Wolves (*Purgatory*) |
+| `0xa9.10101001` | Spirit Ward (*Slave Camp*)                                   |
+| `0xaa.10101010` | Man with a fever (*Slave Camp*)                              |
 
 **Byte [24]**
 
