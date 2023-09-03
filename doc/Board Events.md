@@ -10,8 +10,6 @@ There's also a default handler that runs every time you step on every square. Th
 
 Everything seems to run instruction `73`, `mov h[3e] <- h[3f]`. Heap `[3e]` and `[3f]` seem to be something like "the last special event ID"; see `{cs:44bb}`. Occasionally one or both values are set to 0 instead.
 
-I wonder if there's a difference between flags in the 90's and flags in the b0's. Like maybe one gets persisted when you leave the board, and one doesn't? Might need to revisit chunk `0x00`. Offsets from `b9` get reused across boards.
-
 ## Key
 
 `[99,01]` is a **bitsplit**: it's an index to a bit, starting at the high bit (bit 7) of `heap[99]` and shifting `[01]` places to the right. In this example that refers to bit `0x40` of `[99]`. The phrase "gate-and-set" means to check the bitsplit to see if it's true, and if so, don't do anything else; if it's false, set it and then continue.
@@ -122,11 +120,11 @@ ic,b)` -->
 
 8. `[113c]` (Not referenced from a square.) Clear CF and return.
 
-9. `[1055]` (06,13) Statue of Irkalla. Gate-and-set `[b9,1b]` to display color text. **The sacrifice works on a Spirit check (vs 1d20).** If it works, set `char[92].0x80` on every party member.
+9. `[1055]` (06,13) Statue of Irkalla. Gate-and-set `[b9,1b]` to display color text. The sacrifice works on a Spirit check (vs 1d20). If it works, set `char[92].0x80` on every party member.
 
 10. `[10e3]` (07,12) Apsu Waters. Travel to the Magan Underworld (12:13,04). If you say 'N', you back up.
 
-11. `[112d]` (18,26) Entering the Arena. Runs the "free gear" program if you have less than **3 x your party size items** in your inventory. Then erases the entry door `ds[0320]<-0x30` and replaces this Event `ds[02bc]<-0x1d` with Event #29.
+11. `[112d]` (19,26) Entering the Arena. Runs the "free gear" program if you have less than 3 x your party size items in your inventory. Then erases the entry door `ds[0320]<-0x30` and replaces this Event `ds[02bc]<-0x1d` with Event #29.
 
 12. `[1279]` Color text `{47:127a}`
 
@@ -142,7 +140,7 @@ ic,b)` -->
 
 18. `[1350]` City guard combat within the walls (#3); lose and you're kicked back to the staring square. Clear the square if you win.
 
-19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. If `![99,25]`, read paragraph #77 and either get beat up for 1d8 damage (paragraph #8) or the Humbaba quest. Otherwise, gate-and-set `[99,26]` to get a $1000 reward for defeating the Humbaba. Otherwise, "thanks for coming".
+19. `[1366]` (07,07) Clopin Trouillefou's Court of Miracles. If you haven't beaten the Humbaba yet `![99,25]`, read paragraph #77 and either get beat up for 1d8 damage (paragraph #8) or the Humbaba quest. Otherwise, gate-and-set `[99,26]` to get a $1000 reward for defeating the Humbaba. Otherwise, "thanks for coming".
 
 20. `[137f]` (09,22) Statue of Namtar. Read paragraph #9. 
 
@@ -453,8 +451,6 @@ ic,b)` -->
 
 15. `[047f]` (16,13) Run encounter #9 (random). If you win, erase this event.
 
-    > The max random encounter ID is 0, which means this should always be Guards?
-
 16. `[0484]` (08,16) Run encounter #10 (Soldiers). If you win, erase this event.
 
 17. `[0489]` (03,14) Run encounter #11 (Ominous Fellow). If you win, erase this event.
@@ -505,9 +501,9 @@ ic,b)` -->
 
 2. `[0130]` You stepped in water.
 
-3. `[02d5]` (03,06) N approach to the bridge. If `![b9,02]`, color text `{4d:02e1}`. Refuse to obey their laws and you have to fight combat #1 (3 Guards). Agree, or kill the guards, and they let you pass (set `bistsplit[b9,02]`).
+3. `[02d5]` (03,06) N approach to the bridge. If `![b9,02]`, color text `{4d:02e1}`. Refuse to obey their laws and you have to fight combat #1 (3 Guards). Agree, or kill the guards, and they let you pass (set `bitsplit[b9,02]`).
 
-   > **Bug?:** This event never gets triggered. If you approach from the N, it's assumed that you've already "sworn fealty" to Lansk. If you're approaching from the S, `[b9,02]` is set in the default handler as soon as Y=5. In theory if that check was >5 instead of >=5 it might run Event 3 before the default handler, and you'd actually get this encounter.
+   > **Bug?:** This event never gets triggered. If you approach from the N, the default handler sets the flag that says you've already "sworn fealty" to Lansk. If you're approaching from the S, `[b9,02]` is set in the default handler as soon as Y=5. In theory if that check was >5 instead of >=5 it might run Event 3 before the default handler, and you'd actually get this encounter.
 
 4. `[0135]` (03,03) S approach to the bridge. If you've already passed "Customs" `[b9,01]`, exit. Otherwise, color text `{4d:0141}`. If you refuse inspection, run combat #0 (3 Pikemen) *unless* someone in your party has at least two ranks in *Merchant*. If you submit to inspection, they take the greater of $100 or 20% of your gold. If you refuse to pay up (or can't), run combat #0. Regardless of how you end this encounter (except for running away from combat), set `[b9,01]`.
 
@@ -527,7 +523,7 @@ ic,b)` -->
 
 10. `[0487]` You use the key to unlock the chest. If it's already open `[b9,03]`, you wake up the guards (run Event #9). Otherwise, drop the key and set `[b9,03]`.
 
-11. `[04e7]` You pick a sleeping guard's pocket. If you've already killed both sets of sleeping guards `[99,7d]`. If you already stole the key `[b9,06]`, you wake up the guards (run Event #9). Otherwise, color text `{4d:04f6}`, pick up item #4 (the Key), and set `[b9,06]`. (If you didn't have room to pick up the key, don't set the bit.)
+11. `[04e7]` You pick a sleeping guard's pocket. If you've already killed both sets of sleeping guards `[99,7d]`, exit. If you already stole the key `[b9,06]`, you wake up the guards (run Event #9). Otherwise, color text `{4d:04f6}`, pick up item #4 (the Key), and set `[b9,06]`. (If you didn't have room to pick up the key, don't set the bit.)
 
 12. `[05e1]` (05,06) Erase this event. If you don't have a "defeat traps" spell running (`heap[bf]`= 0), color text `{4d:0x05e8}` and you fall in a pit for 1d8 damage. Otherwise color text `{4d:0x05fb}`.
 
@@ -637,7 +633,7 @@ ic,b)` -->
 
 2. `[038e]` (03,09) Outside the front door; color text `{4f:0394}`.
 
-3. `[0465]` (01,01) If you've dealt with the giant boulder `[b9,01]`, offer travel to `(23:09,01)`. Otherwise, color text `{4f:047b}`.
+3. `[0465]` (09,01) If you've dealt with the giant boulder `[b9,01]`, offer travel to `(23:09,01)`. Otherwise, color text `{4f:047b}`.
 
 4. `[04bf]` (09,01) You moved or *Softened* the giant boulder. If you already dealt with it `[b9,01]`, exit. Otherwise, if you have **STR 18** or cast *D:Soften Stone*, color text `{4f:04cd}` and set `[b9,01]`. Otherwise, color text `{4f:04fe}` and it doesn't work.
 
@@ -747,7 +743,7 @@ ic,b)` -->
 | :------: | :-------: | :--------: | ---------------------------------------- |
 | `b9,00`  |  `[b9]`   | `*–––––––` | Smelled the curious odor                 |
 | `b9,01`  |  `[b9]`   | `–*––––––` | Killed the ladies of the Visitors Bureau |
-| `b9,02`  |  `[b9]`   | `––*–––––` | Dealt the bridge guards                  |
+| `b9,02`  |  `[b9]`   | `––*–––––` | Dealt with the bridge guards             |
 
 ### Events
 
@@ -776,7 +772,7 @@ ic,b)` -->
 
 | Bitsplit | Heap byte |    Bit     | Meaning                                       |
 | :------: | :-------: | :--------: | --------------------------------------------- |
-| `b9,00`  |  `[b9]`   | `*–––––––` |                                               |
+| `b9,00`  |  `[b9]`   | `*–––––––` | Read the introductory text                    |
 | `b9,01`  |  `[b9]`   | `–*––––––` | Appeased or killed the Scorpions              |
 | `b9,02`  |  `[b9]`   | `––*–––––` | The Scorpions block you from using the bridge |
 | `b9,04`  |  `[b9]`   | `––––*–––` | Have access to the chest at (04,06)           |
@@ -901,7 +897,7 @@ ic,b)` -->
 ### Events
 
 1. `[00e9]` (02,04) Color text: if `[99,0d]`, the stairs down are accessible `{55:0116}`. If not, the tunnel is blocked `{55:00f1}`.
-1. `[0137]` (04,04) Color text: a proud statue `{55:01e3}`. If `![99,0d]`, "the statue has no eyes" `{55:0185}`
+1. `[0137]` (04,04) Color text: a proud statue `{55:013e}`. If `![99,0d]`, "the statue has no eyes" `{55:0185}`
 1. `[019e]` You use the Jade Eyes on the statue. Set `[99,0d]` and write `[0061]<-0x10`, which opens the tunnel to access the stairs.
 1. `[01e2]` (04,01) Color text `{55:01e3}`.
 1. `[01fe]` (07,01) Color text `{55:01ff}`.
@@ -961,8 +957,8 @@ ic,b)` -->
 14. `[0663]` (09,12) and room. If the dwarves have not been revived `![99,0e]`, read paragraph #119. Otherwise, if you stole from them `[99,10]`, color text `{56:0678}` they don't like you. (*There's an Encounter all set where the dwarves attack you, but it never gets called. They even have a 2d4 breath weapon.*) Otherwise, color text `{56:069a}` they're rebuilding.
 15. `[06c0]` You depetrify the dwarves (so long as you didn't do that already); set `[99,0e]` and read paragraph #38. If you haven't stolen from them `![99,10]`, **gain 500 XP** and color text `{56:06d8}` the dwarves give you access to their treasure. Otherwise color text `{56:0739}` they're pissed at you.
 16. `[0761]` Do nothing.
-17. `[05eb]` Gate-and-set `[99,4d]` for the Dragon Horn (`[b9,06]`). 
-18. `[061d]` Gate-and-set `[99,4e]` for the Crush Mace and Spell Staff (`[b9,07]`). 
+17. `[05eb]` (00,15) Gate-and-set `[99,4d]` for the Dragon Horn (`[b9,06]`). 
+18. `[061d]` (04,15) Gate-and-set `[99,4e]` for the Crush Mace and Spell Staff (`[b9,07]`). 
 19. `[0761]` Default handler; do nothing.
 
 ### Actions
@@ -1247,10 +1243,10 @@ ic,b)` -->
 
 1. `[0159]` Run random combat. If you win, erase this event.
 2. `[011a]` You pick a lock. Only works on wall metadata `0x01`. Requires *Lockpick 4*.
-3. `[0162]` Color text `{5b:0163}`.
-4. `[0197]` You try to swim, but don't get very far `{5b:0198}`, `{5b:01f0}`.
-5. `[0220]` You use the Water Breathing potion. Travel to `(16:05,03)`.
-6. `[0257]` Gate-and-set `[99,48]` for access to a [chest](#chest) `[b9,04]`.
+3. `[0162]` (05,04) Color text `{5b:0163}`.
+4. `[0197]` (05,04) You try to swim, but don't get very far `{5b:0198}`, `{5b:01f0}`.
+5. `[0220]` (05,04) You use the Water Breathing potion. Travel to `(16:05,03)`.
+6. `[0257]` (04,03) Gate-and-set `[99,48]` for access to a [chest](#chest) `[b9,04]`.
 7. `[0299]` Default handler. If the party is outside (0,0)-(8,8), prompt to exit. NW:`(00:37,15)` SE:`(00:38,14)`
 
     Gate-and-set `[b9,00]` for color text `{5b:02cb}`, `{5b:033d}`.
@@ -1419,7 +1415,7 @@ ic,b)` -->
 
 | Special | Skill, Item, or Spell  | Event | Handler  |
 | :-----: | :--------------------: | :---: | :------: |
-| #7 |  item #9  |  #8  | `[0428]` |
+| #7 |  (item #9)  |  #8  | `[0428]` |
 | #10 |  Signet Ring  |  #12  | `[0565]` |
 | #17 |  Branches, *Druid Magic*  |  #19  | `[073b]` |
 
@@ -1605,7 +1601,7 @@ ic,b)` -->
 
 1. `[148b]` (23,03) Don't you dare go any further... `{61:148c}`. You can use the Dragon Gem here.
 
-1. `[14b9]` (23,02) If you've killed Namtar three times `[b9,02]`, you can pick up [his body](#chest) (`[b9,02]`).
+1. `[14b9]` (23,02) If you've killed Namtar three times `[b9,02]`, you can pick up [his body](#chest) (`[b9,02]`). Travel to `(12:08,15)`
 
    If you haven't fought Namtar yet `![b9,02]` but the Dragon Queen did her thing `[b9,07]`, Namtar comes back to life `{61:1639}`,`{61:1682}`. Set `[db]` to disable Running, then run combat #6 (Namtar #1, with taunting).
 
@@ -1862,14 +1858,14 @@ ic,b)` -->
 1. `[04bd]` (06,12) If you've already shown the Dragon Gem to the Queen `[99,89]`, exit. Gate-and-set `[b9,06]` for paragraph #134 and write your current coordinates to `[bb],[ba]`. Then display monster `0x3a` (Dragon Queen).
 1. `[04e8]` You show the Dragon Gem to the Queen. If `![b9,01]`, exit. Read paragraph #120 and gain **500 XP**. Set `![b9,01]` and `[99,89]` and`[ba]=0`.
 1. `[061e]` (14,14) A [locked chest](#locked) (`[99,4f]`, difficulty 5).
-1. `[062d]` (04,03) If you haven't beaten it `![99,50]`, run combat #1 (). If you win, set `[99,50]` and `[b9,04]`.
+1. `[062d]` (04,03) If you haven't beaten it `![99,50]`, run combat #1 (Dragon Warriors). If you win, set `[99,50]` and `[b9,04]`.
 1. `[0643]` (03,03) A [chest](#chest) (`[b9,04]`).
 1. `[047c]` (various) Run combat #3 (random). If you win, erase this event.
 1. `[0516]` Default handler. If the party is outside (0,0)-(15,15), prompt to exit. NE:`(00:35,15)` S:`(00:34,14)` W:`(00:33,15)`.
 
    If `[ba]=0`, there's a 1 in 12 chance of hearing a dragon roar.
 
-   Otherwise, you're in front of the Queen. If you're on the square where you met her (checks `[bb],[ba]`), she "prepares" to attack you `{66:05f2}` to give you time to try using the Gem. If you aren't, set `[ba]=0` and she actually attacks (combat #4). **When** you lose `{66:0560}`, you're blown back to the entrance (07,00). If you somehow manage to win, she "surrenders" `{66:0591}` and swears to answer the Dragon Gem when you use it, and you're blown back to the entrance `{66:05e3}`.
+   Otherwise, you're in front of the Queen. If you're on the square where you met her (checks `[bb],[ba]`), she "prepares" to attack you `{66:05f2}` to give you time to try using the Gem. If you aren't, set `[ba]=0` and she actually attacks (combat #4). **When** you lose `{66:0560}`, you're blown back to the entrance (07,00). If you somehow manage to win, she "surrenders" `{66:0591}` and swears to answer the Dragon Gem when you use it *but this doesn't set the flag*, and you're blown back to the entrance `{66:05e3}`.
 
 ### Actions
 
@@ -1958,17 +1954,17 @@ ic,b)` -->
 
 ### Events
 
-1. `[032f]` Read Lanac'toor's journal, paragraph #107, which is chock full of clues.
-1. `[0337]` Color text `{68:0338}`.
-1. `[036c]` Stairs up to Mud Toad `(08:07,10)`.
-1. `[037a]` Stairs down to the Underworld `(12:25,08)`.
+1. `[032f]` (08,09) Read Lanac'toor's journal, paragraph #107, which is chock full of clues.
+1. `[0337]` (03,14) Color text `{68:0338}`.
+1. `[036c]` (07,09) Stairs up to Mud Toad `(08:07,10)`.
+1. `[037a]` (02,12) Stairs down to the Underworld `(12:25,08)`.
 1. `[0388]` **You use *Cave Lore*.** If you're facing a wall with special `0x1`, it looks dangerous `{68:038f}`. Otherwise if it's a wall (metadata `0x80`), it looks fine `{68:03e5}`. Otherwise you're not facing a wall `{68:0415}`.
 1. `[0437]` You cast *D:Soften Stone*. If you're facing a wall with special `0x1`, it splashes you `{68:044d}` for **1d6 damage**.
 1. `[04f8]` If the Underworld has not yet been sealed off `![b9,01]`, run a random combat. If you win, erase this event.
 1. `[04a5]` You cast *D:Create Wall*. If you're facing a (missing) wall with special `0x2`, you seal up the Underworld staircase `{68:04ac}` on all four sides, stops random encounters `[24]=0x0`, and sets `[b9,01]`.
-1. `[0508]` Gate-and-set `[99,1e]` to find the [Spectacles](#chest) (`[b9,04]`).
-1. `[0541]` Gate-and-set `[99,51]` to find some [High Magic scrolls](#chest) (`[b9,05]`).
-1. `[058f]` A [locked chest](#locked) (`[99,52]`, difficulty 4) with a Healing Potion and Dragon Shield.
+1. `[0508]` (00,15) Gate-and-set `[99,1e]` to find the [Spectacles](#chest) (`[b9,04]`).
+1. `[0541]` (01,15) Gate-and-set `[99,51]` to find some [High Magic scrolls](#chest) (`[b9,05]`).
+1. `[058f]` (14,00) A [locked chest](#locked) (`[99,52]`, difficulty 4) with a Healing Potion and Dragon Shield.
 1. `[059e]` Default handler. Do nothing.
 
 ### Actions
@@ -2067,9 +2063,9 @@ ic,b)` -->
 
 ### Events
 
-1. `[0436]` (07,09) Stairs up to Kingshome `(19:-1,-1)`
+1. `[0436]` (07,09) Stairs up to Kingshome `(19:06,08)`
 
-   > Seriously somebody else must have written this method?
+   > Seriously somebody else must have written this method? It uses h[41] and h[43] as *offsets* from the current location.
 1. `[0466]` You pick a lock. Always works on wall metadata `0x01` (or `0x3`)
 1. `[04f0]` (10,14) Do nothing.
 1. `[03f2]` (04,12) Read paragraph #53 (the jester). Back away slowly `(02,13)` and relock his cell door.
@@ -2152,7 +2148,7 @@ ic,b)` -->
 
 1. `[06fc]` (02,02) If `[b9,05]`, the tracks stop `{6b:0707}`; set `![b9,05]`. If the Demon is still alive `![99,34]`, you have a bad feeling about this `{6b:071f}`.
 
-1. `[0753]` (03,03) If the Demon is still alive `![99,34]`, run a combat. If you have any Mirrors in your inventory, drop them; the tagline for combat #0 says he shatters them. Otherwise, the tagline for combat #5 doesn't say it. Either way, if you win, set  `[99,34]`.
+1. `[0753]` (03,03) If the Demon is still alive `![99,34]`, run a combat. If you have any Mirrors in your inventory, drop them and run combat #0 (he shatters them). Otherwise, run combat #5. Both encounters reference the same monster. Either way, if you win, set  `[99,34]`.
 
    > There are two Gaze Demons in the Monster list, although they're not much different (one's breath weapon is slightly more potent), and one isn't referenced by any Encounters. I wonder if one of these Encounters was supposed to use the "other" one.
 
@@ -2353,7 +2349,7 @@ Very similar to unlocked chests above, but not exactly. The first word is still 
 
 The next byte is a bitsplit against `heap[99]`, but if it's `0xff`, skip the check. The bitsplit check determines if the chest has been opened (1) or is still locked (0).
 
-If the chest is locked, the following byte is the lock's difficulty level. (If it's `0xff`, nevermind, the chest is actually unlocked.) If your *Lockpick* skill is greater than the difficulty level, you open the chest immediately. If it's equal, you have a 95% chance, and if it's lower, you have a decreasing chance depending on how much lower: 90%, 85%, 80%, 75%, 70%, 60%, and 50% if your skill is 7 or more ranks below the difficulty level. In practice, the worst lock has difficulty 5.
+If the chest is locked, the following byte is the lock's difficulty level. (If it's `0xff`, nevermind, the chest is actually unlocked.) If your *Lockpick* skill is greater than the difficulty level, you open the chest immediately. If it's equal, you have a 95% chance, and if it's lower, you have a decreasing chance depending on how much lower: 90%, 85%, 80%, 75%, 70%, 60%, and 50% if your skill is 7 or more ranks below the difficulty level. In practice, the worst lock has difficulty 5.
 
 When you unlock the chest, it sets the heap flag to mark the chest "opened" and sets the lock's difficulty level to 0.
 

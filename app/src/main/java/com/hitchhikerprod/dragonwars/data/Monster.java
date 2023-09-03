@@ -146,7 +146,7 @@ public class Monster {
 
     @Override
     public String toString() {
-        return longString();
+        return toHTML();
     }
 
     public String shortString() {
@@ -208,6 +208,34 @@ public class Monster {
             response.append(a.toString());
         }
         return response.toString();
+    }
+
+    public String toHTML() {
+        List<String> tokens = new ArrayList<>();
+        tokens.add("  <tr>");
+        tokens.add("    <td><b>" + this.name + "</b></td>");
+        tokens.add("    <td>" + this.strength + "</td>");
+        tokens.add("    <td>" + this.dexterity + "</td>");
+        tokens.add("    <td>" + this.intelligence + "</td>");
+        tokens.add("    <td>" + this.spirit + "</td>");
+        tokens.add("    <td>" + this.varHealth + "+" + this.baseHealth + "</td>");
+        tokens.add("    <td>" + (baseHealth + varHealth.getNum()) + "-" +
+            (baseHealth + (varHealth.getNum() * varHealth.getSides())) + "</td>");
+        tokens.add(String.format("    <td>%+d</td>", this.avBonus));
+        tokens.add(String.format("    <td>%+d</td>", this.dvBonus));
+        tokens.add("    <td>" + this.speed + "0'</td>");
+        tokens.add("    <td>" + xpReward.toInteger() + "</td>");
+        tokens.add("  </tr><tr>");
+        tokens.add("    <td></td>");
+        tokens.add("    <td colspan=\"10\"></td>");
+        tokens.add("  </tr>");
+        if (!this.flags.isEmpty()) {
+            tokens.add("  <!-- " + String.join(", ", this.flags) + " -->");
+        }
+        for (CombatAction a : this.actions) {
+            tokens.add("  <!-- " + a.toString() + " -->");
+        }
+        return String.join("\n", tokens);
     }
 
     /* 0x0b:

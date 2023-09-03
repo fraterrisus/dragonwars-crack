@@ -140,6 +140,8 @@ Section 4 is for **items**, referenced by the "special encounters" section of Pr
 
 Byte 0: If an encounter calls for randomly generated monster groups, the game picks a random number from 0 to this value and uses that group. For example, if there are 7 monster groups in the list and this byte is 4, then a random encounter will pick from groups 0-3.
 
+> Some boards have a random max of 0, which seems to mean monster group #0 is always picked; see Phoebus Event #15 / Encounter #9.
+
 Everything after that is a two-byte pointer to a Monster Group. Groups contain 33 bytes, which gets sliced and unpacked into a 41-byte (`0x00–0x28`) array when the encounter starts, plus a variable-length name string in five-bit packed format.
 
 | Source | Bitfield | Destination | Use |
@@ -167,7 +169,7 @@ Everything after that is a two-byte pointer to a Monster Group. Groups contain 3
 |        | `–––––––*` | `[0e]` | - **Article** (0:'a', 1:'an') |
 | `[0f]` | `––––––––` | `[0f]` | *Unknown*, but always zero |
 | `[10-1e]` |  | `[10-1e]` | Combat **actions** |
-| `[1f]` | `***–––––` | `[26]` | (+1) Melee **attacks per round** |
+| `[1f]` | `***–––––` | `[26]` | (+1) Melee **attacks per round**, always zero (1) |
 | `[1f]` | `–––*****` | `[1f]` | **Confidence level** |
 | `[20]` | `***–––––` | `[24]` | *Unknown* |
 | `[20]` | `–––*––––` | `[25]` | if 0, monster is immune to **Disarm** |

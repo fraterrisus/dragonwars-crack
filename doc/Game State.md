@@ -44,9 +44,9 @@
 | `99,23`  |  `[9d]`   | `–––*––––` |                 Byzanople                 | Killed the Byzanople observation party (and Princess Myrilla) |
 | `99,24`  |  `[9d]`   | `––––*–––` |    Byzanople Dungeon,<br />Siege Camp     | Joined forces with Prince Jordan                             |
 | `99,25`  |  `[9d]`   | `–––––*––` |                 Purgatory                 | Defeated the Humbaba                                         |
-| `99,26`  |  `[9d]`   | `––––––*–` |                 Purgatory                 | Have received reward from Clopin for defeating the Humbaba   |
+| `99,26`  |  `[9d]`   | `––––––*–` |                 Purgatory                 | Received reward from Clopin for defeating the Humbaba        |
 | `99,27`  |  `[9d]`   | `–––––––*` |                Slave Camp                 | Found the Nature Axe                                         |
-| `99,28`  |  `[9e]`   | `*–––––––` |       Slave Camp,<br />Dwarf Ruins        | Have unlocked *either* the chest in the trees (Camp) or the Dwarf Hammer chest (Ruins) |
+| `99,28`  |  `[9e]`   | `*–––––––` |       Slave Camp,<br />Dwarf Ruins        | Unlocked *either* the chest in the trees (Camp) or the Dwarf Hammer chest (Ruins) |
 | `99,29`  |  `[9e]`   | `–*––––––` |                Tars Ruins                 | Killed the scroll guards                                     |
 | `99,2a`  |  `[9e]`   | `––*–––––` |                Tars Ruins                 | Killed the Guardian Serpent                                  |
 | `99,2b`  |  `[9e]`   | `–––*––––` |               Tars Dungeon                | Unlocked the scrolls chest                                   |
@@ -64,7 +64,7 @@
 | `99,37`  |  `[9f]`   | `–––––––*` |                Slave Mines                | Unlocked the hidden chest                                    |
 | `99,38`  |  `[a0]`   | `*–––––––` |             Phoebus, Mud Toad             | Attempted to meet Berengaria at the Icarus<br />(If 0, you don't get to meet him in Mud Toad) |
 | `99,39`  |  `[a0]`   | `–*––––––` |                 Mud Toad                  | Have access to the militia's cache                           |
-| `99,3a`  |  `[a0]`   | `––*–––––` |              Smuggler's Cove              | Unlocked the pirate's treasure chest                         |
+| `99,3a`  |  `[a0]`   | `––*–––––` |              Smuggler's Cove              | Unlocked the pirates' treasure chest                         |
 | `99,3b`  |  `[a0]`   | `–––*––––` |                   Lansk                   | Unlocked the chest                                           |
 | `99,3c`  |  `[a0]`   | `––––*–––` |             Kingshome Dungeon             | Found the Armory                                             |
 | `99,3d`  |  `[a0]`   | `–––––*––` |                 Kingshome                 | Found the weapons cache                                      |
