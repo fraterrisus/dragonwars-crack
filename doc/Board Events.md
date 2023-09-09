@@ -241,7 +241,7 @@ ic,b)` -->
     > This is the same bitsplit as the chest holding the Dwarven Hammer in the Ruins on King's Isle; if you unlock this chest, you lose that one (and vice versa).
 21. `[09bd]` (10,02) The [tavern](#tavern). Louie is here.
 22. `[0795]` Default handler. If the party is outside (0,0)-(17,16), prompt to exit. N:`(00:11,04)` ES:`(00:11,02)` W:`(00:10,03)`
-    - If this is your first time here `!(00,b9)`, set `(00,b9)`. If `(00,99)`, you already killed everyone; erase events #1–12, #17, and #19, then exit. If `(01,99)` is set, you're already friends, so exit. If any character has flag `0x40` (swam out of Purgatory), read paragraph #16; the camp is happy with you. Set `(01,99)` and exit. Otherwise, the residents are suspicious; exit (and await player action)
+    - If this is your first time here `!(00,b9)`, set `(00,b9)`. If `(00,99)`, you already killed everyone; erase events #1–9, #11–13, #19, and #21, then exit. If `(01,99)` is set, you're already friends, so exit. If any character has flag `0x40` (swam out of Purgatory), read paragraph #16; the camp is happy with you. Set `(01,99)` and exit. Otherwise, the residents are suspicious; exit (and await player action)
     - If you've been here before and either `(01,99)` or `(00,99)`, exit. Otherwise, if you stay on the perimeter of the map, the residents wait for you to leave. If you step inside (1,1)-(13,15), the camp residents attack (encounter #0). If you kill them, read paragraph #18 (shame) and set `00,99`.
 
 ### Actions
