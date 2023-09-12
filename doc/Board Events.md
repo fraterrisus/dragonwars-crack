@@ -122,7 +122,7 @@ ic,b)` -->
 
 9. `[1055]` (06,13) Statue of Irkalla. Gate-and-set `[b9,1b]` to display color text. The sacrifice works on a Spirit check (vs 1d20). If it works, set `char[92].0x80` on every party member.
 
-10. `[10e3]` (07,12) Apsu Waters. Travel to the Magan Underworld (12:13,04). If you say 'N', you back up.
+10. `[10e3]` (07,12) Apsu Waters. Travel to the Magan Underworld `(12:13,04)`. If you say 'N', you back up.
 
 11. `[112d]` (19,26) Entering the Arena. Runs the "free gear" program if you have less than 3 x your party size items in your inventory. Then erases the entry door `ds[0320]<-0x30` and replaces this Event `ds[02bc]<-0x1d` with Event #29.
 
@@ -158,7 +158,7 @@ ic,b)` -->
 
 27. `[0e8c]` (23,09) Run combat #1 (5 King's Guard and 6 Pikemen). Clear the square if you win.
 
-28. `[110e]` (06,12) One square shy of the Apsu Waters. Gate on Town Lore 1 to get paragraph #94. Otherwise you see "odd waters".
+28. `[110e]` (06,12) One square shy of the Apsu Waters. Gate on *Town Lore 1* to get paragraph #94. Otherwise you see "odd waters".
 
 29. `[1255]` Color text `{47:1256}`
 
@@ -1163,7 +1163,7 @@ ic,b)` -->
 
 1. `[08a7]` (02,03) Run combat #2 (Spiders). If you win, erase this event.
 
-1. `[067d]` Default handler. Gate-and-set `[b9,00]`. Then set `[b9,02]`,`[b9,03]`, and `[b9,04]` to enable access to the Hammer parts. If you somehow got here *without* selling yourself into slavery in Purgatory `![99,35]`, exit.
+1. `[067d]` Default handler. Gate-and-set `[b9,00]`. Then set `[b9,02]`,`[b9,03]`, and `[b9,04]` to enable access to the Hammer parts. If you somehow got here *without* selling yourself into slavery in Purgatory `![99,35]`, exit. (That literally shouldn't be possible.)
 
    Set `![99,35]` and `[b9,01]`. Take the party's inventory, unequip it, and move it all to a data area `{59:08b2}`. Give everyone a set of Chains and set status `0x2` (chained). Throw away the party's gold.
 
